@@ -1,0 +1,19 @@
+2025-07-03T02:57:58+09:00
+Running ./out/build/linux/x86_64/release/bin/femtolog_bench
+Run on (8 X 4300 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 12288 KiB (x1)
+Load Average: 1.44, 1.49, 1.22
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+----------------------------------------------------------------
+Benchmark                      Time             CPU   Iterations
+----------------------------------------------------------------
+femtolog_info_literal       3.17 ns         3.17 ns    218468283
+femtolog_info_format        9.67 ns         9.67 ns     69165418
+quill_info_literal          14.8 ns         14.8 ns     47258600
+quill_info_format           14.8 ns         14.8 ns     46990579
+spdlog_info_literal         27.6 ns         27.6 ns     27398817
+spdlog_info_format          50.2 ns         50.2 ns     13677398

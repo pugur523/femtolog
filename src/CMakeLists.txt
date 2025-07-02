@@ -50,8 +50,8 @@ option(FEMTOLOG_INSTALL_TESTING "install testing module" FALSE)
 option(FEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD "enable running benchmarks post build" FALSE)
 option(FEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD "enable running tests post build" TRUE)
 
-option(FEMTOLOG_ENABLE_BENCH_SPDLOG "Enable spdlog for benchmark" ON)
-option(FEMTOLOG_ENABLE_BENCH_QUILL "Enable spdlog for benchmark" ON)
+option(FEMTOLOG_ENABLE_BENCH_QUILL "Enable spdlog for benchmark" TRUE)
+option(FEMTOLOG_ENABLE_BENCH_SPDLOG "Enable spdlog for benchmark" TRUE)
 
 string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} lower_arch)
 string(TOLOWER ${CMAKE_SYSTEM_NAME} lower_os_name)
@@ -213,8 +213,8 @@ install testing: ${FEMTOLOG_INSTALL_TESTING}
 enable run benchmark post build: ${FEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD}
 enable run testing post build: ${FEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD}
 
-enable benchmark spdlog: ${FEMTOLOG_ENABLE_BENCH_SPDLOG}
-enable benchmark quill: ${FEMTOLOG_ENABLE_BENCH_QUILL}
+enable bench quill: ${FEMTOLOG_ENABLE_BENCH_QUILL}
+enable bench spdlog: ${FEMTOLOG_ENABLE_BENCH_SPDLOG}
 
 enable verbose: ${FEMTOLOG_ENABLE_VERBOSE}
 enable lto: ${FEMTOLOG_ENABLE_LTO}

@@ -101,24 +101,24 @@ This architecture separates formatting from the hot path of logging, minimizing 
 
 ## 📊 Benchmarks
 
-The following benchmark results were measured using [Google Benchmark](https://github.com/google/benchmark) performed on Intel Core i3 121000F, Linux x86_64, Clang 21, -O3.
-The benchmark codes are available in [`//src/bench/`](src/bench/) directory.
+The following benchmark results were measured using [Google Benchmark](https://github.com/google/benchmark) performed on Clang-21 -O3 Release build, Intel Core i3 12100, 64GB 3600MHz RAM, Ubuntu 22.04 x86_64.
+The benchmark codes are available in [`//src/bench/`](src/bench/) directory and the detail results of benchmark are archived in [`//src/bench/results/archive`](src/bench/results/archive/) directory.
 
 ### Log literal strings (without formatting)
 
 | Library      | Median Latency (ns) | Throughput (msgs/sec) |
 | :----------- | :------------------ | :-------------------- |
-| **femtolog** | **3.48 ns**         | **\~198.9M**          |
-| quill        | 23.8 ns             | \~30.7M               |
-| spdlog       | 30.2 ns             | \~18.6M               |
+| **femtolog** | **3.17 ns**         | **\~218.4M**          |
+| quill        | 14.8 ns             | \~47.2M               |
+| spdlog       | 27.6 ns             | \~27.3M               |
 
 ### Log strings with formatting
 
 | Library      | Median Latency (ns) | Throughput (msgs/sec) |
 | :----------- | :------------------ | :-------------------- |
-| **femtolog** | **10.6 ns**         | **\~63.8M**           |
-| quill        | 23.0 ns             | \~29.8M               |
-| spdlog       | 52.2 ns             | \~11.2M               |
+| **femtolog** | **9.67 ns**         | **\~69.1M**           |
+| quill        | 14.8 ns             | \~46.9M               |
+| spdlog       | 50.2 ns             | \~13.6M               |
 
 
 ## 🔧 Installation

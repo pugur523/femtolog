@@ -10,9 +10,9 @@
 namespace femtolog {
 
 struct FemtologOptions {
-  std::size_t spsc_queue_size = 2 * 1024 * 1024;
-  std::size_t format_buffer_size = 512;
-  std::size_t backend_dequeue_buffer_size = 4096;
+  std::size_t spsc_queue_size = 1024 * 8;
+  std::size_t format_buffer_size = 1024;
+  std::size_t backend_dequeue_buffer_size = 1024;
 };
 
 }  // namespace femtolog

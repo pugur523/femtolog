@@ -99,24 +99,24 @@ logger (フロントエンド)
 
 ## 📊 ベンチマーク
 
-以下のベンチマーク結果は [Google Benchmark](https://github.com/google/benchmark) を用い、Intel Core i3 121000F, Linux x86_64, Clang 21, -O3 の環境で測定したものです。
-使用したベンチマークコードは [`//src/bench/`](src/bench/) ディレクトリにて確認できます。
+以下のベンチマーク結果は [Google Benchmark](https://github.com/google/benchmark) を用い、Clang-21 -O3 Release build, Intel Core i3 12100, 64GB 3600MHz RAM, Ubuntu 22.04 x86_64の環境で測定したものです。
+使用したベンチマークコードは [`//src/bench/`](src/bench/) ディレクトリにて確認できます。また、ベンチマーク結果の詳細については[`//src/bench/results/archive/`](src/bench/results/archive/)ディレクトリにアーカイブしてあります。
 
 ### リテラル文字列(フォーマットなし)のログ
 
 | ライブラリ   | レイテンシ中央値 (ns) | スループット (msgs/sec) |
 | :----------- | :-------------------- | :---------------------- |
-| **femtolog** | **3.48 ns**           | **\~198.9M**            |
-| quill        | 23.8 ns               | \~30.7M                 |
-| spdlog       | 30.2 ns               | \~18.6M                 |
+| **femtolog** | **3.17 ns**           | **\~218.4M**            |
+| quill        | 14.8 ns               | \~47.2M                 |
+| spdlog       | 27.6 ns               | \~27.3M                 |
 
 ### フォーマットあり文字列のログ
 
 | ライブラリ   | レイテンシ中央値 (ns) | スループット (msgs/sec) |
 | :----------- | :-------------------- | :---------------------- |
-| **femtolog** | **10.6 ns**           | **\~63.8M**             |
-| quill        | 23.0 ns               | \~29.8M                 |
-| spdlog       | 52.2 ns               | \~11.2M                 |
+| **femtolog** | **9.67 ns**           | **\~69.1M**             |
+| quill        | 14.8 ns               | \~46.9M                 |
+| spdlog       | 50.2 ns               | \~13.6M                 |
 
 
 ## 🔧 インストール

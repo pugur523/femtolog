@@ -114,7 +114,6 @@ TEST_F(InternalLoggerTest, WorkerStartStop) {
   logger_->register_sink(std::move(mock_sink_));
 
   logger_->start_worker();
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
   logger_->stop_worker();
 }
 
@@ -149,7 +148,6 @@ TEST_F(InternalLoggerTest, LiteralStringLogging) {
   EXPECT_TRUE(result);
 
   // Wait for processing
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger_->stop_worker();
 
   // Verify captured data
@@ -179,7 +177,6 @@ TEST_F(InternalLoggerTest, ParameterizedLogging) {
   bool result = logger_->log<LogLevel::kInfo, fmt>(42);
   EXPECT_TRUE(result);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger_->stop_worker();
 
   // Verify captured data
@@ -214,7 +211,6 @@ TEST_F(InternalLoggerTest, LogLevelFiltering) {
   bool error_result = logger_->log<LogLevel::kError, error_msg>();
   EXPECT_TRUE(error_result);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger_->stop_worker();
 
   // Only error message should be captured
@@ -252,7 +248,6 @@ TEST_F(InternalLoggerTest, MultipleSinks) {
   bool result = logger_->log<LogLevel::kInfo, msg>();
   EXPECT_TRUE(result);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger_->stop_worker();
 
   // Both sinks should receive the message
@@ -281,7 +276,6 @@ TEST_F(InternalLoggerTest, EnqueueDropCounters) {
   bool result = logger_->log<LogLevel::kInfo, msg>();
   EXPECT_TRUE(result);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger_->stop_worker();
 
   // Enqueued count should have increased
@@ -320,7 +314,6 @@ TEST_F(InternalLoggerTest, DifferentLogLevels) {
   logger_->log<LogLevel::kError, error_msg>();
   logger_->log<LogLevel::kFatal, fatal_msg>();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(150));
   logger_->stop_worker();
 
   // Verify all levels were captured
@@ -353,7 +346,6 @@ TEST_F(InternalLoggerTest, ThreadIdConsistency) {
   constexpr FixedString msg = "Thread ID test";
   logger_->log<LogLevel::kInfo, msg>();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   logger_->stop_worker();
 
   ASSERT_EQ(mock_sink_ptr_->captured_logs.size(), 1);
@@ -391,7 +383,6 @@ TEST_F(InternalLoggerTest, RealisticLoggingScenario) {
   // Log completion
   logger_->log<LogLevel::kInfo, complete_msg>();
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
   logger_->stop_worker();
 
   // Verify we got the expected logs

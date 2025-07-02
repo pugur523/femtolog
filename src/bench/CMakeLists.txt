@@ -23,6 +23,20 @@ set(SOURCES
 
 include(FetchContent)
 
+if(FEMTOLOG_ENABLE_BENCH_QUILL)
+  FetchContent_Declare(
+    quill
+    GIT_REPOSITORY https://github.com/odygrd/quill.git
+    GIT_TAG v10.0.0
+  )
+  set(QUILL_NO_EXCEPTIONS TRUE)
+
+  # set(QUILL_X86ARCH TRUE)
+  FetchContent_MakeAvailable(quill)
+  list(APPEND BENCHMARK_LIBRARIES quill::quill)
+  list(APPEND SOURCES quill_bench.cc)
+endif()
+
 if(FEMTOLOG_ENABLE_BENCH_SPDLOG)
   FetchContent_Declare(
     spdlog
@@ -33,19 +47,6 @@ if(FEMTOLOG_ENABLE_BENCH_SPDLOG)
   target_compile_definitions(spdlog PUBLIC SPDLOG_NO_EXCEPTIONS)
   list(APPEND BENCHMARK_LIBRARIES spdlog)
   list(APPEND SOURCES spdlog_bench.cc)
-endif()
-
-if(FEMTOLOG_ENABLE_BENCH_QUILL)
-  FetchContent_Declare(
-    quill
-    GIT_REPOSITORY https://github.com/odygrd/quill.git
-    GIT_TAG v10.0.0
-  )
-  set(QUILL_NO_EXCEPTIONS TRUE)
-  # set(QUILL_X86ARCH TRUE)
-  FetchContent_MakeAvailable(quill)
-  list(APPEND BENCHMARK_LIBRARIES quill::quill)
-  list(APPEND SOURCES quill_bench.cc)
 endif()
 
 add_executable(${BENCHMARK_NAME} ${SOURCES})
