@@ -2,7 +2,7 @@
 # This source code is licensed under the Apache License, Version 2.0
 # which can be found in the LICENSE file.
 
-function(setup_package)
+function(femtolog_setup_package)
   include(InstallRequiredSystemLibraries)
   set(CPACK_PACKAGE_NAME "${MAIN_LIB_NAME}")
   set(CPACK_PACKAGE_VENDOR "${PROJECT_AUTHOR}")

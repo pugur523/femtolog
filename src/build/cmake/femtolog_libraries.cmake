@@ -2,7 +2,7 @@
 # This source code is licensed under the Apache License, Version 2.0
 # which can be found in the LICENSE file.
 
-macro(setup_gtest)
+macro(femtolog_setup_gtest)
   set(GTEST_ROOT_DIR ${THIRD_PARTY_DIR}/gtest)
   set(GTEST_DIR ${GTEST_ROOT_DIR}/googletest)
   set(GTEST_INCLUDE_DIR ${GTEST_DIR}/include)
@@ -27,7 +27,7 @@ macro(setup_gtest)
   endif()
 endmacro()
 
-macro(setup_google_benchmark)
+macro(femtolog_setup_google_benchmark)
   set(GOOGLE_BENCHMARK_DIR ${THIRD_PARTY_DIR}/google_benchmark)
   set(GOOGLE_BENCHMARK_INCLUDE_DIR ${GOOGLE_BENCHMARK_DIR}/include)
 
@@ -57,7 +57,7 @@ macro(setup_google_benchmark)
   set(GOOGLE_BENCHMARK_LIBRARIES benchmark::benchmark)
 endmacro()
 
-macro(setup_llvm)
+macro(femtolog_setup_llvm)
   # Windows: manually specify llvm paths
   if(NOT TARGET_OS_NAME MATCHES "windows")
     find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config-21 llvm-config)
@@ -84,7 +84,7 @@ macro(setup_llvm)
   endif()
 endmacro()
 
-macro(setup_zlib)
+macro(femtolog_setup_zlib)
   set(ZLIB_DIR ${THIRD_PARTY_DIR}/zlib)
   set(ZLIB_INCLUDE_DIR ${ZLIB_DIR})
 
@@ -107,7 +107,7 @@ macro(setup_zlib)
   )
 endmacro()
 
-macro(setup_fmtlib)
+macro(femtolog_setup_fmtlib)
   set(FMTLIB_DIR ${THIRD_PARTY_DIR}/fmtlib)
   set(FMTLIB_INCLUDE_DIR ${FMTLIB_DIR}/include)
 

@@ -2,7 +2,7 @@
 # This source code is licensed under the Apache License, Version 2.0
 # which can be found in the LICENSE file.
 
-macro(setup_windows_flags)
+macro(femtolog_setup_windows_flags)
   # Enable color and use libc++
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics -fdiagnostics-color=always" PARENT_SCOPE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -fdiagnostics-color=always" PARENT_SCOPE)
@@ -54,7 +54,7 @@ macro(setup_windows_flags)
   list(APPEND WINDOWS_LINK_LIBRARIES "dbghelp")
 endmacro()
 
-macro(setup_unix_flags)
+macro(femtolog_setup_unix_flags)
   # Enable color and use libc++
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color=always")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always -stdlib=libc++")
@@ -137,11 +137,11 @@ macro(setup_unix_flags)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmacro-prefix-map=${PROJECT_ROOT_DIR}/=")
 endmacro()
 
-macro(setup_mingw_flags)
+macro(femtolog_setup_mingw_flags)
   set(MINGW_LINK_LIBRARIES "dbghelp")
 endmacro()
 
-macro(setup_apple_flags)
+macro(femtolog_setup_apple_flags)
   execute_process(
     COMMAND xcrun --sdk macosx --show-sdk-path
     OUTPUT_VARIABLE MACOS_SDK_PATH
@@ -150,7 +150,7 @@ macro(setup_apple_flags)
   add_compile_options(-isysroot ${MACOS_SDK_PATH} -I${MACOS_SDK_PATH}/usr/include)
 endmacro()
 
-macro(setup_common_flags)
+macro(femtolog_setup_common_flags)
   # Profiling with llvm-coverage
   if(FEMTOLOG_ENABLE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
@@ -206,7 +206,7 @@ macro(setup_common_flags)
   endif()
 endmacro()
 
-macro(setup_flags)
+macro(femtolog_setup_flags)
   include(CheckCXXCompilerFlag)
   string(TOUPPER ${MAIN_LIB_NAME} UPPER_PROJECT_NAME)
 
@@ -215,20 +215,20 @@ macro(setup_flags)
   endif()
 
   if(MSVC AND TARGET_OS_NAME MATCHES "windows")
-    setup_windows_flags()
+    femtolog_setup_windows_flags()
   elseif(NOT MSVC)
-    setup_unix_flags()
+    femtolog_setup_unix_flags()
   endif()
 
   if(MINGW_BUILD)
-    setup_mingw_flags()
+    femtolog_setup_mingw_flags()
   endif()
 
   if(APPLE)
-    setup_apple_flags()
+    femtolog_setup_apple_flags()
   endif()
 
-  setup_common_flags()
+  femtolog_setup_common_flags()
 endmacro()
 
 function(print_all_build_flags)

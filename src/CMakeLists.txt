@@ -133,20 +133,20 @@ set(ADDITIONAL_INCLUDE_DIRECTORIES "" CACHE STRING "additional include directori
 set(ADDITIONAL_LINK_DIRECTORIES "" CACHE STRING "additional link directories to apply whole the project")
 set(ADDITIONAL_LINK_LIBRARIES "" CACHE STRING "additional link libraries to apply whole the project")
 
-include(utils)
+include(femtolog_utils)
 
-include(flags)
-setup_flags()
+include(femtolog_flags)
+femtolog_setup_flags()
 
-include(libraries)
-setup_llvm()
-setup_zlib()
-setup_fmtlib()
+include(femtolog_libraries)
+femtolog_setup_llvm()
+femtolog_setup_zlib()
+femtolog_setup_fmtlib()
 
-include(package)
-setup_package()
+include(femtolog_package)
+femtolog_setup_package()
 
-include(setup_module)
+include(femtolog_setup_module)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

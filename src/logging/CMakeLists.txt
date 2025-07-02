@@ -2,8 +2,8 @@
 # This source code is licensed under the Apache License, Version 2.0
 # which can be found in the LICENSE file.
 
-set(MODULE_NAME "logging")
-set(MODULE_OBJECTS_NAME "logging_objects")
+set(MODULE_NAME "femtolog_logging")
+set(MODULE_OBJECTS_NAME "femtolog_logging_objects")
 
 message(STATUS "Configuring ${MODULE_NAME} module...")
 
@@ -15,7 +15,7 @@ set(SOURCES
 
 add_library(${MODULE_OBJECTS_NAME} OBJECT ${SOURCES})
 
-setup_module(${MODULE_NAME} ${MODULE_OBJECTS_NAME}
+femtolog_setup_module(${MODULE_NAME} ${MODULE_OBJECTS_NAME}
   INCLUDE_DIRS ${FEMTOLOG_INCLUDE_DIRECTORIES}
   LINK_DIRS ${FEMTOLOG_LINK_DIRECTORIES}
   COMPILE_OPTIONS ${PROJECT_COMPILE_OPTIONS}
