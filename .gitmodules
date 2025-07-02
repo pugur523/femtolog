@@ -1,0 +1,15 @@
+[submodule "src/third_party/toml11"]
+	path = src/third_party/toml11
+	url = https://github.com/ToruNiina/toml11
+[submodule "src/third_party/zlib"]
+	path = src/third_party/zlib
+	url = https://github.com/madler/zlib
+[submodule "src/third_party/gtest"]
+	path = src/third_party/gtest
+	url = https://github.com/google/googletest
+[submodule "src/third_party/google_benchmark"]
+	path = src/third_party/google_benchmark
+	url = https://github.com/google/benchmark
+[submodule "src/third_party/fmtlib"]
+	path = src/third_party/fmtlib
+	url = https://github.com/fmtlib/fmt

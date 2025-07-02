@@ -1,0 +1,25 @@
+// Copyright 2025 pugur
+// This source code is licensed under the Apache License, Version 2.0
+// which can be found in the LICENSE file.
+
+#ifndef BUILD_BUILD_CONFIG_H_
+#define BUILD_BUILD_CONFIG_H_
+
+#define PROJECT_NAME "@PROJECT_NAME@"
+#define PROJECT_VERSION "@PROJECT_VERSION@"
+#define PROJECT_DESCRIPTION "@PROJECT_DESCRIPTION@"
+
+#define BUILD_NAME "@BUILD_NAME@"
+#define BUILD_VERSION "@BUILD_VERSION@"
+#define BUILD_DESCRIPTION "@BUILD_DESCRIPTION@"
+#define BUILD_TYPE "@BUILD_TYPE@"
+#define BUILD_TIME "@BUILD_TIME@"
+#define BUILD_PLATFORM "@BUILD_PLATFORM@"
+#define BUILD_ARCH "@BUILD_ARCH@"
+#define BUILD_COMPILER "@BUILD_COMPILER@"
+#define TARGET_PLATFORM "@TARGET_PLATFORM@"
+#define TARGET_ARCH "@TARGET_ARCH@"
+#define TARGET_BITS "@TARGET_BITS@"
+#define BUILD_GIT_COMMIT_HASH "@BUILD_GIT_COMMIT_HASH@"
+
+#endif  // BUILD_BUILD_CONFIG_H_

@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - ".clang-tidy"
+      - ".gitmodules"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/scripts/summarize.py"
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      build_release:
+        description: 'Build in Release mode'
+        required: true
+        default: true
+        type: boolean
+      upload_artifacts:
+        description: 'Upload build artifacts'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      build_release: ${{ github.event_name == 'workflow_dispatch' && inputs.build_release || true }}
+      upload_artifacts: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_artifacts || false }}

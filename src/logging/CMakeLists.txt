@@ -1,0 +1,29 @@
+# Copyright 2025 pugur
+# This source code is licensed under the Apache License, Version 2.0
+# which can be found in the LICENSE file.
+
+set(MODULE_NAME "logging")
+set(MODULE_OBJECTS_NAME "logging_objects")
+
+message(STATUS "Configuring ${MODULE_NAME} module...")
+
+set(SOURCES
+  impl/backend_worker.cc
+  impl/internal_logger.cc
+  impl/spsc_queue.cc
+  impl/logger.cc
+)
+
+add_library(${MODULE_OBJECTS_NAME} OBJECT ${SOURCES})
+
+setup_module(${MODULE_NAME} ${MODULE_OBJECTS_NAME}
+  INCLUDE_DIRS ${FEMTOLOG_INCLUDE_DIRECTORIES}
+  LINK_DIRS ${FEMTOLOG_LINK_DIRECTORIES}
+  COMPILE_OPTIONS ${PROJECT_COMPILE_OPTIONS}
+  LINK_OPTIONS ${FEMTOLOG_LINK_OPTIONS}
+  LINK_LIBS core ${FEMTOLOG_LINK_LIBRARIES}
+)
+
+if(FEMTOLOG_ENABLE_VERBOSE)
+  describe_target(${MODULE_NAME})
+endif()

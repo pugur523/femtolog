@@ -1,0 +1,47 @@
+# Copyright 2025 pugur
+# This source code is licensed under the Apache License, Version 2.0
+# which can be found in the LICENSE file.
+
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR x86_64)
+
+# Prefer versioned LLVM tools if available
+find_program(CLANG_PATH NAMES clang-cl REQUIRED)
+find_program(LLD_PATH NAMES lld-link REQUIRED)
+find_program(LLVM_AR_PATH NAMES llvm-lib REQUIRED)
+find_program(LLVM_RANLIB_PATH NAMES llvm-ranlib REQUIRED)
+find_program(LLVM_NM_PATH NAMES llvm-nm REQUIRED)
+find_program(LLVM_OBJCOPY_PATH NAMES llvm-objcopy REQUIRED)
+find_program(LLVM_OBJDUMP_PATH NAMES llvm-objdump REQUIRED)
+
+# find_program(LLVM_RC_PATH NAMES llvm-rc REQUIRED)
+find_program(RC_PATH NAMES rc REQUIRED)
+find_program(LLVM_STRIP_PATH NAMES llvm-strip REQUIRED)
+
+# Set compiler and tools
+set(CMAKE_C_COMPILER "${CLANG_PATH}")
+set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
+set(CMAKE_ASM_COMPILER "${CLANG_PATH}")
+set(CMAKE_LINKER "${LLD_PATH}")
+set(CMAKE_AR "${LLVM_AR_PATH}")
+set(CMAKE_RANLIB "${LLVM_RANLIB_PATH}")
+set(CMAKE_NM "${LLVM_NM_PATH}")
+set(CMAKE_OBJCOPY "${LLVM_OBJCOPY_PATH}")
+set(CMAKE_OBJDUMP "${LLVM_OBJDUMP_PATH}")
+
+# set(CMAKE_RC_COMPILER "${LLVM_RC_PATH}")
+set(CMAKE_RC_COMPILER "${RC_PATH}")
+set(CMAKE_STRIP "${LLVM_STRIP_PATH}")
+
+# Compiler flags for Windows
+set(CMAKE_C_FLAGS_INIT "/EHsc /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS")
+set(CMAKE_CXX_FLAGS_INIT "/EHsc /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS")
+
+# Linker flags for Windows
+set(CMAKE_EXE_LINKER_FLAGS_INIT "/MANIFEST /SUBSYSTEM:CONSOLE")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "/MANIFEST")
+
+# Search paths
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
