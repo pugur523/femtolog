@@ -2,6 +2,16 @@
   femtolog
 </h1>
 
+[![Ci](https://github.com/pugur523/femtolog/actions/workflows/ci.yml/badge.svg)](https://github.com/pugur523/femtolog/actions/workflows/ci.yml)
+[![Issues](https://img.shields.io/github/issues/pugur523/femtolog.svg)](https://github.com/pugur523/femtolog/issues)
+[![License](https://img.shields.io/badge/License-Apache%20License%20Version%202.0-red)](LICENSE)
+[![C++20](https://img.shields.io/badge/C++-20-blue?logo=cplusplus)](https://isocpp.org/)
+[![CMake](https://img.shields.io/badge/CMake-4.0.2+-green?logo=cmake)](https://cmake.org/)
+<br/>
+[![English Readme](https://img.shields.io/badge/English%20Readme-blue)](README.md)
+
+> 軽量で高性能な非同期logger
+
 ## ☄ 概要
 
 **femtolog** は、パフォーマンス重視のアプリケーション向けに設計された、超高速・最小オーバーヘッドの非同期ロギングライブラリです。ゼロコスト抽象化、キャッシュアラインされたSPSCキュー、コンパイル時のフォーマット文字列シリアライズを活用しています。

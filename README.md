@@ -2,6 +2,14 @@
   femtolog
 </h1>
 
+[![CI](https://github.com/pugur523/femtolog/actions/workflows/ci.yml/badge.svg)](https://github.com/pugur523/femtolog/actions/workflows/ci.yml)
+[![Issues](https://img.shields.io/github/issues/pugur523/femtolog.svg)](https://github.com/pugur523/femtolog/issues)
+[![License](https://img.shields.io/badge/License-Apache%20License%20Version%202.0-red)](LICENSE)
+[![C++20](https://img.shields.io/badge/C++-20-blue?logo=cplusplus)](https://isocpp.org/)
+[![CMake](https://img.shields.io/badge/CMake-4.0.2+-green?logo=cmake)](https://cmake.org/)
+<br/>
+[![日本語の説明はこちら](https://img.shields.io/badge/日本語の説明はこちら-blue)](README_ja.md)
+
 > Ultra-Light, High-Performance Asynchronous Logger
 
 ## ☄ Overview
