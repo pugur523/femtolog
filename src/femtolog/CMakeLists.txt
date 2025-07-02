@@ -37,3 +37,22 @@ add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
 if(FEMTOLOG_ENABLE_VERBOSE)
   describe_target(${MODULE_NAME})
 endif()
+
+if(FEMTOLOG_INSTALL_LIBS)
+  install(
+    TARGETS ${MODULE_NAME}
+    RUNTIME
+    COMPONENT Runtime
+    ARCHIVE
+    COMPONENT Archive
+    LIBRARY
+    COMPONENT Library
+  )
+
+  install(
+    FILES "$<TARGET_FILE_DIR:${MODULE_NAME}>/${MODULE_NAME}.pdb" "$<TARGET_FILE_DIR:${MODULE_NAME}>/${MODULE_NAME}d.pdb"
+    DESTINATION bin
+    COMPONENT Runtime
+    OPTIONAL
+  )
+endif()

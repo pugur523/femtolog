@@ -11,7 +11,6 @@ set(SOURCES
   impl/backend_worker.cc
   impl/internal_logger.cc
   impl/spsc_queue.cc
-  impl/logger.cc
 )
 
 add_library(${MODULE_OBJECTS_NAME} OBJECT ${SOURCES})

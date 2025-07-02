@@ -76,13 +76,17 @@ function(setup_module module_name objects_name)
   endif()
 
   set(install_option_name INSTALL_${UPPER_MODULE_NAME})
-  option(${install_option_name} "install ${module_name}" ${FEMTOLOG_INSTALL_LIBS})
+  option(${install_option_name} "install ${module_name}" FALSE)
 
   if(${FEMTOLOG_INSTALL_LIBS} AND ${${install_option_name}})
     install(
       TARGETS ${module_name}
       RUNTIME
       COMPONENT Runtime
+      ARCHIVE
+      COMPONENT Archive
+      LIBRARY
+      COMPONENT Library
     )
 
     install(

@@ -3,10 +3,11 @@
 // which can be found in the LICENSE file.
 
 #include "benchmark/benchmark.h"
-#include "logging/impl/internal_logger.h"
+#include "femtolog/options.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
 
 #include "quill/Backend.h"
 #include "quill/Frontend.h"

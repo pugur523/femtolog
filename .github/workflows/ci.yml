@@ -21,7 +21,7 @@ on:
       upload_artifacts:
         description: 'Upload build artifacts'
         required: true
-        default: false
+        default: true
         type: boolean
 
 jobs:
@@ -29,4 +29,4 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       build_release: ${{ github.event_name == 'workflow_dispatch' && inputs.build_release || true }}
-      upload_artifacts: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_artifacts || false }}
+      upload_artifacts: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_artifacts || true }}

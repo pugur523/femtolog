@@ -359,7 +359,7 @@ bool compress(const char* src_path,
 
 int create_directory(const char* path) {
 #if IS_WINDOWS
-  WINBOOL ok = CreateDirectoryA(path, nullptr);
+  BOOL ok = CreateDirectoryA(path, nullptr);
   if (!ok && GetLastError() != ERROR_ALREADY_EXISTS) {
     return -1;
   }

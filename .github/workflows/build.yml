@@ -169,7 +169,7 @@ jobs:
             --build_mode=${{ env.BUILD_MODE }} \
             --target_platform=${{ matrix.target_platform }} \
             --no-install \
-            --extra_args="-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARKS=true,-DFEMTOLOG_BUILD_TESTING=true,-DFEMTOLOG_ENABLE_RUN_BENCHMARKS_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTS_POST_BUILD=true"
+            --extra_args="-DFEMTOLOG_BUILD_SHARED=false,,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=true,-DFEMTOLOG_BUILD_TESTING=true,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
 
 
       - name: Run build script (Windows)
@@ -178,7 +178,7 @@ jobs:
           call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > path.txt
           set /p InstallPath=<path.txt
           call "%InstallPath%\VC\Auxiliary\Build\vcvarsall.bat" x64
-          python3 -u src/build/scripts/build.py --build_mode=${{ env.BUILD_MODE }} --target_platform=${{ matrix.target_platform }} --no-install --extra_args="-DFEMTOLOG_BUILD_SHARED=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARKS=true,-DFEMTOLOG_BUILD_TESTING=true,-DFEMTOLOG_ENABLE_RUN_BENCHMARKS_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTS_POST_BUILD=true"
+          python3 -u src/build/scripts/build.py --build_mode=${{ env.BUILD_MODE }} --target_platform=${{ matrix.target_platform }} --no-install --extra_args="-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=true,-DFEMTOLOG_BUILD_TESTING=true,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
         shell: cmd
 
       - name: Upload ${{ env.BUILD_MODE }} artifacts

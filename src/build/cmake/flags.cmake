@@ -26,7 +26,8 @@ macro(setup_windows_flags)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /permissive- /Zc:__cplusplus /Zc:inline /Zc:strictStrings /Zc:alignedNew /Zc:sizedDealloc /Zc:threadSafeInit")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /Zc:__cplusplus /Zc:inline /Zc:strictStrings /Zc:alignedNew /Zc:sizedDealloc /Zc:threadSafeInit")
 
-  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+  # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
   # Link time optimization
   if(FEMTOLOG_ENABLE_LTO)
