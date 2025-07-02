@@ -17,8 +17,7 @@ void internal_logger_literal_log(benchmark::State& state) {
   logger.start_worker();
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        logger.log<LogLevel::kInfo, "Benchmark literal">());
+    logger.log<LogLevel::kInfo, "Benchmark literal">();
   }
 
   logger.stop_worker();
@@ -32,8 +31,7 @@ void internal_logger_formatted_log(benchmark::State& state) {
   logger.start_worker();
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        (logger.log<LogLevel::kInfo, "Benchmark {} {}">(42, "times")));
+    logger.log<LogLevel::kInfo, "Benchmark {} {}">(42, "times");
   }
 
   logger.stop_worker();

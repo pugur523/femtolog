@@ -144,8 +144,7 @@ TEST_F(InternalLoggerTest, LiteralStringLogging) {
 
   // Log a simple message
   constexpr FixedString msg = "Test message";
-  bool result = logger_->log<LogLevel::kInfo, msg>();
-  EXPECT_TRUE(result);
+  logger_->log<LogLevel::kInfo, msg>();
 
   // Wait for processing
   logger_->stop_worker();
@@ -174,8 +173,7 @@ TEST_F(InternalLoggerTest, ParameterizedLogging) {
 
   // Log with parameters
   constexpr FixedString fmt = "Value: {}";
-  bool result = logger_->log<LogLevel::kInfo, fmt>(42);
-  EXPECT_TRUE(result);
+  logger_->log<LogLevel::kInfo, fmt>(42);
 
   logger_->stop_worker();
 
@@ -197,8 +195,7 @@ TEST_F(InternalLoggerTest, LogLevelFiltering) {
 
   // This should be filtered out (Debug < Warn)
   constexpr FixedString debug_msg = "Debug message";
-  bool debug_result = logger_->log<LogLevel::kDebug, debug_msg>();
-  EXPECT_FALSE(debug_result);
+  logger_->log<LogLevel::kDebug, debug_msg>();
 
   // This should pass through (Error > Warn)
   EXPECT_CALL(*mock_sink_ptr_, on_log(_, _, _))
@@ -208,8 +205,7 @@ TEST_F(InternalLoggerTest, LogLevelFiltering) {
           });
 
   constexpr FixedString error_msg = "Error message";
-  bool error_result = logger_->log<LogLevel::kError, error_msg>();
-  EXPECT_TRUE(error_result);
+  logger_->log<LogLevel::kError, error_msg>();
 
   logger_->stop_worker();
 
@@ -245,8 +241,7 @@ TEST_F(InternalLoggerTest, MultipleSinks) {
   logger_->start_worker();
 
   constexpr FixedString msg = "Multi-sink test";
-  bool result = logger_->log<LogLevel::kInfo, msg>();
-  EXPECT_TRUE(result);
+  logger_->log<LogLevel::kInfo, msg>();
 
   logger_->stop_worker();
 
@@ -273,8 +268,7 @@ TEST_F(InternalLoggerTest, EnqueueDropCounters) {
           });
 
   constexpr FixedString msg = "Counter test";
-  bool result = logger_->log<LogLevel::kInfo, msg>();
-  EXPECT_TRUE(result);
+  logger_->log<LogLevel::kInfo, msg>();
 
   logger_->stop_worker();
 

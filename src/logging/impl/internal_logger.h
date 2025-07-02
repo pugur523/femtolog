@@ -60,30 +60,30 @@ class LOGGING_EXPORT InternalLogger {
   }
 
   template <LogLevel level, FixedString fmt, typename... Args>
-  inline bool log(Args&&... args) noexcept {
+  inline void log(Args&&... args) noexcept {
+    DCHECK_EQ(backend_worker_.status(), BackendWorkerStatus::kRunning);
+
     // Compile-time level check
     // Assuming `info` is common threshold
     if constexpr (level > LogLevel::kInfo) {
       if (level > level_) [[unlikely]] {
-        return false;
+        return;
       }
     } else {
       if (level > level_) [[likely]] {
-        return false;
+        return;
       }
     }
 
-    DCHECK_EQ(backend_worker_.status(), BackendWorkerStatus::kRunning);
-
     if constexpr (sizeof...(Args) == 0) {
       constexpr std::string_view view(fmt.data, fmt.size);
-      return log_literal<level>(view);
+      log_literal<level>(view);
     } else {
       constexpr uint16_t format_id = get_format_id<fmt>();
       register_format<fmt>();
       SerializedArgs serialized_args =
           serializer_.serialize(std::forward<Args>(args)...);
-      return log_serialized<level>(format_id, serialized_args);
+      log_serialized<level>(format_id, serialized_args);
     }
   }
 
@@ -112,35 +112,35 @@ class LOGGING_EXPORT InternalLogger {
   BackendWorker backend_worker_;
 
   template <LogLevel level>
-  inline bool log_literal(std::string_view message) {
+  inline void log_literal(std::string_view message) {
     const std::size_t payload_len = message.size();
     if (payload_len >= kMaxPayloadSize) [[unlikely]] {
       dropped_count_++;
-      return false;
+      return;
     }
 
     LogEntry* entry = LogEntry::create(entry_buffer_, thread_id_,
                                        kLiteralLogFormatId, level, 0, message);
 
-    return enqueue_log_entry(entry);
+    enqueue_log_entry(entry);
   }
 
   template <LogLevel level>
-  inline bool log_serialized(uint16_t format_id,
+  inline void log_serialized(uint16_t format_id,
                              const SerializedArgs<>& serialized) {
     if (serialized.size() >= kMaxPayloadSize) [[unlikely]] {
       dropped_count_++;
-      return false;
+      return;
     }
 
     LogEntry* entry = LogEntry::create(
         entry_buffer_, thread_id_, format_id, level, 0,
         std::string_view(serialized.data(), serialized.size()));
 
-    return enqueue_log_entry(entry);
+    enqueue_log_entry(entry);
   }
 
-  [[nodiscard]] bool enqueue_log_entry(const LogEntry* entry) noexcept;
+  void enqueue_log_entry(const LogEntry* entry) noexcept;
 
   [[nodiscard]] static uint32_t current_thread_id() noexcept;
 

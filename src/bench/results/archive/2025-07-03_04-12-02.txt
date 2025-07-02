@@ -1,0 +1,54 @@
+2025-07-03T04:12:02+09:00
+Running ./out/build/linux/x86_64/release/bin/femtolog_bench
+Run on (8 X 3302.4 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x4)
+  L1 Instruction 32 KiB (x4)
+  L2 Unified 1280 KiB (x4)
+  L3 Unified 12288 KiB (x1)
+Load Average: 1.04, 0.96, 0.94
+-----------------------------------------------------------------------------------
+Benchmark                                         Time             CPU   Iterations
+-----------------------------------------------------------------------------------
+femtolog_info_literal                          3.14 ns         3.25 ns    219018967
+femtolog_info_format_int                       9.86 ns         10.2 ns     65617205
+femtolog_info_format_multi_int                 10.0 ns         10.4 ns     66251200
+femtolog_info_format_string                    10.9 ns         11.3 ns     59450600
+femtolog_info_format_string_view               11.6 ns         12.0 ns     58223214
+femtolog_info_format_mixed                     10.9 ns         11.4 ns     59848476
+femtolog_info_format_large_string              11.2 ns         11.6 ns     57481376
+quill_info_literal                             22.1 ns         23.0 ns     30739756
+quill_info_format_int                          22.8 ns         23.4 ns     28968862
+quill_info_format_multi_int                    23.4 ns         24.1 ns     29726231
+quill_info_format_string                       23.6 ns         24.2 ns     31410093
+quill_info_format_string_view                  22.9 ns         23.5 ns     29899487
+quill_info_format_mixed                        21.4 ns         22.0 ns     30840231
+quill_info_format_large_string                 22.4 ns         23.1 ns     30649947
+spdlog_info_literal                            30.0 ns         30.9 ns     22482550
+spdlog_info_format_int                         44.2 ns         45.4 ns     14861410
+spdlog_info_format_multi_int                   67.5 ns         69.4 ns      9294945
+spdlog_info_format_string                      45.3 ns         46.6 ns     14972426
+spdlog_info_format_string_view                 48.7 ns         50.1 ns     10000000
+spdlog_info_format_mixed                       97.0 ns         99.7 ns      6321505
+spdlog_info_format_large_string                45.1 ns         46.3 ns     15619640
+internal_logger_literal_log                    13.8 ns         14.2 ns     43189021
+internal_logger_formatted_log                  15.1 ns         15.5 ns     45771254
+args_serializer_serialize_ints                 4.77 ns         4.91 ns    140542996
+args_serializer_serialize_strings              4.54 ns         4.67 ns    126365816
+args_serializer_serialize_mixed                4.68 ns         4.81 ns    145793519
+args_serializer_serialize_empty                3.37 ns         3.46 ns    208318602
+spsc_queue_enqueue_1_byte                     0.355 ns        0.358 ns   2243568005
+spsc_queue_dequeue_1_byte/8                   0.565 ns        0.569 ns   1147902780
+spsc_queue_dequeue_1_byte/64                  0.589 ns        0.594 ns   1267389053
+spsc_queue_dequeue_1_byte/512                 0.577 ns        0.582 ns   1148975772
+spsc_queue_dequeue_1_byte/2047                0.592 ns        0.597 ns   1237964421
+spsc_queue_enqueue_16_bytes                   0.460 ns        0.464 ns   1702275287
+spsc_queue_dequeue_16_bytes/32                0.574 ns        0.578 ns    997627713
+spsc_queue_dequeue_16_bytes/64                0.540 ns        0.551 ns   1112671748
+spsc_queue_dequeue_16_bytes/512               0.576 ns        0.592 ns   1179091163
+spsc_queue_dequeue_16_bytes/2047              0.585 ns        0.602 ns   1103725332
+spsc_queue_enqueue_64_bytes                   0.445 ns        0.459 ns   1387037606
+spsc_queue_dequeue_64_bytes/128               0.491 ns        0.506 ns   1411729812
+spsc_queue_dequeue_64_bytes/512               0.500 ns        0.515 ns   1000000000
+spsc_queue_dequeue_64_bytes/2047              0.552 ns        0.569 ns   1000000000
+spsc_queue_enqueue_peek_dequeue_16_bytes       1.78 ns         1.83 ns    380852833

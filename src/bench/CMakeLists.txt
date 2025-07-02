@@ -10,15 +10,18 @@ set(SOURCES
   bench_main.cc
 
   ${PROJECT_SOURCE_DIR}/femtolog/femtolog_bench.cc
+)
+
+set(FEMTOLOG_INTERNAL_BENCH_SOURCES
+  bench_main.cc
 
   # format_bench.cc
 
   # ${PROJECT_SOURCE_DIR}/core/base/file_util_bench.cc
   # ${PROJECT_SOURCE_DIR}/core/base/string_util_bench.cc
-  # ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_bench.cc
-  # ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_bench.cc
-  # ${PROJECT_SOURCE_DIR}/logging/impl/log_entry_bench.cc
-  # ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_bench.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_bench.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_bench.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_bench.cc
 )
 
 include(FetchContent)
@@ -49,7 +52,7 @@ if(FEMTOLOG_ENABLE_BENCH_SPDLOG)
   list(APPEND SOURCES spdlog_bench.cc)
 endif()
 
-add_executable(${BENCHMARK_NAME} ${SOURCES})
+add_executable(${BENCHMARK_NAME} ${SOURCES} ${FEMTOLOG_INTERNAL_BENCH_SOURCES})
 
 target_include_directories(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
 target_link_directories(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_LINK_DIRECTORIES})
@@ -86,28 +89,6 @@ if(FEMTOLOG_ENABLE_COVERAGE AND FEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD)
   set(NEED_RUN FALSE)
 endif()
 
-# if(FEMTOLOG_ENABLE_XRAY AND FEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD)
-# set(XRAY_OPTIONS "xray_mode=xray-basic:verbosity=1:patch_premain=true")
-# set(XRAY_DIR ${CMAKE_BINARY_DIR}/xray/${BENCHMARK_NAME})
-# FILE(MAKE_DIRECTORY ${XRAY_DIR})
-# set(EXE_PATH $<TARGET_FILE:${BENCHMARK_NAME}>)
-# add_custom_command(TARGET ${BENCHMARK_NAME} POST_BUILD
-# COMMENT "Run xray instrumentation and generate function timing report"
-# COMMAND rm -f ${XRAY_DIR}/xray-log.${BENCHMARK_NAME}.*
-# COMMAND ${CMAKE_COMMAND} -E env XRAY_OPTIONS="${XRAY_OPTIONS}" ${CMAKE_COMMAND} -E time ${EXE_PATH}
-#
-# # set(XRAY_FILE ${XRAY_DIR}/xray-log.${BENCHMARK_NAME}.*)
-# # COMMAND bash -c "
-# # XRAY_FILE=$$(ls -t ${XRAY_DIR}/xray-log.${BENCHMARK_NAME}.* | head -n1) && \\
-# # llvm-xray convert --instr_map='${EXE_PATH}' --sort --output-format=yaml --symbolize --demangle --output='${XRAY_DIR}/xray-report.yml' \"\${XRAY_FILE}\" && \\
-# # llvm-xray convert --instr_map='${EXE_PATH}' --sort --output-format=trace_event --symbolize --demangle --output='${XRAY_DIR}/xray_trace.${BENCHMARK_NAME}.json' \"\${XRAY_FILE}\" && \\
-# # llvm-xray account --instr_map='${EXE_PATH}' --sort=count --top=50 --format=text --output=${XRAY_DIR}/xray-summary.txt  \"\${XRAY_FILE}\"
-# # "
-# # COMMAND bash -c "XRAY_FILE=$$(ls -t ${XRAY_DIR}/xray-log.${BENCHMARK_NAME}.* | head -n1) && llvm-xray convert --instr_map='${EXE_PATH}' --sort --output-format=yaml --symbolize --demangle --output='${XRAY_DIR}/xray-report.yml' \"\${XRAY_FILE}\" && llvm-xray convert --instr_map='${EXE_PATH}' --sort --output-format=trace_event --symbolize --demangle --output='${XRAY_DIR}/xray_trace.${BENCHMARK_NAME}.json' \"\${XRAY_FILE}\" && llvm-xray account --instr_map=${EXE_PATH} --sort=count --top=50 --format=text --output=${XRAY_DIR}/xray-summary.txt  \"\${XRAY_FILE}\""
-# WORKING_DIRECTORY ${XRAY_DIR}
-# )
-# set(NEED_RUN FALSE)
-# endif()
 if(NEED_RUN AND FEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD)
   add_custom_command(TARGET ${BENCHMARK_NAME} POST_BUILD
     COMMENT "Run benchmarks if it has never been executed."
