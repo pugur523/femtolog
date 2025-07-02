@@ -88,6 +88,13 @@ class FEMTOLOG_EXPORT Logger {
 
   inline void level(LogLevel level) { internal_logger().level(level); }
 
+  inline void level(const char* level_str) {
+    LogLevel new_level = log_level_from_string(level_str);
+    if (new_level != LogLevel::kUnknown) {
+      level(new_level);
+    }
+  }
+
   inline LogLevel level() const { return internal_logger().level(); }
 
  private:

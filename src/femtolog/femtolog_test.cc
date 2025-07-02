@@ -33,14 +33,43 @@ TEST(FemtoLogTest, BasicLogging) {
   logger.debug<"this is a sample debug, false is: {}\n">(false);
   logger.trace<"this is a sample trace, string is: {}\n">("string");
   std::string msg = "message";
-  logger.fatal<"this is a sample fatal {}\n">(msg.c_str());
+  logger.fatal<"this is a sample fatal {}\n">(msg);
 
   logger.level(LogLevel::kWarn);
   logger.trace<"this line should be invisible\n">();
   logger.debug<"this line should be invisible2\n">();
   logger.info<"this line should be invisible3\n">();
+  logger.level(LogLevel::kInfo);
 
   logger.stop_worker();
+  logger.clear_sinks();
+}
+
+TEST(FemtoLogTest, README_example) {
+  femtolog::Logger logger = femtolog::Logger::logger();
+
+  logger.init();
+  logger.register_sink<femtolog::StdoutSink<>>();
+  logger.register_sink<femtolog::FileSink<>>("");
+  logger.level("trace");
+
+  logger.start_worker();
+
+  std::string username = "pugur";
+  float cpu_usage = 42.57;
+  bool result = true;
+  int error_code = -1;
+
+  logger.trace<"Hello {}\n">("World");
+  logger.debug<"Hello World wo formatting\n">();
+  logger.info<"User \"{}\" logged in.\n">(username);
+  logger.warn<"CPU usage is high: {}%\n">(cpu_usage);
+  logger.error<"Return value is: {}\n">(result);
+
+  logger.fatal<"Fatal error occured; error code: {}\n">(error_code);
+
+  logger.stop_worker();
+  logger.clear_sinks();
 }
 
 }  // namespace femtolog

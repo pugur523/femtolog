@@ -61,20 +61,28 @@ inline constexpr const char* log_level_to_ansi_color(LogLevel level) {
 }
 
 template <std::size_t N>
-inline constexpr LogLevel log_level_from_string(const char str[N]) {
-  constexpr const char* lower_level = core::to_lower_ascii(str);
-  constexpr std::string_view level_sv(lower_level);
-  if constexpr (level_sv == "fatal") {
+constexpr bool compare_array_and_cstring(const std::array<char, N>& arr,
+                                         const char* cstr) {
+  for (std::size_t i = 0; i < arr.size(); ++i) {
+    if (arr[i] != cstr[i]) {
+      return false;
+    }
+  }
+  return cstr[arr.size()] == '\0';
+}
+
+inline LogLevel log_level_from_string(const char* str) {
+  if (std::strcmp(str, "fatal") == 0) {
     return LogLevel::kFatal;
-  } else if constexpr (level_sv == "error") {
+  } else if (std::strcmp(str, "error") == 0) {
     return LogLevel::kError;
-  } else if constexpr (level_sv == "warn") {
+  } else if (std::strcmp(str, "warn") == 0) {
     return LogLevel::kWarn;
-  } else if constexpr (level_sv == "info") {
+  } else if (std::strcmp(str, "info") == 0) {
     return LogLevel::kInfo;
-  } else if constexpr (level_sv == "debug") {
+  } else if (std::strcmp(str, "debug") == 0) {
     return LogLevel::kDebug;
-  } else if constexpr (level_sv == "trace") {
+  } else if (std::strcmp(str, "trace") == 0) {
     return LogLevel::kTrace;
   }
   return LogLevel::kUnknown;

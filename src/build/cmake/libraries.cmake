@@ -84,20 +84,6 @@ macro(setup_llvm)
   endif()
 endmacro()
 
-macro(setup_toml11)
-  set(TOML11_DIR ${THIRD_PARTY_DIR}/toml11)
-  set(TOML11_INCLUDE_DIR ${TOML11_DIR}/include)
-
-  add_subdirectory(${TOML11_DIR})
-
-  set(TOML11_LIBRARIES toml11)
-
-  set_target_properties(${TOML11_LIBRARIES}
-    PROPERTIES
-    POSITION_INDEPENDENT_CODE TRUE
-  )
-endmacro()
-
 macro(setup_zlib)
   set(ZLIB_DIR ${THIRD_PARTY_DIR}/zlib)
   set(ZLIB_INCLUDE_DIR ${ZLIB_DIR})

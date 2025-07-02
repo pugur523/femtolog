@@ -140,7 +140,6 @@ setup_flags()
 
 include(libraries)
 setup_llvm()
-setup_toml11()
 setup_zlib()
 setup_fmtlib()
 

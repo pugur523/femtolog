@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <new>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -136,6 +137,8 @@ struct ArgTypeInfo {
       return ArgType::kChar;
     } else if constexpr (std::is_same_v<DecayT, std::string_view>) {
       return ArgType::kStringView;
+    } else if constexpr (std::is_same_v<DecayT, std::string>) {
+      return ArgType::kStringView;
     } else if constexpr (std::is_same_v<DecayT, const char*>) {
       return ArgType::kCstring;
     } else if constexpr (is_constexpr_string<T>()) {
@@ -151,7 +154,8 @@ struct ArgTypeInfo {
 
   static constexpr bool is_dynamic_string =
       (std::is_same_v<DecayT, std::string_view> ||
-       std::is_same_v<DecayT, const char*>) &&
+       std::is_same_v<DecayT, const char*> ||
+       std::is_same_v<DecayT, std::string>) &&
       !is_constexpr_string_v;
 
   static constexpr bool is_string_like =
@@ -272,6 +276,8 @@ inline void write_optimized_arg(char*& pos, const T& value) {
     std::string_view sv;
     if constexpr (std::is_same_v<std::decay_t<T>, std::string_view>) {
       sv = value;
+    } else if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
+      sv = std::string_view(value);
     } else {
       sv = std::string_view(value);
     }
