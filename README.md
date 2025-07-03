@@ -27,8 +27,14 @@ Designed for modern C++ projects where every nanosecond counts.
 - [📦 Usage](#-usage)
 - [🔄 Workflow](#-workflow)
 - [📊 Benchmarks](#-benchmarks)
-  - [Log literal strings (without formatting)](#log-literal-strings-without-formatting)
-  - [Log strings with formatting](#log-strings-with-formatting)
+  - [System Environment](#system-environment)
+    - [Literal without format](#literal-without-format)
+    - [Format integer](#format-integer)
+    - [Format multi integers](#format-multi-integers)
+    - [Format string](#format-string)
+    - [Format string view](#format-string-view)
+    - [Format mixed](#format-mixed)
+    - [Format large string](#format-large-string)
 - [🔧 Installation](#-installation)
   - [Using CMake](#using-cmake)
 - [🔌 Custom Sinks](#-custom-sinks)
@@ -109,25 +115,79 @@ This architecture separates formatting from the hot path of logging, minimizing 
 
 ## 📊 Benchmarks
 
-The following benchmark results were measured using [Google Benchmark](https://github.com/google/benchmark) performed on Clang-21 -O3 Release build, Intel Core i3 12100, 64GB 3600MHz RAM, Ubuntu 22.04 x86_64.
+### System Environment
+- **OS**: Ubuntu 22.04 x86_64 
+- **CPU**: Intel Core i3 12100 @ 4.3GHz
+- **RAM**: DDR4 3600MHz 64GB
+
+The following benchmark results were measured using [Google Benchmark](https://github.com/google/benchmark) with Clang-21 -O3 Release build on the above environment. For comparison, results of similar logging benchmarks using the following libraries are also shown:
+
+- [**quill**](https://github.com/odygrd/quill)
+- [**spdlog**](https://github.com/gabime/spdlog)
+
 The benchmark codes are available in [`//src/bench/`](src/bench/) directory and the detail results of benchmark are archived in [`//src/bench/results/archive`](src/bench/results/archive/) directory.
+Benchmarks are generated in the `//out/build/<platform>/<arch>/bin` directory by setting `FEMTOLOG_BUILD_BENCHMARK` to `true` when building with CMake.
+After building, you can run the built benchmarks and collect results by executing `//src/build/scripts/run_benchmark.py` with the `--format` option. The results will be saved in the `//src/bench/results/` directory in both json and png formats.
 
-### Log literal strings (without formatting)
+#### Literal without format
 
-| Library      | Median Latency (ns) | Throughput (msgs/sec) |
-| :----------- | :------------------ | :-------------------- |
-| **femtolog** | **3.17 ns**         | **\~218.4M**          |
-| quill        | 14.8 ns             | \~47.2M               |
-| spdlog       | 27.6 ns             | \~27.3M               |
+|   Library    |  50%   |  75%   |  90%   |  95%   |  99%   | 99.9%  |
+| :----------: | :----: | :----: | :----: | :----: | :----: | :----: |
+| **femtolog** | 3.512  | 3.516  | 3.624  | 3.660  | 3.689  | 3.695  |
+|    quill     | 22.873 | 23.911 | 25.149 | 25.562 | 25.892 | 25.967 |
+|    spdlog    | 29.930 | 29.981 | 31.014 | 31.358 | 31.634 | 31.696 |
 
-### Log strings with formatting
+#### Format integer
 
-| Library      | Median Latency (ns) | Throughput (msgs/sec) |
-| :----------- | :------------------ | :-------------------- |
-| **femtolog** | **9.67 ns**         | **\~69.1M**           |
-| quill        | 14.8 ns             | \~46.9M               |
-| spdlog       | 50.2 ns             | \~13.6M               |
+|   Library    |  50%   |  75%   |  90%   |  95%   |  99%   | 99.9%  |
+| :----------: | :----: | :----: | :----: | :----: | :----: | :----: |
+| **femtolog** | 10.806 | 11.309 | 11.344 | 11.356 | 11.365 | 11.367 |
+|    quill     | 23.872 | 23.934 | 24.552 | 24.758 | 24.923 | 24.960 |
+|    spdlog    | 46.295 | 46.610 | 48.806 | 49.538 | 50.124 | 50.256 |
 
+#### Format multi integers
+
+|   Library    |  50%   |  75%   |  90%   |  95%   |  99%   | 99.9%  |
+| :----------: | :----: | :----: | :----: | :----: | :----: | :----: |
+| **femtolog** | 11.297 | 13.048 | 13.092 | 13.107 | 13.119 | 13.122 |
+|    quill     | 24.175 | 24.310 | 24.848 | 25.027 | 25.171 | 25.203 |
+|    spdlog    | 65.505 | 67.241 | 69.786 | 70.634 | 71.313 | 71.466 |
+
+#### Format string
+
+|   Library    |  50%   |  75%   |  90%   |  95%   |  99%   | 99.9%  |
+| :----------: | :----: | :----: | :----: | :----: | :----: | :----: |
+| **femtolog** | 13.591 | 14.059 | 14.387 | 14.496 | 14.583 | 14.603 |
+|    quill     | 23.571 | 24.868 | 24.938 | 24.961 | 24.980 | 24.984 |
+|    spdlog    | 49.125 | 50.731 | 50.755 | 50.763 | 50.769 | 50.771 |
+
+#### Format string view
+
+|   Library    |  50%   |  75%   |  90%   |  95%   |  99%   | 99.9%  |
+| :----------: | :----: | :----: | :----: | :----: | :----: | :----: |
+| **femtolog** | 11.867 | 11.928 | 12.045 | 12.085 | 12.116 | 12.123 |
+|    quill     | 24.805 | 24.840 | 24.951 | 24.988 | 25.018 | 25.024 |
+|    spdlog    | 46.054 | 49.631 | 54.423 | 56.020 | 57.297 | 57.585 |
+
+#### Format mixed
+
+|   Library    |   50%   |   75%   |   90%   |   95%   |   99%   |  99.9%  |
+| :----------: | :-----: | :-----: | :-----: | :-----: | :-----: | :-----: |
+| **femtolog** | 11.791  | 12.116  | 12.299  | 12.360  | 12.409  | 12.420  |
+|    quill     | 23.330  | 26.236  | 26.258  | 26.266  | 26.272  | 26.273  |
+|    spdlog    | 111.116 | 115.427 | 117.489 | 118.176 | 118.726 | 118.850 |
+
+#### Format large string
+
+|   Library    |  50%   |  75%   |  90%   |  95%   |  99%   | 99.9%  |
+| :----------: | :----: | :----: | :----: | :----: | :----: | :----: |
+| **femtolog** | 12.107 | 12.393 | 12.845 | 12.996 | 13.117 | 13.144 |
+|    quill     | 22.043 | 22.193 | 22.893 | 23.126 | 23.313 | 23.355 |
+|    spdlog    | 51.425 | 53.556 | 55.591 | 56.269 | 56.812 | 56.934 |
+
+<div align=center>
+  <img src="src/bench/results/archive/2025-07-03_20-33-05.png">
+</div>
 
 ## 🔧 Installation
 

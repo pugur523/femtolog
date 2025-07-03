@@ -19,9 +19,9 @@ set(FEMTOLOG_INTERNAL_BENCH_SOURCES
 
   # ${PROJECT_SOURCE_DIR}/core/base/file_util_bench.cc
   # ${PROJECT_SOURCE_DIR}/core/base/string_util_bench.cc
-  ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_bench.cc
-  ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_bench.cc
-  ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_bench.cc
+  # ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_bench.cc
+  # ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_bench.cc
+  # ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_bench.cc
 )
 
 include(FetchContent)

@@ -9,7 +9,7 @@
 
 namespace core {
 
-#define CORE_EXPORT COMPONENT_EXPORT(CORE)
+#define CORE_EXPORT COMPONENT_EXPORT(FEMTOLOG_CORE)
 
 }  // namespace core
 

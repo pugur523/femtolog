@@ -1,0 +1,168 @@
+Benchmark: femtolog_info_literal
+  P50: 3.512 ns
+  P75: 3.516 ns
+  P90: 3.624 ns
+  P95: 3.660 ns
+  P99: 3.689 ns
+  P99.9: 3.695 ns
+
+Benchmark: femtolog_info_format_int
+  P50: 10.806 ns
+  P75: 11.309 ns
+  P90: 11.344 ns
+  P95: 11.356 ns
+  P99: 11.365 ns
+  P99.9: 11.367 ns
+
+Benchmark: femtolog_info_format_multi_int
+  P50: 11.297 ns
+  P75: 13.048 ns
+  P90: 13.092 ns
+  P95: 13.107 ns
+  P99: 13.119 ns
+  P99.9: 13.122 ns
+
+Benchmark: femtolog_info_format_string
+  P50: 13.591 ns
+  P75: 14.059 ns
+  P90: 14.387 ns
+  P95: 14.496 ns
+  P99: 14.583 ns
+  P99.9: 14.603 ns
+
+Benchmark: femtolog_info_format_string_view
+  P50: 11.867 ns
+  P75: 11.928 ns
+  P90: 12.045 ns
+  P95: 12.085 ns
+  P99: 12.116 ns
+  P99.9: 12.123 ns
+
+Benchmark: femtolog_info_format_mixed
+  P50: 11.791 ns
+  P75: 12.116 ns
+  P90: 12.299 ns
+  P95: 12.360 ns
+  P99: 12.409 ns
+  P99.9: 12.420 ns
+
+Benchmark: femtolog_info_format_large_string
+  P50: 12.107 ns
+  P75: 12.393 ns
+  P90: 12.845 ns
+  P95: 12.996 ns
+  P99: 13.117 ns
+  P99.9: 13.144 ns
+
+Benchmark: quill_info_literal
+  P50: 22.873 ns
+  P75: 23.911 ns
+  P90: 25.149 ns
+  P95: 25.562 ns
+  P99: 25.892 ns
+  P99.9: 25.967 ns
+
+Benchmark: quill_info_format_int
+  P50: 23.872 ns
+  P75: 23.934 ns
+  P90: 24.552 ns
+  P95: 24.758 ns
+  P99: 24.923 ns
+  P99.9: 24.960 ns
+
+Benchmark: quill_info_format_multi_int
+  P50: 24.175 ns
+  P75: 24.310 ns
+  P90: 24.848 ns
+  P95: 25.027 ns
+  P99: 25.171 ns
+  P99.9: 25.203 ns
+
+Benchmark: quill_info_format_string
+  P50: 23.571 ns
+  P75: 24.868 ns
+  P90: 24.938 ns
+  P95: 24.961 ns
+  P99: 24.980 ns
+  P99.9: 24.984 ns
+
+Benchmark: quill_info_format_string_view
+  P50: 24.805 ns
+  P75: 24.840 ns
+  P90: 24.951 ns
+  P95: 24.988 ns
+  P99: 25.018 ns
+  P99.9: 25.024 ns
+
+Benchmark: quill_info_format_mixed
+  P50: 23.330 ns
+  P75: 26.236 ns
+  P90: 26.258 ns
+  P95: 26.266 ns
+  P99: 26.272 ns
+  P99.9: 26.273 ns
+
+Benchmark: quill_info_format_large_string
+  P50: 22.043 ns
+  P75: 22.193 ns
+  P90: 22.893 ns
+  P95: 23.126 ns
+  P99: 23.313 ns
+  P99.9: 23.355 ns
+
+Benchmark: spdlog_info_literal
+  P50: 29.930 ns
+  P75: 29.981 ns
+  P90: 31.014 ns
+  P95: 31.358 ns
+  P99: 31.634 ns
+  P99.9: 31.696 ns
+
+Benchmark: spdlog_info_format_int
+  P50: 46.295 ns
+  P75: 46.610 ns
+  P90: 48.806 ns
+  P95: 49.538 ns
+  P99: 50.124 ns
+  P99.9: 50.256 ns
+
+Benchmark: spdlog_info_format_multi_int
+  P50: 65.505 ns
+  P75: 67.241 ns
+  P90: 69.786 ns
+  P95: 70.634 ns
+  P99: 71.313 ns
+  P99.9: 71.466 ns
+
+Benchmark: spdlog_info_format_string
+  P50: 49.125 ns
+  P75: 50.731 ns
+  P90: 50.755 ns
+  P95: 50.763 ns
+  P99: 50.769 ns
+  P99.9: 50.771 ns
+
+Benchmark: spdlog_info_format_string_view
+  P50: 46.054 ns
+  P75: 49.631 ns
+  P90: 54.423 ns
+  P95: 56.020 ns
+  P99: 57.297 ns
+  P99.9: 57.585 ns
+
+Benchmark: spdlog_info_format_mixed
+  P50: 111.116 ns
+  P75: 115.427 ns
+  P90: 117.489 ns
+  P95: 118.176 ns
+  P99: 118.726 ns
+  P99.9: 118.850 ns
+
+Benchmark: spdlog_info_format_large_string
+  P50: 51.425 ns
+  P75: 53.556 ns
+  P90: 55.591 ns
+  P95: 56.269 ns
+  P99: 56.812 ns
+  P99.9: 56.934 ns
+

@@ -75,6 +75,11 @@ option(FEMTOLOG_ENABLE_AVX2 "enable avx2 if available" TRUE)
 
 option(FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS "treat warnings as errors" TRUE)
 
+option(FEMTOLOG_USE_EXTERNAL_ZLIB "use externaly defined zlib instead of submodule's zlib" FALSE)
+option(FEMTOLOG_USE_EXTERNAL_FMTLIB "use externaly defined fmtlib instead of submodule's fmtlib" FALSE)
+option(FEMTOLOG_USE_EXTERNAL_GTEST "use externaly defined gtest instead of submodule's gtest" FALSE)
+option(FEMTOLOG_USE_EXTERNAL_GOOGLE_BENCHMARK "use externaly defined google benchmark instead of submodule's google benchmark" FALSE)
+
 if(FEMTOLOG_ENABLE_OPTIMIZATION_REPORT AND HOST_OS_NAME MATCHES "windows")
   message(WARNING "FEMTOLOG_ENABLE_OPTIMIZATION_REPORT on Windows build is not supported.\n"
     "set FEMTOLOG_ENABLE_OPTIMIZATION_REPORT to false forcely.")
@@ -226,25 +231,30 @@ enable xray: ${FEMTOLOG_ENABLE_XRAY}
 enable sanitizers: ${FEMTOLOG_ENABLE_SANITIZERS}
 enable avx2: ${FEMTOLOG_ENABLE_AVX2}
 warnings as errors: ${FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS}
+
+use external zlib: ${FEMTOLOG_USE_EXTERNAL_ZLIB}
+use external fmtlib: ${FEMTOLOG_USE_EXTERNAL_FMTLIB}
+use external gtest: ${FEMTOLOG_USE_EXTERNAL_GTEST}
+use external google benchmark: ${FEMTOLOG_USE_EXTERNAL_GOOGLE_BENCHMARK}
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-${ColourReset}")
   print_all_build_flags()
 endif()
 
-add_subdirectory(build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/build)
 
-add_subdirectory(core)
-add_subdirectory(logging)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/logging)
 
-add_subdirectory(femtolog)
-add_subdirectory(include)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/femtolog)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(FEMTOLOG_BUILD_TESTING)
-  setup_gtest()
+  femtolog_setup_gtest()
   enable_testing()
-  add_subdirectory(testing)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/testing)
 endif()
 
 if(FEMTOLOG_BUILD_BENCHMARK)
-  setup_google_benchmark()
-  add_subdirectory(bench)
+  femtolog_setup_google_benchmark()
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/bench)
 endif()

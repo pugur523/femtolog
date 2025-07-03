@@ -17,6 +17,6 @@ benchmark_executable=${benchmark_dir}/femtolog_bench
 
 current_datetime=$(date '+%Y-%m-%d_%H-%M-%S')
 
-${benchmark_executable} --benchmark_out=${results_dir}/${current_datetime}.txt --benchmark_out_format=console
-${benchmark_executable} --benchmark_out=${results_dir}/${current_datetime}.json --benchmark_out_format=json
-${benchmark_executable} --benchmark_out=${results_dir}/${current_datetime}.csv --benchmark_out_format=csv
+# ${benchmark_executable} --benchmark_out=${results_dir}/${current_datetime}.txt --benchmark_out_format=console
+${benchmark_executable} --benchmark_out=${results_dir}/${current_datetime}.json --benchmark_out_format=json --benchmark_repetitions=5
+# ${benchmark_executable} --benchmark_out=${results_dir}/${current_datetime}.csv --benchmark_out_format=csv

@@ -17,9 +17,9 @@ set(TARGET_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 
 # TARGET_BITS
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(TARGET_BITS "64 bit")
+  set(TARGET_BITS "64bit")
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-  set(TARGET_BITS "32 bit")
+  set(TARGET_BITS "32bit")
 else()
   set(TARGET_BITS "Unknown")
 endif()

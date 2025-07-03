@@ -5,6 +5,7 @@
 #include <string>
 
 #include "benchmark/benchmark.h"
+#include "femtolog/base/format_util.h"
 #include "femtolog/options.h"
 
 #pragma clang diagnostic push
@@ -58,6 +59,7 @@ void teardown_logger() {
 
 void quill_info_literal(benchmark::State& state) {
   OptimizedLogger* logger = setup_logger();
+
   for (auto _ : state) {
     LOG_INFO(logger, "Benchmark test message");
   }

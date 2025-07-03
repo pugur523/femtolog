@@ -21,4 +21,4 @@ project(${PROJECT_NAME}
   LANGUAGES C CXX
 )
 
-add_subdirectory(src)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
