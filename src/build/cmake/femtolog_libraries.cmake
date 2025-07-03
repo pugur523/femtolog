@@ -12,8 +12,8 @@ macro(femtolog_setup_gtest)
     set(GMOCK_INCLUDE_DIR ${GMOCK_DIR}/include)
 
     # https://google.github.io/googletest/quickstart-cmake.html
-    set(INSTALL_GTEST FALSE)
-    set(BUILD_GMOCK TRUE)
+    set(INSTALL_GTEST FALSE CACHE BOOL "" FORCE)
+    set(BUILD_GMOCK TRUE CACHE BOOL "" FORCE)
 
     # For Windows: Prevent overriding the parent project's compiler/linker settings
     set(gtest_force_shared_crt TRUE CACHE BOOL "" FORCE)
@@ -93,12 +93,12 @@ macro(femtolog_setup_zlib)
     set(ZLIB_DIR ${THIRD_PARTY_DIR}/zlib)
     set(ZLIB_INCLUDE_DIR ${ZLIB_DIR})
 
-    set(ZLIB_FEMTOLOG_BUILD_TESTING FALSE)
-    set(ZLIB_BUILD_STATIC TRUE)
-    set(ZLIB_FEMTOLOG_BUILD_SHARED FALSE)
-    set(ZLIB_BUILD_MINIZIP FALSE)
-    set(ZLIB_BUILD_TESTING FALSE)
-    set(ZLIB_INSTALL FALSE)
+    set(ZLIB_BUILD_TESTING FALSE CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_STATIC TRUE CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_SHARED FALSE CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_MINIZIP FALSE CACHE BOOL "" FORCE)
+    set(ZLIB_BUILD_TESTING FALSE CACHE BOOL "" FORCE)
+    set(ZLIB_INSTALL FALSE CACHE BOOL "" FORCE)
 
     set(ZLIB_LIBRARIES zlibstatic)
 
@@ -118,10 +118,10 @@ macro(femtolog_setup_fmtlib)
     set(FMTLIB_DIR ${THIRD_PARTY_DIR}/fmtlib)
     set(FMTLIB_INCLUDE_DIR ${FMTLIB_DIR}/include)
 
-    set(FMT_INSTALL FALSE)
-
-    set(FMTLIB_LIBRARIES fmt::fmt)
+    set(FMT_INSTALL FALSE CACHE BOOL "" FORCE)
 
     add_subdirectory(${FMTLIB_DIR})
+
+    set(FMTLIB_LIBRARIES fmt::fmt)
   endif()
 endmacro()
