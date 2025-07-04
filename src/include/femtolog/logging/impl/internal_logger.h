@@ -22,7 +22,7 @@ namespace femtolog::logging {
 // 4KiB max per entry. (consider sizeof LogEntry)
 static constexpr const std::size_t kMaxPayloadSize = 4096 - sizeof(LogEntry);
 
-class LOGGING_EXPORT InternalLogger {
+class FEMTOLOG_LOGGING_EXPORT InternalLogger {
  public:
   InternalLogger();
 

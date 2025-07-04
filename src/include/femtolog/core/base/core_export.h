@@ -2,15 +2,15 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef INCLUDE_FEMTOLOG_CORE_BASE_CORE_EXPORT_H_
-#define INCLUDE_FEMTOLOG_CORE_BASE_CORE_EXPORT_H_
+#ifndef INCLUDE_FEMTOLOG_CORE_BASE_FEMTOLOG_CORE_EXPORT_H_
+#define INCLUDE_FEMTOLOG_CORE_BASE_FEMTOLOG_CORE_EXPORT_H_
 
 #include "femtolog/build/component_export.h"
 
 namespace core {
 
-#define CORE_EXPORT FEMTOLOG_COMPONENT_EXPORT(FEMTOLOG_CORE)
+#define FEMTOLOG_CORE_EXPORT FEMTOLOG_COMPONENT_EXPORT(FEMTOLOG_CORE)
 
 }  // namespace core
 
-#endif  // INCLUDE_FEMTOLOG_CORE_BASE_CORE_EXPORT_H_
+#endif  // INCLUDE_FEMTOLOG_CORE_BASE_FEMTOLOG_CORE_EXPORT_H_

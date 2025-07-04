@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#include "core/base/file_util.h"
+#include "femtolog/core/base/file_util.h"
 #include "femtolog/base/log_entry.h"
 #include "femtolog/base/log_level.h"
 #include "femtolog/build/build_flag.h"
@@ -32,11 +32,7 @@ namespace femtolog {
 template <bool enable_buffering = true>
 class FileSink final : public SinkBase {
  public:
-  explicit FileSink(const std::string& file_path = "") : file_path_(file_path) {
-    if (file_path_.empty()) {
-      file_path_ = core::join_path(core::exe_dir(), "logs", "latest.log");
-    }
-
+  explicit FileSink(const std::string& file_path) : file_path_(file_path) {
     std::string parent_dir = core::parent_dir(file_path_);
     if (!core::dir_exists(parent_dir.c_str())) {
       core::create_directories(parent_dir.c_str());
@@ -69,6 +65,9 @@ class FileSink final : public SinkBase {
     }
   }
 
+  FileSink()
+      : FileSink(core::join_path(core::exe_dir(), "logs", "latest.log")) {}
+
   ~FileSink() override {
     if constexpr (enable_buffering) {
       flush();
@@ -82,8 +81,6 @@ class FileSink final : public SinkBase {
 #endif
     }
   }
-
-  FileSink() = delete;
 
   inline void on_log(const LogEntry& entry,
                      const char* content,

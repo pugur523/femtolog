@@ -63,7 +63,7 @@ namespace core {
 #define DCHECK_LE(val1, val2) CHECK_W_OP_IMPL(val1, val2, <=, DCHECK)
 #endif  // FEMTOLOG_IS_RELEASE
 
-class CORE_EXPORT CheckFailureStream {
+class FEMTOLOG_CORE_EXPORT CheckFailureStream {
  public:
   CheckFailureStream(const char* type,
                      const char* file,

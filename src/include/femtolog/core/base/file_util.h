@@ -24,38 +24,45 @@ constexpr const std::size_t kPathMaxLength = 4096;
 constexpr const std::size_t kPredictedFilesNbPerDir = 64;
 using Files = std::vector<std::string>;
 
-[[nodiscard]] CORE_EXPORT bool file_exists(const char* file_name);
-[[nodiscard]] CORE_EXPORT bool dir_exists(const char* dir_name);
-[[nodiscard]] CORE_EXPORT std::string read_file(const char* path);
-[[nodiscard]] CORE_EXPORT const std::string& exe_path();
-[[nodiscard]] CORE_EXPORT const std::string& exe_dir();
-[[nodiscard]] CORE_EXPORT const std::string& resources_dir();
-[[nodiscard]] CORE_EXPORT bool is_executable_in_path(const char* path);
-[[nodiscard]] CORE_EXPORT Files list_files(const std::string& path);
-[[nodiscard]] CORE_EXPORT std::string parent_dir(const std::string& path);
-[[nodiscard]] CORE_EXPORT std::string base_name(const std::string& path);
-[[nodiscard]] CORE_EXPORT std::string temp_directory();
-[[nodiscard]] CORE_EXPORT std::string temp_path(const std::string& prefix);
-CORE_EXPORT bool compress(const char* src_path,
-                          const char* dest_path,
-                          bool remove_after_compress = true);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT bool file_exists(const char* file_name);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT bool dir_exists(const char* dir_name);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string read_file(const char* path);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT const std::string& exe_path();
+[[nodiscard]] FEMTOLOG_CORE_EXPORT const std::string& exe_dir();
+[[nodiscard]] FEMTOLOG_CORE_EXPORT const std::string& resources_dir();
+[[nodiscard]] FEMTOLOG_CORE_EXPORT bool is_executable_in_path(const char* path);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT Files list_files(const std::string& path);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string parent_dir(
+    const std::string& path);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string base_name(
+    const std::string& path);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string temp_directory();
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string temp_path(
+    const std::string& prefix);
+FEMTOLOG_CORE_EXPORT bool compress(const char* src_path,
+                                   const char* dest_path,
+                                   bool remove_after_compress = true);
 
-CORE_EXPORT int create_directory(const char* path);
-CORE_EXPORT int create_directories(const char* path);
-CORE_EXPORT int create_file(const char* path);
-CORE_EXPORT int remove_file(const char* path);
-CORE_EXPORT int remove_directory(const char* path);
-CORE_EXPORT int rename_file(const char* old_path, const char* new_path);
-CORE_EXPORT int write_file(const char* path, const std::string& content);
+FEMTOLOG_CORE_EXPORT int create_directory(const char* path);
+FEMTOLOG_CORE_EXPORT int create_directories(const char* path);
+FEMTOLOG_CORE_EXPORT int create_file(const char* path);
+FEMTOLOG_CORE_EXPORT int remove_file(const char* path);
+FEMTOLOG_CORE_EXPORT int remove_directory(const char* path);
+FEMTOLOG_CORE_EXPORT int rename_file(const char* old_path,
+                                     const char* new_path);
+FEMTOLOG_CORE_EXPORT int write_file(const char* path,
+                                    const std::string& content);
 
-CORE_EXPORT int write_binary_to_file(const void* binary_data,
-                                     std::size_t binary_size,
-                                     const std::string& output_path);
+FEMTOLOG_CORE_EXPORT int write_binary_to_file(const void* binary_data,
+                                              std::size_t binary_size,
+                                              const std::string& output_path);
 
-[[nodiscard]] CORE_EXPORT std::string file_extension(const std::string& path);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string file_extension(
+    const std::string& path);
 
-[[nodiscard]] CORE_EXPORT std::string sanitize_component(const char* part,
-                                                         bool is_first);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string sanitize_component(
+    const char* part,
+    bool is_first);
 
 template <typename T>
 inline int write_binary_to_file(const std::vector<T>& data,
@@ -99,12 +106,12 @@ template <typename... Parts>
   return joined;
 }
 
-[[nodiscard]] CORE_EXPORT std::vector<std::string> read_lines_default(
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::vector<std::string> read_lines_default(
     const std::string& content);
 
 #if FEMTOLOG_ENABLE_AVX2
-[[nodiscard]] CORE_EXPORT std::vector<std::string> read_lines_with_avx2(
-    const std::string& content);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::vector<std::string>
+read_lines_with_avx2(const std::string& content);
 #endif
 
 template <bool use_avx2_if_available = true>
@@ -117,7 +124,7 @@ inline std::vector<std::string> read_lines(const std::string& content) {
   return read_lines_default(content);
 }
 
-class CORE_EXPORT TempFile {
+class FEMTOLOG_CORE_EXPORT TempFile {
  public:
   explicit TempFile(const std::string& prefix = "tmp_",
                     const std::string& content = "");
@@ -132,7 +139,7 @@ class CORE_EXPORT TempFile {
   bool valid_ : 1 = true;
 };
 
-class CORE_EXPORT TempDir {
+class FEMTOLOG_CORE_EXPORT TempDir {
  public:
   explicit TempDir(const std::string& prefix = "tmp_dir_");
 
@@ -146,7 +153,7 @@ class CORE_EXPORT TempDir {
   bool valid_ : 1 = true;
 };
 
-class CORE_EXPORT File {
+class FEMTOLOG_CORE_EXPORT File {
  public:
   File(std::string&& file_name, std::string&& source);
   explicit File(std::string&& file_name);

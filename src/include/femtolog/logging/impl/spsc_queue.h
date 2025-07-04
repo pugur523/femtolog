@@ -22,7 +22,7 @@ enum class SpscQueueStatus : uint8_t {
   kSizeIsZero = 4,
 };
 
-class LOGGING_EXPORT SpscQueue {
+class FEMTOLOG_LOGGING_EXPORT SpscQueue {
  public:
   SpscQueue();
   ~SpscQueue() = default;

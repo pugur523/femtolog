@@ -21,6 +21,7 @@ femtolog_setup_module(${MODULE_NAME} ${MODULE_OBJECTS_NAME}
   LINK_LIBS femtolog_core femtolog_logging ${FMTLIB_LIBRARIES} ${FEMTOLOG_LINK_LIBRARIES}
 )
 
+target_include_directories(${MODULE_NAME} PUBLIC ${FEMTOLOG_INCLUDE_DIRECTORIES})
 target_link_libraries(${MODULE_NAME} PUBLIC femtolog_core femtolog_logging ${FMTLIB_LIBRARIES})
 
 set(COMPILE_COMMANDS_OUTPUT_DIR "${CMAKE_BINARY_DIR}/../../..")

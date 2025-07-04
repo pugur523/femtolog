@@ -19,52 +19,58 @@
 
 namespace core {
 
-[[nodiscard]] CORE_EXPORT std::string encode_escape(std::string_view input);
-[[nodiscard]] CORE_EXPORT std::string encode_escape(const char* s,
-                                                    std::size_t len);
-[[nodiscard]] CORE_EXPORT std::string decode_escape(std::string_view input);
-[[nodiscard]] CORE_EXPORT std::string decode_escape(const char* s,
-                                                    std::size_t len);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string encode_escape(
+    std::string_view input);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string encode_escape(const char* s,
+                                                             std::size_t len);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string decode_escape(
+    std::string_view input);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string decode_escape(const char* s,
+                                                             std::size_t len);
 
 [[nodiscard]] constexpr char to_lower(char c) {
   return (c >= 'A' && c <= 'Z') ? (c | 0x20) : c;
 }
-CORE_EXPORT void to_lower(char* input, std::size_t len);
-CORE_EXPORT void to_lower(char* input);
-CORE_EXPORT void to_lower(std::string* input);
-[[nodiscard]] CORE_EXPORT std::string to_lower(const std::string& input);
+FEMTOLOG_CORE_EXPORT void to_lower(char* input, std::size_t len);
+FEMTOLOG_CORE_EXPORT void to_lower(char* input);
+FEMTOLOG_CORE_EXPORT void to_lower(std::string* input);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string to_lower(
+    const std::string& input);
 
 [[nodiscard]] constexpr char to_upper(char c) {
   return (c >= 'a' && c <= 'z') ? (c & ~0x20) : c;
 }
-CORE_EXPORT void to_upper(char* input, std::size_t len);
-CORE_EXPORT void to_upper(char* input);
-CORE_EXPORT void to_upper(std::string* input);
-[[nodiscard]] CORE_EXPORT std::string to_upper(const std::string& input);
+FEMTOLOG_CORE_EXPORT void to_upper(char* input, std::size_t len);
+FEMTOLOG_CORE_EXPORT void to_upper(char* input);
+FEMTOLOG_CORE_EXPORT void to_upper(std::string* input);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string to_upper(
+    const std::string& input);
 
-[[nodiscard]] CORE_EXPORT std::size_t utf8_char_length(unsigned char lead);
-[[nodiscard]] CORE_EXPORT std::string utf8_truncate(const std::string& input,
-                                                    std::size_t max_chars);
-[[nodiscard]] CORE_EXPORT std::queue<std::string> split_string(
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::size_t utf8_char_length(
+    unsigned char lead);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string utf8_truncate(
+    const std::string& input,
+    std::size_t max_chars);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::queue<std::string> split_string(
     const std::string& input,
     const std::string& delimiter);
-[[nodiscard]] CORE_EXPORT std::string remove_bracket(
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string remove_bracket(
     const std::string& input,
     std::size_t max_nest_size = 32);
-[[nodiscard]] CORE_EXPORT std::size_t safe_strlen(const char* str);
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::size_t safe_strlen(const char* str);
 
-CORE_EXPORT void format_address_safe(uintptr_t addr,
-                                     char* buffer_start,
-                                     std::size_t buffer_size);
+FEMTOLOG_CORE_EXPORT void format_address_safe(uintptr_t addr,
+                                              char* buffer_start,
+                                              std::size_t buffer_size);
 
-CORE_EXPORT void padding(char*& cursor,
-                         const char* const end,
-                         std::size_t current_len,
-                         std::size_t align_len);
+FEMTOLOG_CORE_EXPORT void padding(char*& cursor,
+                                  const char* const end,
+                                  std::size_t current_len,
+                                  std::size_t align_len);
 
-CORE_EXPORT std::size_t write_raw(char*& dest,
-                                  const char* source,
-                                  std::size_t len);
+FEMTOLOG_CORE_EXPORT std::size_t write_raw(char*& dest,
+                                           const char* source,
+                                           std::size_t len);
 
 template <typename... Args>
 std::size_t write_format(char*& cursor,
