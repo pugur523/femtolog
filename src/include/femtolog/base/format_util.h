@@ -9,8 +9,8 @@
 #include <cstdint>
 #include <string_view>
 
-#include "build/build_flag.h"
-#if IS_LINUX
+#include "femtolog/build/build_flag.h"
+#if FEMTOLOG_IS_LINUX
 #include <ctime>
 #else
 #include <chrono>
@@ -41,7 +41,7 @@ template <std::size_t N>
 FixedString(const char (&)[N]) -> FixedString<N - 1>;
 
 inline uint64_t timestamp_ns() noexcept {
-#if IS_LINUX
+#if FEMTOLOG_IS_LINUX
   timespec ts;
   clock_gettime(CLOCK_REALTIME, &ts);
   return static_cast<uint64_t>(ts.tv_sec) * 1000000000ull + ts.tv_nsec;

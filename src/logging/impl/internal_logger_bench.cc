@@ -3,8 +3,8 @@
 // which can be found in the LICENSE file.
 
 #include "benchmark/benchmark.h"
+#include "femtolog/logging/impl/internal_logger.h"
 #include "femtolog/sinks/null_sink.h"
-#include "logging/impl/internal_logger.h"
 
 namespace femtolog::logging {
 

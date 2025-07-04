@@ -78,7 +78,7 @@ int main() {
   bool result = true;
   int error_code = -1;
 
-  // log messages with compile-time format strings:
+  // log messages with compile-time interpreted format strings:
   logger.trace<"Hello {}\n">("World");
   logger.debug<"Hello World wo formatting\n">();
   logger.info<"User \"{}\" logged in.\n">(username);
@@ -94,23 +94,21 @@ int main() {
 }
 ```
 
-String literals (`"..."`) are registered at compile time. Arguments are serialized into a raw byte stream and passed through the pipeline asynchronously.
-
 ## 🔄 Workflow
 
 The logging pipeline consists of a frontend (thread-local logger) and a backend (worker thread):
+
+Format string literals (`"..."`) are hashed at compile time into a `format_id`. Arguments are serialized as a raw byte stream and passed asynchronously from the frontend to the backend through an SPSC queue.
+
+```mermaid
+graph TD
+    A[Logger - frontend] -->|embed format id by hash at compile time, serialize format args at runtime| B[SPSC Queue]
+    B --> C[Backend Worker - async]
+    C --> D[Deserialize and Format]
+    D --> E[Sink: stdout / files / custom]
 ```
-logger (frontend)
-   |
-   |-- serialize(format_id, format_args...) --> [ SPSC Queue ]
-                                                      |
-                                                      v
-                                                  backend_worker (async)
-                                                  |
-                                                  |-- deserialize + formatting
-                                                  |
-                                                  '--> sink (stdout, files, custom target)
-```
+
+
 This architecture separates formatting from the hot path of logging, minimizing latency.
 
 ## 📊 Benchmarks
@@ -127,7 +125,7 @@ The following benchmark results were measured using [Google Benchmark](https://g
 
 The benchmark codes are available in [`//src/bench/`](src/bench/) directory and the detail results of benchmark are archived in [`//src/bench/results/archive`](src/bench/results/archive/) directory.
 Benchmarks are generated in the `//out/build/<platform>/<arch>/bin` directory by setting `FEMTOLOG_BUILD_BENCHMARK` to `true` when building with CMake.
-After building, you can run the built benchmarks and collect results by executing `//src/build/scripts/run_benchmark.py` with the `--format` option. The results will be saved in the `//src/bench/results/` directory in both json and png formats.
+After building, you can run the built benchmarks and collect results by executing `//src/build/scripts/run_bench.py` with the `--format` option. The results will be saved in the `//src/bench/results/` directory in both json and png formats.
 
 #### Literal without format
 

@@ -8,7 +8,7 @@ function(femtolog_setup_module module_name objects_name)
 
   string(TOUPPER ${module_name} UPPER_MODULE_NAME)
 
-  target_compile_definitions(${objects_name} PRIVATE IS_${UPPER_MODULE_NAME}_IMPL=1)
+  target_compile_definitions(${objects_name} PRIVATE FEMTOLOG_IS_${UPPER_MODULE_NAME}_IMPL=1)
 
   if(ARG_INCLUDE_DIRS)
     target_include_directories(${objects_name} PRIVATE ${ARG_INCLUDE_DIRS})
@@ -39,10 +39,10 @@ function(femtolog_setup_module module_name objects_name)
 
   if(${${build_option_name}})
     add_library(${module_name} SHARED $<TARGET_OBJECTS:${objects_name}>)
-    target_compile_definitions(${module_name} PUBLIC IS_${UPPER_MODULE_NAME}_STATIC=0)
+    target_compile_definitions(${module_name} PUBLIC FEMTOLOG_IS_${UPPER_MODULE_NAME}_STATIC=0)
   else()
     add_library(${module_name} STATIC $<TARGET_OBJECTS:${objects_name}>)
-    target_compile_definitions(${module_name} PUBLIC IS_${UPPER_MODULE_NAME}_STATIC=1)
+    target_compile_definitions(${module_name} PUBLIC FEMTOLOG_IS_${UPPER_MODULE_NAME}_STATIC=1)
   endif()
 
   if(ARG_INCLUDE_DIRS)

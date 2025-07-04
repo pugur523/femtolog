@@ -11,8 +11,8 @@
 #include <string>
 #include <vector>
 
-#include "build/build_flag.h"
-#include "core/base/core_export.h"
+#include "femtolog/build/build_flag.h"
+#include "femtolog/core/base/core_export.h"
 
 #if FEMTOLOG_ENABLE_AVX2
 #include <immintrin.h>
@@ -22,6 +22,7 @@ namespace core {
 
 constexpr const std::size_t kPathMaxLength = 4096;
 constexpr const std::size_t kPredictedFilesNbPerDir = 64;
+using Files = std::vector<std::string>;
 
 [[nodiscard]] CORE_EXPORT bool file_exists(const char* file_name);
 [[nodiscard]] CORE_EXPORT bool dir_exists(const char* dir_name);
@@ -30,8 +31,7 @@ constexpr const std::size_t kPredictedFilesNbPerDir = 64;
 [[nodiscard]] CORE_EXPORT const std::string& exe_dir();
 [[nodiscard]] CORE_EXPORT const std::string& resources_dir();
 [[nodiscard]] CORE_EXPORT bool is_executable_in_path(const char* path);
-[[nodiscard]] CORE_EXPORT std::vector<std::string> list_files(
-    const std::string& path);
+[[nodiscard]] CORE_EXPORT Files list_files(const std::string& path);
 [[nodiscard]] CORE_EXPORT std::string parent_dir(const std::string& path);
 [[nodiscard]] CORE_EXPORT std::string base_name(const std::string& path);
 [[nodiscard]] CORE_EXPORT std::string temp_directory();
@@ -88,7 +88,7 @@ template <typename... Parts>
         std::string sanitized = sanitize_component(part.c_str(), is_first);
         if (!sanitized.empty()) {
           if (!is_first) {
-            joined.push_back(DIR_SEPARATOR);
+            joined.push_back(FEMTOLOG_DIR_SEPARATOR);
           }
           joined.append(sanitized);
           is_first = false;
@@ -162,7 +162,7 @@ class CORE_EXPORT File {
   inline constexpr const std::string& file_name() const { return file_name_; }
   inline constexpr const std::string& source() const { return source_; }
   inline const std::string& line(std::size_t line_no) const {
-#if IS_DEBUG
+#if FEMTOLOG_IS_DEBUG
     static const std::string empty = "";
     if (line_no == 0 || line_no > lines_.size()) {
       return empty;

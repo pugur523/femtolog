@@ -9,12 +9,12 @@
 #include <memory>
 #include <mutex>
 
-#include "build/build_flag.h"
 #include "femtolog/base/log_entry.h"
 #include "femtolog/base/log_level.h"
+#include "femtolog/build/build_flag.h"
 #include "femtolog/sinks/sink_base.h"
 
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
 #include <io.h>
 #include <windows.h>
 #else
@@ -30,7 +30,7 @@ template <bool use_color = true,
 class StdoutSink final : public SinkBase {
  public:
   StdoutSink() {
-#if IS_WINDOWS && use_color
+#if FEMTOLOG_IS_WINDOWS && use_color
     static bool initialized = [] {
       HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
       DWORD dwMode = 0;
@@ -102,7 +102,7 @@ class StdoutSink final : public SinkBase {
         return;
       }
       lock();
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
       _write(kStdOutFd, buffer_.get(), static_cast<unsigned int>(cursor_));
 #else
       [[maybe_unused]] ssize_t written =
@@ -118,7 +118,7 @@ class StdoutSink final : public SinkBase {
                            std::size_t content_len) {
     const char* level_str = log_level_to_lower_str(level);
     std::size_t level_len = core::safe_strlen(level_str);
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
     constexpr std::size_t kMaxStackBuffer = 4096;
 
     if constexpr (use_color) {

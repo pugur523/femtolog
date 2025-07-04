@@ -2,59 +2,42 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef CORE_BASE_STRING_UTIL_H_
-#define CORE_BASE_STRING_UTIL_H_
+#ifndef INCLUDE_FEMTOLOG_CORE_BASE_STRING_UTIL_H_
+#define INCLUDE_FEMTOLOG_CORE_BASE_STRING_UTIL_H_
 
 #include <array>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <format>
 #include <queue>
 #include <string>
+#include <string_view>
 #include <utility>
 
-#include "core/base/core_export.h"
+#include "femtolog/core/base/core_export.h"
 
 namespace core {
 
 [[nodiscard]] CORE_EXPORT std::string encode_escape(std::string_view input);
-[[nodiscard]] CORE_EXPORT std::string encode_escape(const std::string& input);
 [[nodiscard]] CORE_EXPORT std::string encode_escape(const char* s,
                                                     std::size_t len);
-[[nodiscard]] CORE_EXPORT std::string decode_escape(const std::string& input);
+[[nodiscard]] CORE_EXPORT std::string decode_escape(std::string_view input);
+[[nodiscard]] CORE_EXPORT std::string decode_escape(const char* s,
+                                                    std::size_t len);
 
-constexpr char to_lower_ascii_char(char c) {
+[[nodiscard]] constexpr char to_lower(char c) {
   return (c >= 'A' && c <= 'Z') ? (c | 0x20) : c;
 }
-
-constexpr char to_upper_ascii_char(char c) {
-  return (c >= 'a' && c <= 'z') ? (c & ~0x20) : c;
-}
-
-template <std::size_t N>
-constexpr auto to_lower_ascii(const char (&input)[N]) {
-  std::array<char, N> result = {};
-  for (std::size_t i = 0; i < N - 1; ++i) {
-    result[i] = to_lower_ascii_char(input[i]);
-  }
-  result[N - 1] = '\0';
-  return result;
-}
-
-template <std::size_t N>
-constexpr auto to_upper_ascii(const char (&input)[N]) {
-  std::array<char, N> result = {};
-  for (std::size_t i = 0; i < N - 1; ++i) {
-    result[i] = to_upper_ascii_char(input[i]);
-  }
-  result[N - 1] = '\0';
-  return result;
-}
-
+CORE_EXPORT void to_lower(char* input, std::size_t len);
 CORE_EXPORT void to_lower(char* input);
 CORE_EXPORT void to_lower(std::string* input);
 [[nodiscard]] CORE_EXPORT std::string to_lower(const std::string& input);
 
+[[nodiscard]] constexpr char to_upper(char c) {
+  return (c >= 'a' && c <= 'z') ? (c & ~0x20) : c;
+}
+CORE_EXPORT void to_upper(char* input, std::size_t len);
 CORE_EXPORT void to_upper(char* input);
 CORE_EXPORT void to_upper(std::string* input);
 [[nodiscard]] CORE_EXPORT std::string to_upper(const std::string& input);
@@ -65,7 +48,9 @@ CORE_EXPORT void to_upper(std::string* input);
 [[nodiscard]] CORE_EXPORT std::queue<std::string> split_string(
     const std::string& input,
     const std::string& delimiter);
-[[nodiscard]] CORE_EXPORT std::string remove_bracket(const std::string& input);
+[[nodiscard]] CORE_EXPORT std::string remove_bracket(
+    const std::string& input,
+    std::size_t max_nest_size = 32);
 [[nodiscard]] CORE_EXPORT std::size_t safe_strlen(const char* str);
 
 CORE_EXPORT void format_address_safe(uintptr_t addr,
@@ -82,10 +67,10 @@ CORE_EXPORT std::size_t write_raw(char*& dest,
                                   std::size_t len);
 
 template <typename... Args>
-constexpr std::size_t write_format(char*& cursor,
-                                   const char* const end,
-                                   std::format_string<Args...> fmt,
-                                   Args&&... args) {
+std::size_t write_format(char*& cursor,
+                         const char* const end,
+                         std::format_string<Args...> fmt,
+                         Args&&... args) {
   std::ptrdiff_t remaining = end - cursor;
   if (remaining <= 0) {
     return 0;
@@ -150,4 +135,4 @@ constexpr const char* kBright_cyan = "\033[96m";
 
 }  // namespace core
 
-#endif  // CORE_BASE_STRING_UTIL_H_
+#endif  // INCLUDE_FEMTOLOG_CORE_BASE_STRING_UTIL_H_

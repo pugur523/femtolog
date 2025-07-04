@@ -19,9 +19,9 @@ set(FEMTOLOG_INTERNAL_BENCH_SOURCES
 
   # ${PROJECT_SOURCE_DIR}/core/base/file_util_bench.cc
   # ${PROJECT_SOURCE_DIR}/core/base/string_util_bench.cc
-  # ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_bench.cc
-  # ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_bench.cc
-  # ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_bench.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_bench.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_bench.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_bench.cc
 )
 
 include(FetchContent)
@@ -52,7 +52,8 @@ if(FEMTOLOG_ENABLE_BENCH_SPDLOG)
   list(APPEND SOURCES spdlog_bench.cc)
 endif()
 
-add_executable(${BENCHMARK_NAME} ${SOURCES} ${FEMTOLOG_INTERNAL_BENCH_SOURCES})
+add_executable(${BENCHMARK_NAME} ${SOURCES})
+add_executable(${BENCHMARK_NAME}_internal  ${FEMTOLOG_INTERNAL_BENCH_SOURCES})
 
 target_include_directories(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
 target_link_directories(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_LINK_DIRECTORIES})
@@ -61,6 +62,16 @@ target_compile_options(${BENCHMARK_NAME} PRIVATE ${PROJECT_COMPILE_OPTIONS})
 target_link_options(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
 
 set_target_properties(${BENCHMARK_NAME} PROPERTIES
+  POSITION_INDEPENDENT_CODE TRUE
+)
+
+target_include_directories(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
+target_link_directories(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_LINK_DIRECTORIES})
+target_link_libraries(${BENCHMARK_NAME}_internal PRIVATE femtolog ${BENCHMARK_LIBRARIES} ${GOOGLE_BENCHMARK_LIBRARIES} ${FEMTOLOG_LINK_LIBRARIES})
+target_compile_options(${BENCHMARK_NAME}_internal PRIVATE ${PROJECT_COMPILE_OPTIONS})
+target_link_options(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_LINK_OPTIONS})
+
+set_target_properties(${BENCHMARK_NAME}_internal PROPERTIES
   POSITION_INDEPENDENT_CODE TRUE
 )
 
@@ -109,8 +120,22 @@ if(FEMTOLOG_INSTALL_BENCHMARK)
     COMPONENT Runtime
     OPTIONAL
   )
+
+  install(
+    TARGETS ${BENCHMARK_NAME}_internal
+    RUNTIME
+    COMPONENT Runtime
+  )
+
+  install(
+    FILES "${CMAKE_PDB_OUTPUT_DIRECTORY}/${BENCHMARK_NAME}_internal.pdb"
+    DESTINATION bin
+    COMPONENT Runtime
+    OPTIONAL
+  )
 endif()
 
 if(FEMTOLOG_ENABLE_VERBOSE)
   describe_target(${BENCHMARK_NAME})
+  describe_target(${BENCHMARK_NAME}_internal)
 endif()

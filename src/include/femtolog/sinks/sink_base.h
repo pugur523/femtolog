@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <ctime>
 
-#include "core/check.h"
 #include "femtolog/base/format_util.h"
 #include "femtolog/base/log_entry.h"
+#include "femtolog/core/check.h"
 #include "fmt/format.h"
 
 namespace femtolog {
@@ -42,7 +42,7 @@ class SinkBase {
                                       char* buf,
                                       std::size_t buf_size) {
     DCHECK(buf);
-    DCHECK_GT(buf_size, 30);
+    DCHECK_GT(buf_size, fmt.size);
 
     // separate seconds and nanoseconds
     time_t seconds = static_cast<time_t>(time_ns / 1'000'000'000);
@@ -51,13 +51,13 @@ class SinkBase {
     // convert seconds to struct tm (thread-safe)
     std::tm tm_buf;
     if constexpr (tz == TimeZone::kUtc) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
       gmtime_s(&tm_buf, &seconds);
 #else
       gmtime_r(&seconds, &tm_buf);
 #endif
     } else if constexpr (tz == TimeZone::kLocal) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
       localtime_s(&tm_buf, &seconds);
 #else
       localtime_r(&seconds, &tm_buf);

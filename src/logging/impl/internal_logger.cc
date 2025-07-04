@@ -2,12 +2,12 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "logging/impl/internal_logger.h"
+#include "femtolog/logging/impl/internal_logger.h"
 
 #include <utility>
 
+#include "femtolog/logging/impl/backend_worker.h"
 #include "femtolog/options.h"
-#include "logging/impl/backend_worker.h"
 
 namespace femtolog::logging {
 

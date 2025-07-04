@@ -2,19 +2,32 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "logging/impl/backend_worker.h"
+#include "femtolog/logging/impl/backend_worker.h"
 
+#include <iostream>
 #include <utility>
 #include <vector>
 
-#include "core/check.h"
 #include "femtolog/base/format_string_registry.h"
+#include "femtolog/build/build_flag.h"
+#include "femtolog/core/check.h"
+#include "femtolog/logging/impl/args_deserializer.h"
+#include "femtolog/logging/impl/internal_logger.h"
 #include "femtolog/options.h"
 #include "fmt/args.h"
 #include "fmt/core.h"
 #include "fmt/format.h"
-#include "logging/impl/args_deserializer.h"
-#include "logging/impl/internal_logger.h"
+
+#if FEMTOLOG_ENABLE_AVX2
+#include <immintrin.h>
+#endif
+
+#if FEMTOLOG_IS_WINDOWS
+#include <windows.h>
+#elif FEMTOLOG_IS_LINUX
+#include <pthread.h>
+#include <sched.h>  // for CPU_ZERO, CPU_SET
+#endif
 
 namespace femtolog::logging {
 
@@ -28,16 +41,16 @@ BackendWorker::~BackendWorker() {
 
 void BackendWorker::init(SpscQueue* queue, const FemtologOptions& options) {
   DCHECK_EQ(status_, BackendWorkerStatus::kUninitialized);
-  DCHECK_GT(options.spsc_queue_size, 0);
   DCHECK_GT(options.backend_dequeue_buffer_size, 0);
-  DCHECK_GT(options.format_buffer_size, 0);
+  DCHECK_GT(options.backend_format_buffer_size, 0);
 
   queue_ = queue;
   status_ = BackendWorkerStatus::kIdling;
   dequeue_buffer_.reserve(options.backend_dequeue_buffer_size);
   dequeue_buffer_.resize(options.backend_dequeue_buffer_size);
-  format_buffer_.reserve(options.format_buffer_size);
+  format_buffer_.reserve(options.backend_format_buffer_size);
   dequeue_buffer_ptr_ = dequeue_buffer_.data();
+  worker_thread_cpu_affinity_ = options.backend_worker_cpu_affinity;
 }
 
 // Using std::jthread for automatic joining in C++20 is preferred,
@@ -47,6 +60,9 @@ void BackendWorker::start() {
   DCHECK_GT(sinks_.size(), 0);
   DCHECK(dequeue_buffer_ptr_);
   worker_thread_ = std::thread(&BackendWorker::run_loop, this);
+
+  set_cpu_affinity();
+
   status_ = BackendWorkerStatus::kRunning;
 }
 
@@ -73,6 +89,29 @@ void BackendWorker::clear_sinks() {
       << "attempted to clear all sinks while running.";
   DCHECK_EQ(status_, BackendWorkerStatus::kIdling);
   sinks_.clear();
+}
+
+void BackendWorker::set_cpu_affinity() {
+#if FEMTOLOG_IS_LINUX
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(worker_thread_cpu_affinity_, &cpuset);
+  int rc = pthread_setaffinity_np(worker_thread_.native_handle(),
+                                  sizeof(cpu_set_t), &cpuset);
+  if (rc != 0) {
+    std::cerr << "Failed to set thread affinity to CPU "
+              << worker_thread_cpu_affinity_ << " (errno=" << errno << ")\n";
+  }
+#elif FEMTOLOG_IS_WINDOWS
+  DWORD_PTR mask = 1ull << worker_thread_cpu_affinity_;
+  HANDLE handle = static_cast<HANDLE>(worker_thread_.native_handle());
+  DWORD_PTR result = SetThreadAffinityMask(handle, mask);
+  if (result == 0) {
+    std::cerr << "Failed to set thread affinity to CPU "
+              << worker_thread_cpu_affinity_
+              << " (GetLastError=" << GetLastError() << ")\n";
+  }
+#endif
 }
 
 bool BackendWorker::read_and_process_one() {
@@ -117,11 +156,15 @@ void BackendWorker::apply_polling_strategy(bool data_dequeued) {
 
   // Tiered backoff strategy
   if (idle_iterations_ <= 8192) {
-    // Tier 1: Busy-wait (no sleep, no yield) for very frequent logs
+    // Tier 1: Busy-wait for very frequent logs
     return;
   } else if (idle_iterations_ <= 16384) {
-    // Tier 2: Yield CPU to other threads on same core
+    // Tier 2: __mm_pause or yield cpu to other threads on same core
+#if FEMTOLOG_ENABLE_AVX2
+    _mm_pause();
+#else
     std::this_thread::yield();
+#endif
     return;
   } else if (idle_iterations_ <= 32768) {
     // Tier 3: Short sleep
@@ -140,7 +183,6 @@ void BackendWorker::apply_polling_strategy(bool data_dequeued) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return;
   }
-  // TODO: Consider using _mm_pause for x86 in busy-wait for power saving
 }
 
 void BackendWorker::flush() {

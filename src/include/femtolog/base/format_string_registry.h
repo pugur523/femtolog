@@ -8,8 +8,8 @@
 #include <array>
 #include <string_view>
 
-#include "core/check.h"
 #include "femtolog/base/format_util.h"
+#include "femtolog/core/check.h"
 
 namespace femtolog {
 

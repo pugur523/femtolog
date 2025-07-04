@@ -2,12 +2,12 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "logging/impl/spsc_queue.h"
+#include "femtolog/logging/impl/spsc_queue.h"
 
 #include <cstring>
 
-#include "build/build_flag.h"
-#include "core/check.h"
+#include "femtolog/build/build_flag.h"
+#include "femtolog/core/check.h"
 
 namespace femtolog::logging {
 
@@ -15,7 +15,7 @@ namespace {
 
 // Optimized memory allocation with proper alignment
 void* aligned_alloc_wrapper(std::size_t alignment, std::size_t size) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   return _aligned_malloc(size, alignment);
 #else
   void* ptr = nullptr;
@@ -27,7 +27,7 @@ void* aligned_alloc_wrapper(std::size_t alignment, std::size_t size) {
 }
 
 void aligned_free_wrapper(void* ptr) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   _aligned_free(ptr);
 #else
   free(ptr);

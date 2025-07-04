@@ -2,14 +2,14 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef CORE_CHECK_H_
-#define CORE_CHECK_H_
+#ifndef INCLUDE_FEMTOLOG_CORE_CHECK_H_
+#define INCLUDE_FEMTOLOG_CORE_CHECK_H_
 
 #include <iostream>
 
-#include "build/build_flag.h"
-#include "core/base/core_export.h"
-#include "core/base/string_util.h"
+#include "femtolog/build/build_flag.h"
+#include "femtolog/core/base/core_export.h"
+#include "femtolog/core/base/string_util.h"
 
 namespace core {
 
@@ -31,7 +31,7 @@ namespace core {
 #define CHECK_LT(val1, val2) CHECK_W_OP_IMPL(val1, val2, <, CHECK)
 #define CHECK_LE(val1, val2) CHECK_W_OP_IMPL(val1, val2, <=, CHECK)
 
-#if IS_RELEASE
+#if FEMTOLOG_IS_RELEASE
 #define DCHECK(condition) \
   if constexpr (false)    \
   ::core::null_stream()
@@ -61,7 +61,7 @@ namespace core {
 #define DCHECK_GE(val1, val2) CHECK_W_OP_IMPL(val1, val2, >=, DCHECK)
 #define DCHECK_LT(val1, val2) CHECK_W_OP_IMPL(val1, val2, <, DCHECK)
 #define DCHECK_LE(val1, val2) CHECK_W_OP_IMPL(val1, val2, <=, DCHECK)
-#endif  // IS_RELEASE
+#endif  // FEMTOLOG_IS_RELEASE
 
 class CORE_EXPORT CheckFailureStream {
  public:
@@ -119,4 +119,4 @@ inline std::ostream& null_stream() {
 
 }  // namespace core
 
-#endif  // CORE_CHECK_H_
+#endif  // INCLUDE_FEMTOLOG_CORE_CHECK_H_

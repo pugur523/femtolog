@@ -11,10 +11,10 @@
 #include <utility>
 
 #include "build/build_config.h"
-#include "build/build_flag.h"
-#include "core/check.h"
+#include "femtolog/build/build_flag.h"
+#include "femtolog/core/check.h"
 
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #undef APIENTRY
 #include <io.h>
@@ -43,7 +43,7 @@
 namespace core {
 
 bool file_exists(const char* file_name) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   DWORD attributes = GetFileAttributesA(file_name);
   return (attributes != INVALID_FILE_ATTRIBUTES &&
           !(attributes & FILE_ATTRIBUTE_DIRECTORY));
@@ -54,7 +54,7 @@ bool file_exists(const char* file_name) {
 }
 
 bool dir_exists(const char* dir_name) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   DWORD attributes = GetFileAttributesA(dir_name);
   return (attributes != INVALID_FILE_ATTRIBUTES &&
           (attributes & FILE_ATTRIBUTE_DIRECTORY));
@@ -65,7 +65,7 @@ bool dir_exists(const char* dir_name) {
 }
 
 std::string read_file(const char* path) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   int fd = _open(path, _O_RDONLY | _O_BINARY);
 #else
   int fd = open(path, O_RDONLY);
@@ -76,7 +76,7 @@ std::string read_file(const char* path) {
     return "";
   }
 
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   struct _stat64i32 st;
   if (_fstat(fd, &st) != 0)
 #else
@@ -86,7 +86,7 @@ std::string read_file(const char* path) {
   {
     std::cerr << "Failed to stat file: " << path << " (" << std::strerror(errno)
               << ")\n";
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
     _close(fd);
 #else
     close(fd);
@@ -99,7 +99,7 @@ std::string read_file(const char* path) {
     contents.resize(static_cast<std::size_t>(st.st_size));
     std::size_t total_read = 0;
     while (total_read < static_cast<std::size_t>(st.st_size)) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
       int bytes = _read(fd, &contents[total_read],
                         static_cast<unsigned int>(st.st_size - total_read));
 #else
@@ -113,7 +113,7 @@ std::string read_file(const char* path) {
     contents.resize(total_read);
   }
 
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   _close(fd);
 #else
   close(fd);
@@ -123,7 +123,7 @@ std::string read_file(const char* path) {
 
 const std::string& exe_path() {
   static const std::string cached_path = []() -> std::string {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
     char path[MAX_PATH] = {};
     DWORD len = GetModuleFileNameA(nullptr, path, MAX_PATH);
     if (len == 0 || len >= MAX_PATH) {
@@ -159,7 +159,7 @@ const std::string& resources_dir() {
 }
 
 bool is_executable_in_path(const char* path) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   const char* pathext = std::getenv("PATHEXT");
   std::vector<std::string> exts;
   if (pathext) {
@@ -181,10 +181,11 @@ bool is_executable_in_path(const char* path) {
   }
   std::string path_var = path_env;
   std::size_t start = 0, end;
-  while ((end = path_var.find(PATH_SEPARATOR, start)) != std::string::npos) {
+  while ((end = path_var.find(FEMTOLOG_PATH_SEPARATOR, start)) !=
+         std::string::npos) {
     std::string dir = path_var.substr(start, end - start);
-    std::string full_path = dir + DIR_SEPARATOR + path;
-#if IS_WINDOWS
+    std::string full_path = dir + FEMTOLOG_DIR_SEPARATOR + path;
+#if FEMTOLOG_IS_WINDOWS
     for (const auto& ext : exts) {
       std::string candidate = full_path + ext;
       if (file_exists(candidate.c_str())) {
@@ -201,8 +202,8 @@ bool is_executable_in_path(const char* path) {
   }
   // Check the last path entry
   std::string dir = path_var.substr(start);
-  std::string full_path = dir + DIR_SEPARATOR + path;
-#if IS_WINDOWS
+  std::string full_path = dir + FEMTOLOG_DIR_SEPARATOR + path;
+#if FEMTOLOG_IS_WINDOWS
   for (const auto& ext : exts) {
     std::string candidate = full_path + ext;
     if (file_exists(candidate.c_str())) {
@@ -217,11 +218,11 @@ bool is_executable_in_path(const char* path) {
   return false;
 }
 
-std::vector<std::string> list_files(const std::string& path) {
-  std::vector<std::string> files;
+Files list_files(const std::string& path) {
+  Files files;
   files.reserve(kPredictedFilesNbPerDir);
 
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   std::string search_path = path + "\\*";
   WIN32_FIND_DATAA find_data;
   HANDLE hFind = FindFirstFileA(search_path.c_str(), &find_data);
@@ -262,7 +263,7 @@ std::vector<std::string> list_files(const std::string& path) {
 }
 
 std::string parent_dir(const std::string& path) {
-  std::size_t pos = path.find_last_of(DIR_SEPARATOR);
+  std::size_t pos = path.find_last_of(FEMTOLOG_DIR_SEPARATOR);
   if (pos == std::string::npos) {
     return "";
   }
@@ -270,7 +271,7 @@ std::string parent_dir(const std::string& path) {
 }
 
 std::string base_name(const std::string& path) {
-  std::size_t pos = path.find_last_of(DIR_SEPARATOR);
+  std::size_t pos = path.find_last_of(FEMTOLOG_DIR_SEPARATOR);
   if (pos == std::string::npos) {
     return "";
   }
@@ -278,7 +279,7 @@ std::string base_name(const std::string& path) {
 }
 
 std::string temp_directory() {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   char buffer[MAX_PATH];
   DWORD len = GetTempPathA(MAX_PATH, buffer);
   if (len == 0 || len > MAX_PATH) {
@@ -290,7 +291,7 @@ std::string temp_directory() {
   for (const char* var : env_vars) {
     const char* value = std::getenv(var);
     if (value && *value) {
-      return std::string(value) + DIR_SEPARATOR;
+      return std::string(value) + FEMTOLOG_DIR_SEPARATOR;
     }
   }
   return "/tmp/";
@@ -315,7 +316,7 @@ std::string temp_path(const std::string& prefix) {
     suffix += charset[dist(rng)];
   }
 
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   return dir + prefix + suffix + ".tmp";
 #else
   return dir + prefix + suffix;
@@ -358,7 +359,7 @@ bool compress(const char* src_path,
 }
 
 int create_directory(const char* path) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   BOOL ok = CreateDirectoryA(path, nullptr);
   if (!ok && GetLastError() != ERROR_ALREADY_EXISTS) {
     return -1;
@@ -375,7 +376,7 @@ int create_directories(const char* path) {
   int result = 0;
 
   while (pos < sanitized_path.size()) {
-    std::size_t next_pos = sanitized_path.find(DIR_SEPARATOR, pos);
+    std::size_t next_pos = sanitized_path.find(FEMTOLOG_DIR_SEPARATOR, pos);
     std::string dir;
 
     if (next_pos != std::string::npos) {
@@ -398,7 +399,7 @@ int create_directories(const char* path) {
 }
 
 int create_file(const char* path) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   FILE* fp = nullptr;
   fopen_s(&fp, path, "wx");  // "w"=write, "x"=fail if exists
   if (!fp) {
@@ -415,7 +416,7 @@ int create_file(const char* path) {
 }
 
 int remove_file(const char* path) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   return DeleteFileA(path) ? 0 : -1;
 #else
   return std::remove(path);
@@ -423,7 +424,7 @@ int remove_file(const char* path) {
 }
 
 int remove_directory(const char* path) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   return RemoveDirectoryA(path) ? 0 : -1;
 #else
   return rmdir(path);
@@ -431,7 +432,7 @@ int remove_directory(const char* path) {
 }
 
 int rename_file(const char* old_path, const char* new_path) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   return MoveFileA(old_path, new_path) ? 0 : -1;
 #else
   return std::rename(old_path, new_path);
@@ -439,7 +440,7 @@ int rename_file(const char* old_path, const char* new_path) {
 }
 
 int write_file(const char* path, const std::string& content) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   int fd = _open(path, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY,
                  _S_IREAD | _S_IWRITE);
 #else
@@ -457,7 +458,7 @@ int write_file(const char* path, const std::string& content) {
   std::size_t size = content.size();
 
   while (total_written < size) {
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
     int bytes = _write(fd, data + total_written,
                        static_cast<unsigned int>(size - total_written));
 #else
@@ -466,7 +467,7 @@ int write_file(const char* path, const std::string& content) {
     if (bytes <= 0) {
       std::cerr << "Failed to write to file: " << path << " ("
                 << std::strerror(errno) << ")\n";
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
       _close(fd);
 #else
       close(fd);
@@ -476,7 +477,7 @@ int write_file(const char* path, const std::string& content) {
     total_written += static_cast<std::size_t>(bytes);
   }
 
-#if IS_WINDOWS
+#if FEMTOLOG_IS_WINDOWS
   _close(fd);
 #else
   close(fd);
@@ -490,18 +491,20 @@ int write_binary_to_file(const void* binary_data,
   if (!binary_data || binary_size == 0) {
     std::cerr << "Invalid data or size (null or zero) for file: " << output_path
               << "\n";
-    return 3;
+    return 4;
   }
 
-  std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(output_path.c_str(), "wb"),
-                                              &fclose);
+  FILE* fp = fopen(output_path.c_str(), "wb");
   if (!fp) {
     std::cerr << "Failed to open file for writing: " << output_path << "\n";
     std::perror("fopen");
     return 2;
   }
 
-  std::size_t written = fwrite(binary_data, 1, binary_size, fp.get());
+  std::size_t written = fwrite(binary_data, 1, binary_size, fp);
+  fflush(fp);
+  fclose(fp);
+
   if (written != binary_size) {
     std::cerr << "Failed to write all data to file: " << output_path
               << " (written " << written << " / " << binary_size << ")"
@@ -535,12 +538,13 @@ std::string sanitize_component(const char* part, bool is_first) {
   std::string result = part;
 
   // Remove leading separator if not first
-  if (!is_first && !result.empty() && result.front() == DIR_SEPARATOR) {
+  if (!is_first && !result.empty() &&
+      result.front() == FEMTOLOG_DIR_SEPARATOR) {
     result.erase(0, 1);
   }
 
   // Remove trailing separator
-  if (!result.empty() && result.back() == DIR_SEPARATOR) {
+  if (!result.empty() && result.back() == FEMTOLOG_DIR_SEPARATOR) {
     result.pop_back();
   }
 

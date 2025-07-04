@@ -7,17 +7,17 @@
 import os
 import subprocess
 import datetime
-import build_util
+import femtolog_build_util
 import sys
 import argparse
 from pathlib import Path
 
 scripts_dir = os.path.dirname(os.path.realpath(__file__))
-project_root_dir = build_util.project_root_dir
+project_root_dir = femtolog_build_util.project_root_dir
 benchmark_results_dir = os.path.join(project_root_dir, "src/bench/results")
 
 benchmark_exe_dir = os.path.join(
-    build_util.build_platform_dir(),
+    femtolog_build_util.build_platform_dir(),
     "release/bin",
 )
 benchmark_executable = os.path.join(benchmark_exe_dir, "femtolog_bench")
@@ -60,15 +60,15 @@ def main():
     print(f"Benchmark results saved to {result_json}")
 
     if args.format:
-        import format_results
+        import femtolog_format_results
 
         plot_target = os.path.join(benchmark_results_dir, f"{current_datetime}.png")
-        format_results.format_result(
+        femtolog_format_results.format_result(
             Path(result_json),
             None,
             None,
             "real_time",
-            [50, 75, 90, 95, 99, 99.9, 99.999],
+            [50, 75, 90, 95, 99, 99.9],
             True,
             Path(plot_target),
         )

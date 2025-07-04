@@ -7,31 +7,30 @@
 import os
 import sys
 
-from build_util import (
+from femtolog_build_util import (
     is_installed,
     run_command,
     project_root_dir,
 )
 
 
-def run_cpplint(src_dir, cpplint_cfg=""):
+def run_cpplint(root_dir, cpplint_cfg=""):
     if not is_installed("cpplint"):
         print("cpplint not found. please install cpplint and add it to $PATH.")
         return 1
     if not cpplint_cfg:
         cpplint_cfg = "CPPLINT.cfg"
-    result = run_command(
-        [
-            "python3",
-            "-m",
-            "cpplint",
-            "--exclude=src/third_party",
-            "--recursive",
-            "--config=" + cpplint_cfg,
-            "./src",
-        ],
-        cwd=src_dir,
-    )
+    command = [
+        "python3",
+        "-m",
+        "cpplint",
+        "--exclude=./src/third_party",
+        "--exclude=./out",
+        "--recursive",
+        "--config=" + cpplint_cfg,
+        root_dir,
+    ]
+    result = run_command(command, cwd=root_dir)
     if result.returncode != 0:
         print("cpplint failed: ", result.returncode)
     return result.returncode

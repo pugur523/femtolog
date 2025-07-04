@@ -2,11 +2,11 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef LOGGING_IMPL_ARGS_DESERIALIZER_H_
-#define LOGGING_IMPL_ARGS_DESERIALIZER_H_
+#ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_DESERIALIZER_H_
+#define INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_DESERIALIZER_H_
 
+#include "femtolog/logging/impl/args_serializer.h"
 #include "fmt/args.h"
-#include "logging/impl/args_serializer.h"
 
 namespace femtolog::logging {
 
@@ -113,4 +113,4 @@ class ArgsDeserializer {
 
 }  // namespace femtolog::logging
 
-#endif  // LOGGING_IMPL_ARGS_DESERIALIZER_H_
+#endif  // INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_DESERIALIZER_H_

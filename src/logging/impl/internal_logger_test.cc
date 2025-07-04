@@ -2,10 +2,7 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#include "logging/impl/internal_logger.h"
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "femtolog/logging/impl/internal_logger.h"
 
 #include <chrono>
 #include <memory>
@@ -18,6 +15,8 @@
 #include "femtolog/base/log_level.h"
 #include "femtolog/options.h"
 #include "femtolog/sinks/sink_base.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 namespace femtolog::logging {
 using ::testing::_;

@@ -5,7 +5,7 @@
 #include <string>
 
 #include "benchmark/benchmark.h"
-#include "logging/impl/args_serializer.h"
+#include "femtolog/logging/impl/args_serializer.h"
 
 namespace femtolog::logging {
 

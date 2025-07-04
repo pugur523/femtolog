@@ -2,17 +2,17 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef LOGGING_IMPL_BACKEND_WORKER_H_
-#define LOGGING_IMPL_BACKEND_WORKER_H_
+#ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_BACKEND_WORKER_H_
+#define INCLUDE_FEMTOLOG_LOGGING_IMPL_BACKEND_WORKER_H_
 
 #include <atomic>
 #include <thread>
 #include <vector>
 
 #include "femtolog/base/log_entry.h"
+#include "femtolog/logging/impl/spsc_queue.h"
 #include "femtolog/options.h"
 #include "femtolog/sinks/sink_base.h"
-#include "logging/impl/spsc_queue.h"
 
 namespace femtolog::logging {
 
@@ -49,6 +49,7 @@ class BackendWorker {
   BackendWorkerStatus status() const { return status_; }
 
  private:
+  void set_cpu_affinity();
   bool read_and_process_one();
   void run_loop();
   void apply_polling_strategy(bool data_dequeued);
@@ -61,6 +62,7 @@ class BackendWorker {
   std::vector<std::unique_ptr<SinkBase>> sinks_;
   SpscQueue* queue_ = nullptr;
   std::thread worker_thread_;
+  std::size_t worker_thread_cpu_affinity_ = 5;
   std::atomic<bool> shutdown_required_{false};
   fmt::basic_memory_buffer<char, 512> format_buffer_;
 
@@ -72,4 +74,4 @@ class BackendWorker {
 
 }  // namespace femtolog::logging
 
-#endif  // LOGGING_IMPL_BACKEND_WORKER_H_
+#endif  // INCLUDE_FEMTOLOG_LOGGING_IMPL_BACKEND_WORKER_H_

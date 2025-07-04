@@ -12,10 +12,10 @@
 
 #include "femtolog/base/femtolog_export.h"
 #include "femtolog/base/format_util.h"
+#include "femtolog/logging/impl/backend_worker.h"
+#include "femtolog/logging/impl/internal_logger.h"
 #include "femtolog/options.h"
 #include "femtolog/sinks/sink_base.h"
-#include "fmt/core.h"
-#include "logging/impl/internal_logger.h"
 
 namespace femtolog {
 
@@ -31,11 +31,6 @@ class FEMTOLOG_EXPORT Logger {
 
   Logger(Logger&&) noexcept = default;
   Logger& operator=(Logger&&) noexcept = default;
-
-  inline static Logger& logger() {
-    thread_local Logger logger_;
-    return logger_;
-  }
 
   inline void init(const FemtologOptions& options = FemtologOptions()) {
     internal_logger().init(options);
@@ -96,6 +91,16 @@ class FEMTOLOG_EXPORT Logger {
   }
 
   inline LogLevel level() const { return internal_logger().level(); }
+
+  inline static Logger& logger() {
+    thread_local Logger logger_;
+    return logger_;
+  }
+
+  inline static Logger& global_logger() {
+    static Logger logger_;
+    return logger_;
+  }
 
  private:
   Logger() = default;

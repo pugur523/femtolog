@@ -46,16 +46,16 @@ BENCHMARK(file_util_dir_exists);
 
 void file_util_exe_path(benchmark::State& state) {
   for (auto _ : state) {
-    std::string exe_path = exe_path();
-    benchmark::DoNotOptimize(exe_path);
+    std::string this_path = exe_path();
+    benchmark::DoNotOptimize(this_path);
   }
 }
 BENCHMARK(file_util_exe_path);
 
 void file_util_exe_dir(benchmark::State& state) {
   for (auto _ : state) {
-    std::string exe_dir = exe_dir();
-    benchmark::DoNotOptimize(exe_dir);
+    std::string this_dir = exe_dir();
+    benchmark::DoNotOptimize(this_dir);
   }
 }
 BENCHMARK(file_util_exe_dir);

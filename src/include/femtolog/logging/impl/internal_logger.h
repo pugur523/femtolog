@@ -2,20 +2,20 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef LOGGING_IMPL_INTERNAL_LOGGER_H_
-#define LOGGING_IMPL_INTERNAL_LOGGER_H_
+#ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_INTERNAL_LOGGER_H_
+#define INCLUDE_FEMTOLOG_LOGGING_IMPL_INTERNAL_LOGGER_H_
 
 #include <memory>
 #include <utility>
 
 #include "femtolog/base/format_string_registry.h"
 #include "femtolog/base/log_entry.h"
+#include "femtolog/logging/base/logging_export.h"
+#include "femtolog/logging/impl/args_serializer.h"
+#include "femtolog/logging/impl/backend_worker.h"
+#include "femtolog/logging/impl/spsc_queue.h"
 #include "femtolog/options.h"
 #include "femtolog/sinks/sink_base.h"
-#include "logging/base/logging_export.h"
-#include "logging/impl/args_serializer.h"
-#include "logging/impl/backend_worker.h"
-#include "logging/impl/spsc_queue.h"
 
 namespace femtolog::logging {
 
@@ -149,4 +149,4 @@ class LOGGING_EXPORT InternalLogger {
 
 }  // namespace femtolog::logging
 
-#endif  // LOGGING_IMPL_INTERNAL_LOGGER_H_
+#endif  // INCLUDE_FEMTOLOG_LOGGING_IMPL_INTERNAL_LOGGER_H_

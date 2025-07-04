@@ -9,6 +9,9 @@ message(STATUS "Configuring ${TEST_NAME}...")
 set(SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/test_main.cc
 
+  ${PROJECT_SOURCE_DIR}/core/base/file_util_test.cc
+  ${PROJECT_SOURCE_DIR}/core/base/string_util_test.cc
+
   ${PROJECT_SOURCE_DIR}/femtolog/femtolog_test.cc
 
   ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_test.cc

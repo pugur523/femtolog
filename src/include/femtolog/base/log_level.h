@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-#include "core/base/string_util.h"
+#include "femtolog/core/base/string_util.h"
 
 namespace femtolog {
 

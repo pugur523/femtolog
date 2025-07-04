@@ -9,11 +9,11 @@ from itertools import product
 import os
 import sys
 
-from code_util import run_cpplint, run_clang_format
+from femtolog_code_util import run_cpplint, run_clang_format
 from concurrent.futures import ThreadPoolExecutor
 from tabulate import tabulate
 from time import time
-from build_util import (
+from femtolog_build_util import (
     build_platform_dir,
     get_platform_name,
     get_arch_name,
@@ -354,7 +354,7 @@ def main(argv):
     parser.add_argument(
         "--cpplint",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=False,
         help="run cpplint before build",
     )
     parser.add_argument(

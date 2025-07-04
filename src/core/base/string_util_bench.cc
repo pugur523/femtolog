@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
-#include "core/base/string_util.h"
+#include "femtolog/core/base/string_util.h"
 
 namespace core {
 
@@ -19,14 +19,13 @@ const std::string kLongString = [] {  // NOLINT
   std::string s;
   s.reserve(1024 * 10);  // 10 KiB
   for (int i = 0; i < 1000; ++i) {
-    s += "a long string for benchmarking purposes. ";
+    s += "A very long string for benchmarking purposes. ";
   }
   return s;
 }();
 
 constexpr const char* kStringWithEscape = "hello world\\n\\t\\r\\\"test\\\'";
-constexpr const char kStringWithMixedCase[] = "hElLo WoRlD";
-constexpr const char* kUtf8String = "こんにちは🌍";  // 15 chars, 20 bytes
+constexpr const char* kUtf8String = "こんにちは世界🌍";  // 15 chars, 20 bytes
 constexpr const char* kSplitString = "one,two,three,four,five";
 constexpr const char* kBracketString = "(abc)[def]{ghi}";
 constexpr const char* kFormatString = "Value: {}, Text: {}";
@@ -49,7 +48,8 @@ std::string generate_random_string(std::size_t length) {
 
 void string_util_encode_escape_short(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(encode_escape(kStringWithEscape));
+    benchmark::DoNotOptimize(
+        encode_escape(std::string_view(kStringWithEscape)));
   }
   state.SetBytesProcessed(state.iterations() * safe_strlen(kStringWithEscape));
 }
@@ -68,7 +68,7 @@ void string_util_encode_escape_long(benchmark::State& state) {
 BENCHMARK(string_util_encode_escape_long);
 
 void string_util_decode_escape_short(benchmark::State& state) {
-  std::string encoded = encode_escape(kStringWithEscape);
+  std::string encoded = encode_escape(std::string_view(kStringWithEscape));
   for (auto _ : state) {
     benchmark::DoNotOptimize(decode_escape(encoded));
   }
@@ -89,18 +89,6 @@ void string_util_decode_escape_long(benchmark::State& state) {
 }
 BENCHMARK(string_util_decode_escape_long);
 
-void string_util_to_lower_ascii(benchmark::State& state) {
-  constexpr const auto lowered = to_lower_ascii(kStringWithMixedCase);
-  char* buf = new char[lowered.size() + 1];
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(buf);
-    write_raw(buf, lowered.data(), lowered.size());
-  }
-  state.SetBytesProcessed(state.iterations() * lowered.size());
-  delete[] buf;
-}
-BENCHMARK(string_util_to_lower_ascii);
-
 void string_util_to_lower_char_ptr(benchmark::State& state) {
   char* buf = new char[kLongString.length() + 1];
   write_raw(buf, kLongString.c_str(), kLongString.length());
@@ -113,6 +101,19 @@ void string_util_to_lower_char_ptr(benchmark::State& state) {
   delete[] buf;
 }
 BENCHMARK(string_util_to_lower_char_ptr);
+
+void string_util_to_lower_char_ptr_w_len(benchmark::State& state) {
+  char* buf = new char[kLongString.length() + 1];
+  write_raw(buf, kLongString.c_str(), kLongString.length());
+  for (auto _ : state) {
+    to_lower(buf, kLongString.length());
+    benchmark::DoNotOptimize(buf);
+    write_raw(buf, kLongString.c_str(), kLongString.length());
+  }
+  state.SetBytesProcessed(state.iterations() * kLongString.size());
+  delete[] buf;
+}
+BENCHMARK(string_util_to_lower_char_ptr_w_len);
 
 void string_util_to_lower_string_ptr(benchmark::State& state) {
   std::string s = kLongString;
@@ -145,6 +146,19 @@ void string_util_to_upper_char_ptr(benchmark::State& state) {
   delete[] buf;
 }
 BENCHMARK(string_util_to_upper_char_ptr);
+
+void string_util_to_upper_char_ptr_w_len(benchmark::State& state) {
+  char* buf = new char[kLongString.length() + 1];
+  write_raw(buf, kLongString.c_str(), kLongString.length());
+  for (auto _ : state) {
+    to_upper(buf, kLongString.length());
+    benchmark::DoNotOptimize(buf);
+    write_raw(buf, kLongString.c_str(), kLongString.length());
+  }
+  state.SetBytesProcessed(state.iterations() * kLongString.size());
+  delete[] buf;
+}
+BENCHMARK(string_util_to_upper_char_ptr_w_len);
 
 void string_util_to_upper_string_ptr(benchmark::State& state) {
   std::string s = kLongString;

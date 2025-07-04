@@ -2,15 +2,15 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef LOGGING_IMPL_SPSC_QUEUE_H_
-#define LOGGING_IMPL_SPSC_QUEUE_H_
+#ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_SPSC_QUEUE_H_
+#define INCLUDE_FEMTOLOG_LOGGING_IMPL_SPSC_QUEUE_H_
 
 #include <atomic>
 #include <cstddef>
 #include <memory>
 
-#include "core/check.h"
-#include "logging/base/logging_export.h"
+#include "femtolog/core/check.h"
+#include "femtolog/logging/base/logging_export.h"
 
 namespace femtolog::logging {
 
@@ -114,4 +114,4 @@ constexpr std::size_t SpscQueue::next_power_of_2(std::size_t n) noexcept {
 
 }  // namespace femtolog::logging
 
-#endif  // LOGGING_IMPL_SPSC_QUEUE_H_
+#endif  // INCLUDE_FEMTOLOG_LOGGING_IMPL_SPSC_QUEUE_H_
