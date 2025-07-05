@@ -152,7 +152,7 @@ TEST_F(InternalLoggerTest, LiteralStringLogging) {
   ASSERT_EQ(mock_sink_ptr_->captured_logs.size(), 1);
   const auto& log_data = mock_sink_ptr_->captured_logs[0];
   EXPECT_EQ(log_data.level, LogLevel::kInfo);
-  EXPECT_EQ(log_data.format_id, InternalLogger::kLiteralLogFormatId);
+  EXPECT_EQ(log_data.format_id, kLiteralLogStringId);
   EXPECT_EQ(log_data.message, "Test message");
   EXPECT_EQ(log_data.thread_id, logger_->thread_id());
 }
@@ -180,7 +180,7 @@ TEST_F(InternalLoggerTest, ParameterizedLogging) {
   ASSERT_EQ(mock_sink_ptr_->captured_logs.size(), 1);
   const auto& log_data = mock_sink_ptr_->captured_logs[0];
   EXPECT_EQ(log_data.level, LogLevel::kInfo);
-  EXPECT_NE(log_data.format_id, InternalLogger::kLiteralLogFormatId);
+  EXPECT_NE(log_data.format_id, kLiteralLogStringId);
   EXPECT_EQ(log_data.thread_id, logger_->thread_id());
 }
 

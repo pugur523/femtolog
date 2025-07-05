@@ -12,24 +12,21 @@ namespace femtolog::logging {
 
 class ArgsDeserializer {
  public:
-  explicit ArgsDeserializer(const SerializedArgs<>& serialized_args)
+  template <std::size_t Capacity>
+  explicit ArgsDeserializer(const SerializedArgs<Capacity>& serialized_args,
+                            const StringRegistry* string_registry)
       : data_(serialized_args.data()),
         header_(reinterpret_cast<const SerializedArgsHeader*>(
-            serialized_args.data())) {
+            serialized_args.data())),
+        string_registry_(string_registry) {
     pos_ = sizeof(SerializedArgsHeader);
   }
 
-  template <std::size_t BufferSize>
-  explicit ArgsDeserializer(const SerializedArgs<BufferSize>& serialized_args)
-      : data_(serialized_args.data()),
-        header_(reinterpret_cast<const SerializedArgsHeader*>(
-            serialized_args.data())) {
-    pos_ = sizeof(SerializedArgsHeader);
-  }
-
-  explicit ArgsDeserializer(char* src)
+  explicit ArgsDeserializer(const char* src,
+                            const StringRegistry* string_registry)
       : data_(src),
-        header_(reinterpret_cast<const SerializedArgsHeader*>(src)) {
+        header_(reinterpret_cast<const SerializedArgsHeader*>(src)),
+        string_registry_(string_registry) {
     pos_ = sizeof(SerializedArgsHeader);
   }
 
@@ -43,58 +40,67 @@ class ArgsDeserializer {
       pos_ += sizeof(ArgHeader);
 
       switch (arg_header->type) {
-        case ArgType::kInt32:
+        case ArgType::kInt32: {
           int32_t i32_value;
           std::memcpy(&i32_value, data_ + pos_, sizeof(i32_value));
           store.push_back(i32_value);
           break;
-        case ArgType::kInt64:
+        }
+        case ArgType::kInt64: {
           int64_t i64_value;
           std::memcpy(&i64_value, data_ + pos_, sizeof(i64_value));
           store.push_back(i64_value);
           break;
-        case ArgType::kUint32:
+        }
+        case ArgType::kUint32: {
           uint32_t u32_value;
           std::memcpy(&u32_value, data_ + pos_, sizeof(u32_value));
           store.push_back(u32_value);
           break;
-        case ArgType::kUint64:
+        }
+        case ArgType::kUint64: {
           uint64_t u64_value;
           std::memcpy(&u64_value, data_ + pos_, sizeof(u64_value));
           store.push_back(u64_value);
           break;
-        case ArgType::kFloat:
+        }
+        case ArgType::kFloat: {
           float f32_value;
           std::memcpy(&f32_value, data_ + pos_, sizeof(f32_value));
           store.push_back(f32_value);
           break;
-        case ArgType::kDouble:
+        }
+        case ArgType::kDouble: {
           double f64_value;
           std::memcpy(&f64_value, data_ + pos_, sizeof(f64_value));
           store.push_back(f64_value);
           break;
-        case ArgType::kBool:
+        }
+        case ArgType::kBool: {
           bool bool_value;
           std::memcpy(&bool_value, data_ + pos_, sizeof(bool_value));
           store.push_back(bool_value);
           break;
-        case ArgType::kChar:
+        }
+        case ArgType::kChar: {
           char char_value;
           std::memcpy(&char_value, data_ + pos_, sizeof(char_value));
           store.push_back(char_value);
           break;
-        case ArgType::kStringView:
-        case ArgType::kCstring: {
-          const char* str_data = reinterpret_cast<const char*>(data_ + pos_);
-          std::string_view str_view(str_data, arg_header->size);
-          store.push_back(str_view);
+        }
+        case ArgType::kString:
+        case ArgType::kFixedString: {
+          StringId id;
+          std::memcpy(&id, data_ + pos_, sizeof(StringId));
+          store.push_back(string_registry_->get_string(id));
           break;
         }
-        case ArgType::kPointer:
+        case ArgType::kPointer: {
           const void* ptr_value;
           std::memcpy(&ptr_value, data_ + pos_, sizeof(ptr_value));
           store.push_back(ptr_value);
           break;
+        }
       }
       pos_ += arg_header->size;
     }
@@ -106,9 +112,10 @@ class ArgsDeserializer {
   inline uint32_t total_size() const { return header_->total_size; }
 
  private:
-  const char* data_;
+  const char* data_ = nullptr;
   std::size_t pos_ = 0;
-  const SerializedArgsHeader* header_;
+  const SerializedArgsHeader* header_ = nullptr;
+  const StringRegistry* string_registry_ = nullptr;
 };
 
 }  // namespace femtolog::logging

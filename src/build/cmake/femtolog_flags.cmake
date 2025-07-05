@@ -208,7 +208,7 @@ endmacro()
 
 macro(femtolog_setup_flags)
   include(CheckCXXCompilerFlag)
-  string(TOUPPER ${MAIN_LIB_NAME} UPPER_PROJECT_NAME)
+  string(TOUPPER ${PROJECT_NAME} UPPER_PROJECT_NAME)
 
   if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang" OR NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(FATAL_ERROR "Unknown compiler: C=${CMAKE_C_COMPILER_ID}, CXX=${CMAKE_CXX_COMPILER_ID}")

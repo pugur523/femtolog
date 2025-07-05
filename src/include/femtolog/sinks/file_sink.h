@@ -11,10 +11,10 @@
 #include <memory>
 #include <string>
 
-#include "femtolog/core/base/file_util.h"
 #include "femtolog/base/log_entry.h"
 #include "femtolog/base/log_level.h"
 #include "femtolog/build/build_flag.h"
+#include "femtolog/core/base/file_util.h"
 #include "femtolog/sinks/sink_base.h"
 #include "fmt/chrono.h"
 #include "fmt/format.h"

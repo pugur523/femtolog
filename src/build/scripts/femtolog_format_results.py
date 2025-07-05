@@ -142,9 +142,9 @@ def plot_benchmark_percentiles(
         for name in benchmark_names:
             parts = name.split("_")
             if len(parts) > 2:
-                short_names.append(f"{parts[0]}_{parts[-1]}")
+                short_names.append(f"{parts[0]} - {parts[-2]}_{parts[-1]}")
             elif len(parts) == 2:
-                short_names.append(parts[1])
+                short_names.append(parts[-1])
             else:
                 short_names.append(name)
         
@@ -180,7 +180,7 @@ def plot_benchmark_percentiles(
                 )
             
             ax.set_xticks(range(len(short_names)))
-            ax.set_xticklabels(short_names, rotation=45, ha='right', fontsize=10)
+            ax.set_xticklabels(short_names, rotation=30, ha='right', fontsize=10)
             ax.set_ylim(0, ymax)
             ax.set_ylabel(f"{field} (ns)", fontsize=11, fontweight="bold")
             ax.set_title(f"P{p:.1f} Percentile", fontsize=14, fontweight="bold", pad=15)
@@ -209,8 +209,8 @@ def plot_benchmark_percentiles(
         
         fig.suptitle(
             "Benchmark Comparison by Percentile",
-            fontsize=18,
-            fontweight="bold",
+            fontsize=35,
+            fontweight="black",
             y=0.98
         )
         

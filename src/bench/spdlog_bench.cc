@@ -2,8 +2,10 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
+#include <chrono>
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "benchmark/benchmark.h"
 #include "spdlog/sinks/null_sink.h"
@@ -18,6 +20,8 @@ std::shared_ptr<logger> setup_logger() {
   auto l = std::make_shared<logger>("spd", null_sink);
   set_default_logger(l);
   set_level(level::info);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(25));
   return l;
 }
 

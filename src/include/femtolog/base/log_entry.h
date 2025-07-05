@@ -49,24 +49,24 @@ struct alignas(64) LogEntry {
                                         uint16_t format_id,
                                         LogLevel level,
                                         uint64_t timestamp_ns,
-                                        std::string_view message) {
+                                        const char* payload,
+                                        std::size_t content_len) {
     auto* entry = reinterpret_cast<LogEntry*>(buffer);
     entry->thread_id = thread_id;
     entry->format_id = format_id;
     entry->level = level;
-    entry->content_len = static_cast<uint16_t>(message.size());
-    entry->payload_size =
-        static_cast<uint16_t>(sizeof(LogEntry) + entry->content_len);
+    entry->content_len = static_cast<uint16_t>(content_len);
+    entry->payload_size = static_cast<uint16_t>(sizeof(LogEntry) + content_len);
     entry->timestamp_ns = timestamp_ns;
 
-    std::memcpy(entry->payload(), message.data(), entry->content_len);
+    std::memcpy(entry->payload(), payload, content_len);
 
     if (entry->content_len <= 64) [[likely]] {
       // Small message - use direct copy for better performance
-      __builtin_memcpy(entry->payload(), message.data(), entry->content_len);
+      __builtin_memcpy(entry->payload(), payload, content_len);
     } else {
-      // Larger message - use optimized memcpy
-      std::memcpy(entry->payload(), message.data(), entry->content_len);
+      // Larger message - use memcpy
+      std::memcpy(entry->payload(), payload, content_len);
     }
     return entry;
   }

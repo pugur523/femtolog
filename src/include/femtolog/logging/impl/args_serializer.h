@@ -5,18 +5,17 @@
 #ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_SERIALIZER_H_
 #define INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_SERIALIZER_H_
 
-#include <array>
-#include <bit>
+#include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <new>
+#include <memory>
 #include <string>
 #include <string_view>
-#include <tuple>
-#include <type_traits>
-#include <utility>
 
+#include "femtolog/base/string_registry.h"
 #include "femtolog/build/build_flag.h"
+#include "femtolog/core/check.h"
 
 namespace femtolog::logging {
 
@@ -29,9 +28,9 @@ enum class ArgType : uint8_t {
   kDouble = 5,
   kBool = 6,
   kChar = 7,
-  kStringView = 8,
-  kCstring = 9,
-  kPointer = 10
+  kString = 8,
+  kFixedString = 9,
+  kPointer = 10,
 };
 
 #pragma pack(push, 1)
@@ -41,7 +40,6 @@ struct ArgHeader {
 
   constexpr ArgHeader(ArgType t, uint16_t s) : type(t), size(s) {}
 };
-
 struct SerializedArgsHeader {
   uint32_t total_size = 0;
   uint16_t arg_count = 0;
@@ -52,69 +50,52 @@ struct SerializedArgsHeader {
 };
 #pragma pack(pop)
 
-template <std::size_t BufSize = 512>
-class alignas(std::hardware_destructive_interference_size) SerializedArgs {
+template <std::size_t Capacity = 4096>
+class SerializedArgs {
  public:
-  SerializedArgs() = default;
-  ~SerializedArgs() = default;
+  inline char* data() noexcept { return buffer_; }
+  inline const char* data() const noexcept { return buffer_; }
 
-  SerializedArgs(const SerializedArgs&) = delete;
-  SerializedArgs& operator=(const SerializedArgs&) = delete;
-
-  SerializedArgs(SerializedArgs&& other) noexcept
-      : buffer_(std::move(other.buffer_)), data_size_(other.data_size_) {
-    other.data_size_ = 0;
+  inline void resize(std::size_t size) noexcept {
+    FEMTOLOG_DCHECK_LE(size, Capacity);
+    size_ = size;
   }
 
-  SerializedArgs& operator=(SerializedArgs&& other) noexcept {
-    if (this != &other) {
-      buffer_ = std::move(other.buffer_);
-      data_size_ = other.data_size_;
-      other.data_size_ = 0;
-    }
-    return *this;
-  }
+  inline void clear() noexcept { size_ = 0; }
 
-  [[nodiscard]] inline const char* data() const noexcept {
-    return buffer_.data();
-  }
-  [[nodiscard]] inline std::size_t size() const noexcept { return data_size_; }
-  [[nodiscard]] inline bool empty() const noexcept { return data_size_ == 0; }
-
-  inline char* data() noexcept { return buffer_.data(); }
-  inline void size(std::size_t size) noexcept { data_size_ = size; }
-  [[nodiscard]] inline static constexpr std::size_t capacity() noexcept {
-    return BufSize;
-  }
+  inline std::size_t size() const noexcept { return size_; }
+  inline consteval std::size_t capacity() const noexcept { return Capacity; }
 
  private:
-  alignas(std::hardware_constructive_interference_size)
-      std::array<char, BufSize> buffer_;
-  std::size_t data_size_ = 0;
+  alignas(std::hardware_destructive_interference_size) char buffer_[Capacity];
+  std::size_t size_ = 0;
 };
 
-// detect constexpr string
 template <typename T>
-constexpr bool is_constexpr_string() {
-  if constexpr (std::is_array_v<std::remove_reference_t<T>>) {
-    return std::is_same_v<std::remove_extent_t<std::remove_reference_t<T>>,
-                          const char>;
-  }
-  return false;
-}
+struct is_fixed_string_trait : std::false_type {};
 
-template <typename T>
-constexpr std::size_t get_constexpr_string_size() {
-  if constexpr (is_constexpr_string<T>()) {
-    // exclude null termination
-    return std::extent_v<std::remove_reference_t<T>> - 1;
-  }
-  return 0;
-}
+template <std::size_t N>
+struct is_fixed_string_trait<FixedString<N>> : std::true_type {};
+
+template <std::size_t N>
+struct is_fixed_string_trait<const char (&)[N]> : std::true_type {};
 
 template <typename T>
 struct ArgTypeInfo {
   using DecayT = std::decay_t<T>;
+
+  static constexpr bool is_char_array =
+      std::is_array_v<DecayT> &&
+      std::is_same_v<std::remove_extent_t<DecayT>, char>;
+
+  static constexpr bool is_fixed_string = is_fixed_string_trait<DecayT>::value;
+
+  static constexpr bool is_dynamic_string =
+      (std::is_convertible_v<DecayT, std::string_view> ||
+       std::is_same_v<DecayT, std::string_view> || is_char_array) &&
+      !is_fixed_string;
+
+  static constexpr bool is_string_like = is_dynamic_string || is_fixed_string;
 
   static constexpr ArgType type = []() constexpr {
     if constexpr (std::is_same_v<DecayT, int32_t> ||
@@ -140,14 +121,10 @@ struct ArgTypeInfo {
       return ArgType::kBool;
     } else if constexpr (std::is_same_v<DecayT, char>) {
       return ArgType::kChar;
-    } else if constexpr (std::is_same_v<DecayT, std::string_view>) {
-      return ArgType::kStringView;
-    } else if constexpr (std::is_same_v<DecayT, std::string>) {
-      return ArgType::kStringView;
-    } else if constexpr (std::is_same_v<DecayT, const char*>) {
-      return ArgType::kCstring;
-    } else if constexpr (is_constexpr_string<T>()) {
-      return ArgType::kCstring;
+    } else if constexpr (is_dynamic_string) {
+      return ArgType::kString;
+    } else if constexpr (is_fixed_string) {
+      return ArgType::kFixedString;
     } else if constexpr (std::is_pointer_v<DecayT>) {
       return ArgType::kPointer;
     } else {
@@ -155,39 +132,108 @@ struct ArgTypeInfo {
     }
   }();
 
-  static constexpr bool is_constexpr_string_v = is_constexpr_string<T>();
-
-  static constexpr bool is_dynamic_string =
-      (std::is_same_v<DecayT, std::string_view> ||
-       std::is_same_v<DecayT, const char*> ||
-       std::is_same_v<DecayT, std::string>) &&
-      !is_constexpr_string_v;
-
-  static constexpr bool is_string_like =
-      is_dynamic_string || is_constexpr_string_v;
-
-  static constexpr std::size_t constexpr_string_size =
-      get_constexpr_string_size<T>();
-
-  static constexpr std::size_t fixed_size =
-      is_dynamic_string
-          ? 0
-          : (is_constexpr_string_v ? constexpr_string_size : sizeof(DecayT));
-
-  static constexpr ArgHeader header = ArgHeader{
-      type, static_cast<uint16_t>(is_constexpr_string_v ? constexpr_string_size
-                                                        : sizeof(DecayT))};
+  ArgTypeInfo() = delete;
 };
 
+// FixedString<N> -> kFixedString
+template <std::size_t N>
+inline void write_arg(StringRegistry* registry,
+                      char*& pos,
+                      const FixedString<N>& value) {
+  constexpr StringId id = get_format_id<value>();
+  constexpr ArgHeader header(ArgType::kFixedString, sizeof(id));
+  registry->register_string<value>();
+
+  std::memcpy(pos, &header, sizeof(header));
+  pos += sizeof(header);
+  std::memcpy(pos, &id, sizeof(id));
+  pos += sizeof(id);
+}
+
+// std::string_view -> kString
+inline void write_arg(StringRegistry* registry,
+                      char*& pos,
+                      const std::string_view& view) {
+  FEMTOLOG_DCHECK(registry);
+  StringId id = hash_string_from_pointer(view.data());
+  registry->register_string_arena(id, view);
+  constexpr ArgHeader header(ArgType::kString, sizeof(id));
+  std::memcpy(pos, &header, sizeof(header));
+  pos += sizeof(header);
+  std::memcpy(pos, &id, sizeof(id));
+  pos += sizeof(id);
+}
+
+// char array → kString
+template <std::size_t N>
+inline void write_arg(StringRegistry* registry,
+                      char*& pos,
+                      const char (&value)[N]) {
+  constexpr std::size_t len = N - 1;
+  std::string_view view(value, len);
+  write_arg(registry, pos, view);
+}
+
+// const char* -> kString
+inline void write_arg(StringRegistry* registry,
+                      char*& pos,
+                      const char*& value) {
+  if (value == nullptr) [[unlikely]] {
+    write_arg(registry, pos, "nullptr");
+    return;
+  }
+  std::string_view view(value);
+  write_arg(registry, pos, view);
+}
+
+// const std::string& -> kString
+inline void write_arg(StringRegistry* registry,
+                      char*& pos,
+                      const std::string& value) {
+  std::string_view view(value);
+  write_arg(registry, pos, view);
+}
+
+template <typename T>
+inline void write_arg(StringRegistry* registry, char*& pos, const T& value) {
+  if constexpr (ArgTypeInfo<T>::is_string_like) {
+    if constexpr (ArgTypeInfo<T>::is_fixed_string) {
+      static_assert(false, "should not reach this branch");
+    } else if constexpr (ArgTypeInfo<T>::is_dynamic_string) {
+      if constexpr (ArgTypeInfo<T>::is_char_array) {
+        if (value == nullptr) [[unlikely]] {
+          write_arg(registry, pos, "nullptr");
+          return;
+        }
+      }
+      std::string_view view(value);
+      StringId id = hash_string_from_pointer(view.data());
+
+      FEMTOLOG_DCHECK(registry);
+      registry->register_string_arena(id, view);
+      constexpr ArgHeader header(ArgType::kString, sizeof(id));
+      std::memcpy(pos, &header, sizeof(header));
+      pos += sizeof(header);
+      std::memcpy(pos, &id, sizeof(id));
+      pos += sizeof(id);
+    }
+  } else {
+    constexpr ArgHeader header(ArgTypeInfo<T>::type,
+                               static_cast<uint16_t>(sizeof(T)));
+    std::memcpy(pos, &header, sizeof(header));
+    pos += sizeof(header);
+    std::memcpy(pos, &value, sizeof(T));
+    pos += sizeof(T);
+  }
+}
+
 template <typename... Args>
-static constexpr std::size_t calculate_min_serialized_size() {
+constexpr std::size_t calculate_serialized_size() {
   std::size_t total = sizeof(SerializedArgsHeader);
 
   auto add_arg_size = []<typename T>() constexpr -> std::size_t {
-    if constexpr (ArgTypeInfo<T>::is_dynamic_string) {
-      return sizeof(ArgHeader);
-    } else if constexpr (ArgTypeInfo<T>::is_constexpr_string_v) {
-      return sizeof(ArgHeader) + ArgTypeInfo<T>::constexpr_string_size;
+    if constexpr (ArgTypeInfo<T>::is_string_like) {
+      return sizeof(ArgHeader) + sizeof(StringId);
     } else {
       return sizeof(ArgHeader) + sizeof(std::decay_t<T>);
     }
@@ -197,310 +243,128 @@ static constexpr std::size_t calculate_min_serialized_size() {
   return total;
 }
 
-// calculate exact serialized size for constexpr strings
-template <typename... Args>
-static constexpr std::size_t calculate_exact_serialized_size() {
-  std::size_t total = sizeof(SerializedArgsHeader);
-
-  auto add_arg_size = []<typename T>() constexpr -> std::size_t {
-    if constexpr (ArgTypeInfo<T>::is_constexpr_string_v) {
-      return sizeof(ArgHeader) + ArgTypeInfo<T>::constexpr_string_size;
-    } else if constexpr (!ArgTypeInfo<T>::is_dynamic_string) {
-      return sizeof(ArgHeader) + sizeof(std::decay_t<T>);
-    } else {
-      // has dynamic string characters; cannot calculate at compile time
-      return 0;
-    }
-  };
-
-  return ((total += add_arg_size.template operator()<Args>()), ...);
-}
-
-template <typename... Args>
-static constexpr bool all_args_fixed_size() {
-  return ((!ArgTypeInfo<Args>::is_dynamic_string) && ...);
-}
-
-template <std::size_t Size, typename T>
-FEMTOLOG_FORCE_INLINE void write_fixed_arg_fast(char*& pos,
-                                                const T& value,
-                                                ArgType type) {
-  if constexpr (Size <= 8) {
-    // small size: write type + size all at once
-    uint32_t combined =
-        static_cast<uint32_t>(type) | (static_cast<uint32_t>(Size) << 8);
-    std::memcpy(pos, &combined, 3);
-    pos += 3;
-  } else {
-    std::memcpy(pos, &type, sizeof(type));
-    pos += sizeof(ArgType);
-    uint16_t sz = static_cast<uint16_t>(Size);
-    std::memcpy(pos, &sz, sizeof(sz));
-    pos += sizeof(uint16_t);
-  }
-
-  std::memcpy(pos, &value, Size);
-  pos += Size;
-}
-
-template <typename T>
-FEMTOLOG_FORCE_INLINE void write_optimized_fixed_arg(char*& pos,
-                                                     const T& value) {
-  constexpr ArgType type = ArgTypeInfo<T>::type;
-  constexpr std::size_t size = sizeof(T);
-
-  if constexpr (type == ArgType::kInt32 || type == ArgType::kUint32) {
-    write_fixed_arg_fast<4>(pos, value, type);
-  } else if constexpr (type == ArgType::kInt64 || type == ArgType::kUint64) {
-    write_fixed_arg_fast<8>(pos, value, type);
-  } else if constexpr (size == 1) {
-    write_fixed_arg_fast<1>(pos, value, type);
-  } else if constexpr (size == 2) {
-    write_fixed_arg_fast<2>(pos, value, type);
-  } else {
-    write_fixed_arg_fast<size>(pos, value, type);
-  }
-}
-
-// write arg for constexpr strings
-template <std::size_t Size>
-FEMTOLOG_FORCE_INLINE void write_constexpr_string_arg(char*& pos,
-                                                      const char (&str)[Size],
-                                                      ArgType type) {
-  constexpr uint16_t len = Size - 1;
-
-  // write type + size all at once
-  uint32_t combined =
-      static_cast<uint32_t>(type) | (static_cast<uint32_t>(len) << 8);
-  std::memcpy(pos, &combined, 3);
-  pos += 3;
-
-  if constexpr (len > 0) {
-    std::memcpy(pos, str, len);
-    pos += len;
-  }
-
-  // if constexpr (len > 0) {
-  //   if constexpr (len <= 8) {
-  //     // optimize copy for small strings
-  //     if constexpr (len == 1) {
-  //       *pos = str[0];
-  //     } else if constexpr (len <= 4) {
-  //       std::memcpy(pos, str, len);
-  //     } else {
-  //       std::memcpy(pos, str, 8);
-  //     }
-  //   } else {
-  //     std::memcpy(pos, str, len);
-  //   }
-  //   pos += len;
-  // }
-}
-
-FEMTOLOG_FORCE_INLINE void write_string_arg_optimized(char*& pos,
-                                                      std::string_view sv,
-                                                      ArgType type) {
-  const uint16_t len = static_cast<uint16_t>(sv.size());
-
-  // write type + size all at once
-  uint32_t combined =
-      static_cast<uint32_t>(type) | (static_cast<uint32_t>(len) << 8);
-  std::memcpy(pos, &combined, 3);
-  pos += 3;
-
-  if (len == 0) [[unlikely]] {
-    return;
-  } else if (len <= 32) [[likely]] {
-    if (len <= 16) {
-      switch (len) {
-        case 1: *pos = sv[0]; break;
-        case 2: std::memcpy(pos, sv.data(), 2); break;
-        case 4: std::memcpy(pos, sv.data(), 4); break;
-        case 8: std::memcpy(pos, sv.data(), 8); break;
-        case 16: std::memcpy(pos, sv.data(), 16); break;
-        default: std::memcpy(pos, sv.data(), len); break;
-      }
-    } else {
-      std::memcpy(pos, sv.data(), 16);
-      std::memcpy(pos + 16, sv.data() + 16, len - 16);
-    }
-  } else {
-    std::memcpy(pos, sv.data(), len);
-  }
-  pos += len;
-}
-
-template <typename T>
-FEMTOLOG_FORCE_INLINE void write_optimized_arg(char*& pos, const T& value) {
-  if constexpr (ArgTypeInfo<T>::is_constexpr_string_v) {
-    write_constexpr_string_arg(pos, value, ArgTypeInfo<T>::type);
-  } else if constexpr (ArgTypeInfo<T>::is_dynamic_string) {
-    std::string_view sv;
-    if constexpr (std::is_same_v<std::decay_t<T>, std::string_view>) {
-      sv = value;
-    } else if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
-      sv = std::string_view(value);
-    } else {
-      sv = std::string_view(value);
-    }
-    write_string_arg_optimized(pos, sv, ArgTypeInfo<T>::type);
-  } else {
-    write_optimized_fixed_arg(pos, value);
-  }
-}
-
-template <std::size_t N>
-FEMTOLOG_FORCE_INLINE void write_optimized_arg(char*& pos,
-                                               const char (&value)[N]) {
-  write_constexpr_string_arg<N>(pos, value, ArgType::kCstring);
-}
-
-FEMTOLOG_FORCE_INLINE void write_optimized_arg(char*& pos, const char* value) {
-  if (value == nullptr) [[unlikely]] {
-    static constexpr std::string_view sv = "nullptr";
-    write_string_arg_optimized(pos, sv, ArgType::kCstring);
-  } else {
-    std::string_view sv{value};
-    write_string_arg_optimized(pos, sv, ArgType::kCstring);
-  }
-}
-
-FEMTOLOG_FORCE_INLINE void write_optimized_arg(char*& pos, char* value) {
-  if (value == nullptr) [[unlikely]] {
-    static constexpr std::string_view sv = "nullptr";
-    write_string_arg_optimized(pos, sv, ArgType::kCstring);
-  } else {
-    std::string_view sv{value};
-    write_string_arg_optimized(pos, sv, ArgType::kCstring);
-  }
-}
-
-template <std::size_t I, typename Tuple>
-static void serialize_arg_at(char*& pos, const Tuple& args) {
-  if constexpr (I < std::tuple_size_v<Tuple>) {
-    write_optimized_arg(pos, std::get<I>(args));
-    serialize_arg_at<I + 1>(pos, args);
-  }
-}
-
-template <std::size_t BufferSize = 512>
+template <std::size_t Capacity = 512>
 class ArgsSerializer {
  public:
   ArgsSerializer() = default;
+  ~ArgsSerializer() = default;
 
-  // 0 args
-  static constexpr SerializedArgs<BufferSize> serialize() {
-    SerializedArgs<BufferSize> result;
-    char* buffer = result.data();
+  ArgsSerializer(const ArgsSerializer&) = delete;
+  ArgsSerializer& operator=(const ArgsSerializer&) = delete;
 
-    constexpr uint32_t total_size = sizeof(SerializedArgsHeader);
-    constexpr SerializedArgsHeader header{total_size, 0};
+  ArgsSerializer(ArgsSerializer&&) = default;
+  ArgsSerializer& operator=(ArgsSerializer&&) = default;
 
-    std::memcpy(buffer, &header, sizeof(header));
-    result.size(total_size);
-    return result;
+  inline const SerializedArgs<Capacity>& args() const { return args_; }
+  inline SerializedArgs<Capacity>& args() { return args_; }
+
+  // for 0 args -> header only
+  [[nodiscard, gnu::hot]] inline static SerializedArgs<64>& serialize(
+      StringRegistry*) {
+    static SerializedArgs<64> header_only = [] {
+      SerializedArgs<64> args;
+      constexpr uint32_t header_size = sizeof(SerializedArgsHeader);
+      constexpr SerializedArgsHeader header(header_size, 0);
+
+      std::memcpy(args.data(), &header, sizeof(header));
+      args.resize(header_size);
+      return args;
+    }();
+    return header_only;
   }
 
-  // 1 arg
+  // for 1 arg
   template <typename T>
-  [[nodiscard]]
-  static SerializedArgs<BufferSize> serialize(T&& arg) {
-    if constexpr (all_args_fixed_size<T>()) {
-      constexpr std::size_t exact_size = calculate_exact_serialized_size<T>();
-      static_assert(BufferSize >= exact_size, "Buffer too small for argument");
-    } else {
-      constexpr std::size_t min_size = calculate_min_serialized_size<T>();
-      static_assert(BufferSize >= min_size, "Buffer too small for argument");
-    }
+  [[nodiscard, gnu::hot]] constexpr SerializedArgs<Capacity>& serialize(
+      StringRegistry* registry,
+      T&& arg) {
+    validate_buffer<T>();
 
-    SerializedArgs<BufferSize> result;
-    char* pos = result.data() + sizeof(SerializedArgsHeader);
+    char* pos = payload_pos();
 
-    write_optimized_arg(pos, arg);
+    write_arg(registry, pos, arg);
 
-    // header
-    char* buffer = result.data();
-    const uint32_t total_size = static_cast<uint32_t>(pos - buffer);
-    const SerializedArgsHeader header{total_size, 1};
-    std::memcpy(buffer, &header, sizeof(header));
+    const uint32_t total_size = static_cast<uint32_t>(pos - args_.data());
+    const SerializedArgsHeader header(total_size, 1);
+    std::memcpy(args_.data(), &header, sizeof(header));
 
-    result.size(total_size);
-    return result;
+    args_.resize(total_size);
+    return args_;
   }
 
-  // 2 args
+  // for 2 args
   template <typename T1, typename T2>
-  [[nodiscard]]
-  static SerializedArgs<BufferSize> serialize(T1&& arg1, T2&& arg2) {
-    if constexpr (all_args_fixed_size<T1, T2>()) {
-      constexpr std::size_t exact_size =
-          calculate_exact_serialized_size<T1, T2>();
-      static_assert(BufferSize >= exact_size, "Buffer too small for arguments");
-    } else {
-      constexpr std::size_t min_size = calculate_min_serialized_size<T1, T2>();
-      static_assert(BufferSize >= min_size, "Buffer too small for arguments");
-    }
+  [[nodiscard, gnu::hot]] constexpr SerializedArgs<Capacity>&
+  serialize(StringRegistry* registry, T1&& arg1, T2&& arg2) {
+    validate_buffer<T1, T2>();
 
-    SerializedArgs<BufferSize> result;
-    char* pos = result.data() + sizeof(SerializedArgsHeader);
+    char* pos = payload_pos();
 
-    write_optimized_arg(pos, arg1);
-    write_optimized_arg(pos, arg2);
+    write_arg(registry, pos, arg1);
+    write_arg(registry, pos, arg2);
 
-    // header
-    char* buffer = result.data();
-    const uint32_t total_size = static_cast<uint32_t>(pos - buffer);
-    const SerializedArgsHeader header{total_size, 2};
-    std::memcpy(buffer, &header, sizeof(header));
+    const uint32_t total_size = static_cast<uint32_t>(pos - args_.data());
+    const SerializedArgsHeader header(total_size, 2);
+    std::memcpy(args_.data(), &header, sizeof(header));
 
-    result.size(total_size);
-    return result;
+    args_.resize(total_size);
+    return args_;
   }
 
-  // variable args
   template <typename... Args>
-  [[nodiscard]]
-  static SerializedArgs<BufferSize> serialize(Args&&... args)
-    requires(sizeof...(args) > 2)
-  {  // NOLINT
-    if constexpr (all_args_fixed_size<Args...>()) {
-      constexpr std::size_t exact_size =
-          calculate_exact_serialized_size<Args...>();
-      static_assert(BufferSize >= exact_size, "Buffer too small for arguments");
-    } else {
-      constexpr std::size_t min_size = calculate_min_serialized_size<Args...>();
-      static_assert(BufferSize >= min_size, "Buffer too small for arguments");
-    }
+  [[nodiscard, gnu::hot]] constexpr SerializedArgs<Capacity>& serialize(
+      StringRegistry* registry,
+      Args&&... args) {
+    validate_buffer<Args...>();
 
-    SerializedArgs<BufferSize> result;
-    char* pos = result.data() + sizeof(SerializedArgsHeader);
+    char* pos = payload_pos();
 
-    (write_optimized_arg(pos, args), ...);
+    (write_arg(registry, pos, args), ...);
 
-    // make args tuple and process at compile time
-    // constexpr auto args_tuple =
-    // std::forward_as_tuple(std::forward<Args>(args)...);
+    // auto args_tuple = std::forward_as_tuple(std::forward<Args>(args)...);
     // serialize_arg_at<0>(pos, args_tuple);
 
     // header
-    char* buffer = result.data();
-    const uint32_t total_size = static_cast<uint32_t>(pos - buffer);
-    const SerializedArgsHeader header{total_size,
-                                      static_cast<uint16_t>(sizeof...(args))};
-    std::memcpy(buffer, &header, sizeof(header));
+    const uint32_t total_size = static_cast<uint32_t>(pos - args_.data());
+    const SerializedArgsHeader header(total_size,
+                                      static_cast<uint16_t>(sizeof...(args)));
+    std::memcpy(args_.data(), &header, sizeof(header));
 
-    result.size(total_size);
-    return result;
+    args_.resize(total_size);
+    return args_;
   }
+
+ private:
+  template <typename... Args>
+  FEMTOLOG_FORCE_INLINE static consteval void validate_buffer() {
+    constexpr std::size_t min = calculate_serialized_size<Args...>();
+    static_assert(Capacity >= min, "Buffer too small for arguments");
+  }
+
+  // template <std::size_t I, typename Tuple>
+  // inline static void serialize_arg_at(char*& pos, const Tuple& args) {
+  //   if constexpr (I < std::tuple_size_v<Tuple>) {
+  //     write_arg(pos, std::get<I>(args));
+  //     serialize_arg_at<I + 1>(pos, args);
+  //   }
+  // }
+
+  inline char* payload_pos() {
+    return args_.data() + sizeof(SerializedArgsHeader);
+  }
+
+  alignas(std::hardware_destructive_interference_size)
+      SerializedArgs<Capacity> args_;
 };
 
+// Type aliases
 using DefaultSerializer = ArgsSerializer<512>;
 using SmallSerializer = ArgsSerializer<256>;
-using LargeSerializer = ArgsSerializer<4096>;
+using LargeSerializer = ArgsSerializer<1024>;
 
 using DefaultSerializedArgs = SerializedArgs<512>;
 using SmallSerializedArgs = SerializedArgs<256>;
-using LargeSerializedArgs = SerializedArgs<4096>;
+using LargeSerializedArgs = SerializedArgs<1024>;
 
 }  // namespace femtolog::logging
 

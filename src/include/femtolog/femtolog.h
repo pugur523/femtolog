@@ -5,10 +5,10 @@
 #ifndef INCLUDE_FEMTOLOG_FEMTOLOG_H_
 #define INCLUDE_FEMTOLOG_FEMTOLOG_H_
 
-#include "femtolog/base/format_string_registry.h"
 #include "femtolog/base/format_util.h"
 #include "femtolog/base/log_entry.h"
 #include "femtolog/base/log_level.h"
+#include "femtolog/base/string_registry.h"
 #include "femtolog/logger.h"
 #include "femtolog/options.h"
 #include "femtolog/sinks/file_sink.h"

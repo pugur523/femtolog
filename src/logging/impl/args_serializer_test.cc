@@ -12,9 +12,13 @@
 
 namespace femtolog::logging {
 
+namespace {
+
+StringRegistry registry;
+
 TEST(ArgsSerializerTest, SerializeEmpty) {
-  DefaultSerializer serializer;
-  auto result = serializer.serialize();
+  ArgsSerializer serializer;
+  auto result = serializer.serialize(&registry);
   ASSERT_EQ(result.size(), sizeof(SerializedArgsHeader));
 
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(result.data());
@@ -23,8 +27,9 @@ TEST(ArgsSerializerTest, SerializeEmpty) {
 }
 
 TEST(ArgsSerializerTest, SerializeInts) {
-  DefaultSerializer serializer;
-  auto result = serializer.serialize(1, 42u, static_cast<int64_t>(-5));
+  ArgsSerializer serializer;
+  auto result =
+      serializer.serialize(&registry, 1, 42u, static_cast<int64_t>(-5));
 
   const char* ptr = result.data();
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
@@ -33,10 +38,10 @@ TEST(ArgsSerializerTest, SerializeInts) {
 }
 
 TEST(ArgsSerializerTest, SerializeStrings) {
-  DefaultSerializer serializer;
+  ArgsSerializer serializer;
   const char* cstr = "hello";
   std::string_view sv = "world";
-  auto result = serializer.serialize(cstr, sv);
+  auto result = serializer.serialize(&registry, cstr, sv);
 
   const char* ptr = result.data();
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
@@ -45,9 +50,9 @@ TEST(ArgsSerializerTest, SerializeStrings) {
 }
 
 TEST(ArgsSerializerTest, SerializeInt32CheckLayout) {
-  DefaultSerializer serializer;
+  ArgsSerializer serializer;
   int32_t value = 12345;
-  auto result = serializer.serialize(value);
+  auto result = serializer.serialize(&registry, value);
 
   const char* ptr = result.data();
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
@@ -65,9 +70,9 @@ TEST(ArgsSerializerTest, SerializeInt32CheckLayout) {
 }
 
 TEST(ArgsSerializerTest, SerializeCStringCheckLayout) {
-  DefaultSerializer serializer;
+  ArgsSerializer serializer;
   const char* cstr = "hi";
-  auto result = serializer.serialize(cstr);
+  auto result = serializer.serialize(&registry, cstr);
 
   const char* ptr = result.data();
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
@@ -76,17 +81,19 @@ TEST(ArgsSerializerTest, SerializeCStringCheckLayout) {
 
   const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
   auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kCstring);
-  EXPECT_EQ(arg_header->size, 2);
+  EXPECT_EQ(arg_header->type, ArgType::kString);
+  EXPECT_EQ(arg_header->size, sizeof(StringId));
 
-  const char* str_data = arg_ptr + sizeof(ArgHeader);
-  EXPECT_EQ(std::string_view(str_data, arg_header->size), "hi");
+  const char* data = arg_ptr + sizeof(ArgHeader);
+  StringId id;
+  std::memcpy(&id, data, sizeof(StringId));
+  EXPECT_EQ(registry.get_string(id), "hi");
 }
 
 TEST(ArgsSerializerTest, SerializeNullptrCString) {
-  DefaultSerializer serializer;
+  ArgsSerializer serializer;
   const char* cstr = nullptr;
-  auto result = serializer.serialize(cstr);
+  auto result = serializer.serialize(&registry, cstr);
 
   const char* ptr = result.data();
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
@@ -95,17 +102,19 @@ TEST(ArgsSerializerTest, SerializeNullptrCString) {
 
   const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
   auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kCstring);
-  EXPECT_EQ(arg_header->size, 7);  // "nullptr"
+  EXPECT_EQ(arg_header->type, ArgType::kString);
+  EXPECT_EQ(arg_header->size, sizeof(StringId));
 
-  const char* str_data = arg_ptr + sizeof(ArgHeader);
-  EXPECT_EQ(std::string_view(str_data, arg_header->size), "nullptr");
+  const char* data = arg_ptr + sizeof(ArgHeader);
+  StringId id;
+  std::memcpy(&id, data, sizeof(StringId));
+  EXPECT_EQ(registry.get_string(id), "nullptr");
 }
 
 TEST(ArgsSerializerTest, SerializeStringViewCheckLayout) {
-  DefaultSerializer serializer;
+  ArgsSerializer serializer;
   std::string_view sv = "abc";
-  auto result = serializer.serialize(sv);
+  auto result = serializer.serialize(&registry, sv);
 
   const char* ptr = result.data();
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
@@ -114,35 +123,42 @@ TEST(ArgsSerializerTest, SerializeStringViewCheckLayout) {
 
   const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
   auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kStringView);
-  EXPECT_EQ(arg_header->size, 3);
+  EXPECT_EQ(arg_header->type, ArgType::kString);
+  EXPECT_EQ(arg_header->size, sizeof(StringId));
 
-  const char* str_data = arg_ptr + sizeof(ArgHeader);
-  EXPECT_EQ(std::string_view(str_data, arg_header->size), "abc");
+  const char* data = arg_ptr + sizeof(ArgHeader);
+  StringId id;
+  std::memcpy(&id, data, sizeof(StringId));
+  EXPECT_EQ(registry.get_string(id), "abc");
 }
 
 TEST(ArgsSerializerTest, SerializeCharPointerLifetimeIndependent) {
-  DefaultSerializedArgs result;
-
+  ArgsSerializer<512> serializer;
+  SerializedArgs<512>* result = nullptr;
   {
     char temp[] = "scoped";
-    result = DefaultSerializer::serialize(temp);
+    auto& args = serializer.serialize(&registry, temp);
+    result = &args;
 
-    ASSERT_EQ(result.size() > sizeof(SerializedArgsHeader), true);
+    ASSERT_EQ(result->size() > sizeof(SerializedArgsHeader), true);
   }
 
-  const char* ptr = result.data();
+  const char* ptr = result->data();
   auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
   EXPECT_EQ(header->arg_count, 1);
-  EXPECT_EQ(header->total_size, result.size());
+  EXPECT_EQ(header->total_size, result->size());
 
   const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
   auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kCstring);
-  EXPECT_EQ(arg_header->size, 6);
+  EXPECT_EQ(arg_header->type, ArgType::kString);
+  EXPECT_EQ(arg_header->size, sizeof(StringId));
 
-  const char* str_data = arg_ptr + sizeof(ArgHeader);
-  EXPECT_EQ(std::string_view(str_data, arg_header->size), "scoped");
+  const char* data = arg_ptr + sizeof(ArgHeader);
+  StringId id;
+  std::memcpy(&id, data, sizeof(StringId));
+  EXPECT_EQ(registry.get_string(id), "scoped");
 }
+
+}  // namespace
 
 }  // namespace femtolog::logging

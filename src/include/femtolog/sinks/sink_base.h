@@ -41,8 +41,8 @@ class SinkBase {
   static std::size_t format_timestamp(uint64_t time_ns,
                                       char* buf,
                                       std::size_t buf_size) {
-    DCHECK(buf);
-    DCHECK_GT(buf_size, fmt.size);
+    FEMTOLOG_DCHECK(buf);
+    FEMTOLOG_DCHECK_GT(buf_size, fmt.size);
 
     // separate seconds and nanoseconds
     time_t seconds = static_cast<time_t>(time_ns / 1'000'000'000);

@@ -8,8 +8,8 @@
 #include <memory>
 #include <utility>
 
-#include "femtolog/base/format_string_registry.h"
 #include "femtolog/base/log_entry.h"
+#include "femtolog/base/string_registry.h"
 #include "femtolog/logging/base/logging_export.h"
 #include "femtolog/logging/impl/args_serializer.h"
 #include "femtolog/logging/impl/backend_worker.h"
@@ -51,17 +51,17 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
     return thread_id_;
   }
 
-  [[nodiscard]] inline uint64_t enqueued_count() const noexcept {
+  [[nodiscard]] inline std::size_t enqueued_count() const noexcept {
     return enqueued_count_;
   }
 
-  [[nodiscard]] inline uint64_t dropped_count() const noexcept {
+  [[nodiscard]] inline std::size_t dropped_count() const noexcept {
     return dropped_count_;
   }
 
   template <LogLevel level, FixedString fmt, typename... Args>
   inline void log(Args&&... args) noexcept {
-    DCHECK_EQ(backend_worker_.status(), BackendWorkerStatus::kRunning);
+    FEMTOLOG_DCHECK_EQ(backend_worker_.status(), BackendWorkerStatus::kRunning);
 
     // Compile-time level check
     // Assuming `info` is common threshold
@@ -79,10 +79,10 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
       constexpr std::string_view view(fmt.data, fmt.size);
       log_literal<level>(view);
     } else {
-      constexpr uint16_t format_id = get_format_id<fmt>();
-      register_format<fmt>();
-      SerializedArgs serialized_args =
-          serializer_.serialize(std::forward<Args>(args)...);
+      constexpr uint16_t format_id = StringRegistry::get_string_id<fmt>();
+      string_registry_.register_string<fmt>();
+      const auto& serialized_args =
+          serializer_.serialize(&string_registry_, std::forward<Args>(args)...);
       log_serialized<level>(format_id, serialized_args);
     }
   }
@@ -91,15 +91,13 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
 
   [[nodiscard]] inline LogLevel level() const noexcept { return level_; }
 
-  // Assign uint16 max value for literal string log
-  static constexpr uint16_t kLiteralLogFormatId = 65535;
-
  private:
   // Hot data - frequently accessed (first cache line)
   alignas(128) LogLevel level_ = LogLevel::kInfo;
   const uint32_t thread_id_;
-  uint64_t enqueued_count_ = 0;
-  uint64_t dropped_count_ = 0;
+  std::size_t enqueued_count_ = 0;
+  std::size_t dropped_count_ = 0;
+  StringRegistry string_registry_;
   ArgsSerializer<> serializer_;
 
   // Cold data - less frequently accessed (separate cache line)
@@ -112,30 +110,31 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   BackendWorker backend_worker_;
 
   template <LogLevel level>
-  inline void log_literal(std::string_view message) {
+  inline void log_literal(const std::string_view& message) {
     const std::size_t payload_len = message.size();
     if (payload_len >= kMaxPayloadSize) [[unlikely]] {
       dropped_count_++;
       return;
     }
 
-    LogEntry* entry = LogEntry::create(entry_buffer_, thread_id_,
-                                       kLiteralLogFormatId, level, 0, message);
+    LogEntry* entry =
+        LogEntry::create(entry_buffer_, thread_id_, kLiteralLogStringId, level,
+                         0, message.data(), message.length());
 
     enqueue_log_entry(entry);
   }
 
-  template <LogLevel level>
+  template <LogLevel level, std::size_t Capacity>
   inline void log_serialized(uint16_t format_id,
-                             const SerializedArgs<>& serialized) {
+                             const SerializedArgs<Capacity>& serialized) {
     if (serialized.size() >= kMaxPayloadSize) [[unlikely]] {
       dropped_count_++;
       return;
     }
 
-    LogEntry* entry = LogEntry::create(
-        entry_buffer_, thread_id_, format_id, level, 0,
-        std::string_view(serialized.data(), serialized.size()));
+    LogEntry* entry =
+        LogEntry::create(entry_buffer_, thread_id_, format_id, level, 0,
+                         serialized.data(), serialized.size());
 
     enqueue_log_entry(entry);
   }

@@ -61,7 +61,7 @@ class FEMTOLOG_LOGGING_EXPORT SpscQueue {
   }
 
   [[nodiscard]] inline std::size_t size() const noexcept {
-    DCHECK(buffer_);
+    FEMTOLOG_DCHECK(buffer_);
     const std::size_t head = head_cached_;
     const std::size_t tail = tail_idx_.load(std::memory_order_relaxed);
     return tail - head;
@@ -72,9 +72,11 @@ class FEMTOLOG_LOGGING_EXPORT SpscQueue {
   }
 
   [[nodiscard]] inline std::size_t available_space() const noexcept {
-    DCHECK(buffer_);
+    FEMTOLOG_DCHECK(buffer_);
     return capacity_ - size();
   }
+
+  static constexpr std::size_t kPrefetchThreshold = 256;
 
  private:
   [[nodiscard]] static constexpr std::size_t next_power_of_2(
@@ -84,16 +86,23 @@ class FEMTOLOG_LOGGING_EXPORT SpscQueue {
   std::size_t capacity_ = 0;
   std::size_t mask_ = 0;
 
+  [[maybe_unused]] char
+      padding1_[128 - sizeof(std::byte*) - 2 * sizeof(std::size_t)];
+
   // Producer side (write-mostly, separate cache line)
-  alignas(128) std::atomic<std::size_t> tail_idx_ = 0;
-  mutable std::size_t tail_cached_ = 0;
+  alignas(128) std::atomic<std::size_t> tail_idx_;
+  mutable std::size_t tail_cached_;
+  [[maybe_unused]] char
+      padding2_[128 - sizeof(std::atomic<std::size_t>) - sizeof(std::size_t)];
 
   // Consumer side (read-mostly, separate cache line)
-  alignas(128) std::atomic<std::size_t> head_idx_ = 0;
-  mutable std::size_t head_cached_ = 0;
+  alignas(128) std::atomic<std::size_t> head_idx_;
+  mutable std::size_t head_cached_;
+  [[maybe_unused]] char
+      padding3_[128 - sizeof(std::atomic<std::size_t>) - sizeof(std::size_t)];
 
   // Buffer management
-  std::unique_ptr<std::byte[], void (*)(void*)> buffer_deleter_;
+  alignas(128) std::unique_ptr<std::byte[], void (*)(void*)> buffer_deleter_;
 };
 
 // static

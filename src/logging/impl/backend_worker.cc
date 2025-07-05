@@ -5,10 +5,11 @@
 #include "femtolog/logging/impl/backend_worker.h"
 
 #include <iostream>
+#include <limits>
 #include <utility>
 #include <vector>
 
-#include "femtolog/base/format_string_registry.h"
+#include "femtolog/base/string_registry.h"
 #include "femtolog/build/build_flag.h"
 #include "femtolog/core/check.h"
 #include "femtolog/logging/impl/args_deserializer.h"
@@ -39,12 +40,17 @@ BackendWorker::~BackendWorker() {
   }
 }
 
-void BackendWorker::init(SpscQueue* queue, const FemtologOptions& options) {
-  DCHECK_EQ(status_, BackendWorkerStatus::kUninitialized);
-  DCHECK_GT(options.backend_dequeue_buffer_size, 0);
-  DCHECK_GT(options.backend_format_buffer_size, 0);
+void BackendWorker::init(SpscQueue* queue,
+                         StringRegistry* string_registry,
+                         const FemtologOptions& options) {
+  FEMTOLOG_DCHECK_EQ(status_, BackendWorkerStatus::kUninitialized);
+  FEMTOLOG_DCHECK_GT(options.backend_dequeue_buffer_size, 0);
+  FEMTOLOG_DCHECK_GT(options.backend_format_buffer_size, 0);
+  FEMTOLOG_DCHECK(queue);
+  FEMTOLOG_DCHECK(string_registry);
 
   queue_ = queue;
+  string_registry_ = string_registry;
   status_ = BackendWorkerStatus::kIdling;
   dequeue_buffer_.reserve(options.backend_dequeue_buffer_size);
   dequeue_buffer_.resize(options.backend_dequeue_buffer_size);
@@ -56,9 +62,9 @@ void BackendWorker::init(SpscQueue* queue, const FemtologOptions& options) {
 // Using std::jthread for automatic joining in C++20 is preferred,
 // but std::thread is used for broader compatibility here.
 void BackendWorker::start() {
-  DCHECK_EQ(status_, BackendWorkerStatus::kIdling);
-  DCHECK_GT(sinks_.size(), 0);
-  DCHECK(dequeue_buffer_ptr_);
+  FEMTOLOG_DCHECK_EQ(status_, BackendWorkerStatus::kIdling);
+  FEMTOLOG_DCHECK_GT(sinks_.size(), 0);
+  FEMTOLOG_DCHECK(dequeue_buffer_ptr_);
   worker_thread_ = std::thread(&BackendWorker::run_loop, this);
 
   set_cpu_affinity();
@@ -67,7 +73,7 @@ void BackendWorker::start() {
 }
 
 void BackendWorker::stop() {
-  DCHECK_EQ(status_, BackendWorkerStatus::kRunning);
+  FEMTOLOG_DCHECK_EQ(status_, BackendWorkerStatus::kRunning);
   shutdown_required_.store(true, std::memory_order_release);
   if (worker_thread_.joinable()) {
     worker_thread_.join();
@@ -76,22 +82,26 @@ void BackendWorker::stop() {
 }
 
 void BackendWorker::register_sink(std::unique_ptr<SinkBase> sink) {
-  DCHECK_NE(status_, BackendWorkerStatus::kRunning)
+  FEMTOLOG_DCHECK_NE(status_, BackendWorkerStatus::kRunning)
       << "attempted to register new sink while running.";
-  DCHECK_EQ(status_, BackendWorkerStatus::kIdling);
-  DCHECK(sink);
+  FEMTOLOG_DCHECK_EQ(status_, BackendWorkerStatus::kIdling);
+  FEMTOLOG_DCHECK(sink);
 
   sinks_.push_back(std::move(sink));
 }
 
 void BackendWorker::clear_sinks() {
-  DCHECK_NE(status_, BackendWorkerStatus::kRunning)
+  FEMTOLOG_DCHECK_NE(status_, BackendWorkerStatus::kRunning)
       << "attempted to clear all sinks while running.";
-  DCHECK_EQ(status_, BackendWorkerStatus::kIdling);
+  FEMTOLOG_DCHECK_EQ(status_, BackendWorkerStatus::kIdling);
   sinks_.clear();
 }
 
 void BackendWorker::set_cpu_affinity() {
+  if (worker_thread_cpu_affinity_ == std::numeric_limits<std::size_t>::max()) {
+    // Affinity is disabled
+    return;
+  }
 #if FEMTOLOG_IS_LINUX
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
@@ -155,32 +165,33 @@ void BackendWorker::apply_polling_strategy(bool data_dequeued) {
   idle_iterations_++;
 
   // Tiered backoff strategy
-  if (idle_iterations_ <= 8192) {
-    // Tier 1: Busy-wait for very frequent logs
-    return;
-  } else if (idle_iterations_ <= 16384) {
-    // Tier 2: __mm_pause or yield cpu to other threads on same core
+  if (idle_iterations_ <= 2048) {
+    // Tier 1: __mm_pause or yield cpu to other threads on same core
 #if FEMTOLOG_ENABLE_AVX2
     _mm_pause();
 #else
     std::this_thread::yield();
 #endif
     return;
-  } else if (idle_iterations_ <= 32768) {
-    // Tier 3: Short sleep
+  } else if (idle_iterations_ <= 4096) {
+    // Tier 2: Short sleep
     std::this_thread::sleep_for(std::chrono::microseconds(1));
     return;
-  } else if (idle_iterations_ <= 65536) {
-    // Tier 4: Medium sleep
+  } else if (idle_iterations_ <= 8192) {
+    // Tier 3: Medium sleep
     std::this_thread::sleep_for(std::chrono::microseconds(10));
     return;
-  } else if (idle_iterations_ <= 131072) {
-    // Tier 5: Long sleep
+  } else if (idle_iterations_ <= 16384) {
+    // Tier 4: Long sleep
     std::this_thread::sleep_for(std::chrono::microseconds(100));
     return;
-  } else {
-    // Tier 6: Very Long sleep
+  } else if (idle_iterations_ <= 32768) {
+    // Tier 5: Very Long sleep
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return;
+  } else if (idle_iterations_ <= 65536) {
+    // Tier 5: Super Long sleep
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     return;
   }
 }
@@ -190,24 +201,24 @@ void BackendWorker::flush() {
 }
 
 void BackendWorker::process_log_entry(LogEntry* entry) {
-  DCHECK(!!entry);
+  FEMTOLOG_DCHECK(!!entry);
   entry->timestamp_ns = timestamp_ns();
 
   uint16_t format_id = entry->format_id;
 
-  if (format_id == kMaxFormatId) {
+  if (format_id == kLiteralLogStringId) {
     constexpr const std::size_t kBufSize = kMaxPayloadSize;
     char buf[kBufSize];
     std::size_t n = entry->copy_raw_payload(buf, kBufSize);
     buf[n] = '\0';
     for (const auto& sink : sinks_) {
-      DCHECK(!!sink);
+      FEMTOLOG_DCHECK(!!sink);
       sink->on_log(*entry, buf, n);
     }
   } else {
-    std::string_view format_str = get_format_string(format_id);
+    std::string_view format_str = string_registry_->get_string(format_id);
 
-    ArgsDeserializer deserializer(entry->payload());
+    ArgsDeserializer deserializer(entry->payload(), string_registry_);
 
     fmt::dynamic_format_arg_store<fmt::format_context> deserialized_args =
         deserializer.deserialize();
@@ -217,7 +228,7 @@ void BackendWorker::process_log_entry(LogEntry* entry) {
         fmt::vformat_to_n(format_buffer_.data(), format_buffer_.capacity(),
                           format_str, deserialized_args);
     for (const auto& sink : sinks_) {
-      DCHECK(!!sink);
+      FEMTOLOG_DCHECK(!!sink);
       sink->on_log(*entry, format_buffer_.data(), result.size);
     }
   }

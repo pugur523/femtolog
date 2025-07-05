@@ -2,8 +2,8 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef CORE_BASE_FILE_UTIL_H_
-#define CORE_BASE_FILE_UTIL_H_
+#ifndef INCLUDE_FEMTOLOG_CORE_BASE_FILE_UTIL_H_
+#define INCLUDE_FEMTOLOG_CORE_BASE_FILE_UTIL_H_
 
 #include <sys/stat.h>
 
@@ -186,4 +186,4 @@ class FEMTOLOG_CORE_EXPORT File {
 
 }  // namespace core
 
-#endif  // CORE_BASE_FILE_UTIL_H_
+#endif  // INCLUDE_FEMTOLOG_CORE_BASE_FILE_UTIL_H_

@@ -6,6 +6,7 @@
 
 #include "benchmark/benchmark.h"
 #include "femtolog/logger.h"
+#include "femtolog/options.h"
 #include "femtolog/sinks/null_sink.h"
 
 namespace femtolog {
@@ -17,13 +18,18 @@ Logger& setup_logger() {
 
   Logger& logger = Logger::logger();
   if (!initialized) {
+    FemtologOptions options;
+    options.spsc_queue_size = 1024 * 8;
+    options.backend_worker_cpu_affinity = 5;
+    options.backend_format_buffer_size = 1024;
+    options.backend_dequeue_buffer_size = 1024;
     logger.init();
     logger.register_sink<NullSink>();
 
     initialized = true;
   }
   logger.start_worker();
-  std::this_thread::sleep_for(std::chrono::microseconds(1));
+  std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
   return logger;
 }

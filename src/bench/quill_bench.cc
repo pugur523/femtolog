@@ -2,7 +2,9 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
+#include <chrono>
 #include <string>
+#include <thread>
 
 #include "benchmark/benchmark.h"
 #include "femtolog/base/format_util.h"
@@ -47,7 +49,7 @@ OptimizedLogger* setup_logger() {
   backend_options.cpu_affinity = 4;
   backend_options.sleep_duration = std::chrono::nanoseconds{0};
   Backend::start(backend_options);
-  std::this_thread::sleep_for(std::chrono::microseconds(1));
+  std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
   return OptimizedFrontend::create_or_get_logger(
       "root", OptimizedFrontend::create_or_get_sink<NullSink>("null"));

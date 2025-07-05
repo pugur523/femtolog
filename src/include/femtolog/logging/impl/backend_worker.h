@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "femtolog/base/log_entry.h"
+#include "femtolog/base/string_registry.h"
 #include "femtolog/logging/impl/spsc_queue.h"
 #include "femtolog/options.h"
 #include "femtolog/sinks/sink_base.h"
@@ -38,6 +39,7 @@ class BackendWorker {
   BackendWorker& operator=(BackendWorker&&) noexcept = delete;
 
   void init(SpscQueue* queue,
+            StringRegistry* string_registry,
             const FemtologOptions& options = FemtologOptions());
 
   void start();
@@ -61,6 +63,7 @@ class BackendWorker {
   uint8_t* dequeue_buffer_ptr_ = nullptr;
   std::vector<std::unique_ptr<SinkBase>> sinks_;
   SpscQueue* queue_ = nullptr;
+  StringRegistry* string_registry_ = nullptr;
   std::thread worker_thread_;
   std::size_t worker_thread_cpu_affinity_ = 5;
   std::atomic<bool> shutdown_required_{false};

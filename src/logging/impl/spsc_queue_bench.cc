@@ -196,9 +196,10 @@ void spsc_queue_dequeue_64_bytes_large_capacity(benchmark::State& state) {
 BENCHMARK(spsc_queue_dequeue_64_bytes_large_capacity)
     ->Range(128, kLargeQueueCapacity / 2);
 
-void spsc_queue_consumer_bench_with_busy_producer(benchmark::State& state) {
+void spsc_queue_medium_consumer_bench_with_busy_producer(
+    benchmark::State& state) {
   SpscQueue queue;
-  queue.reserve(kLargeQueueCapacity);
+  queue.reserve(kMediumQueueCapacity);
   std::atomic<bool> running{true};
   uint8_t data = 0xAA;
 
@@ -206,6 +207,7 @@ void spsc_queue_consumer_bench_with_busy_producer(benchmark::State& state) {
   std::thread producer([&] {
     while (running.load(std::memory_order_relaxed)) {
       queue.enqueue_bytes(&data);
+      std::this_thread::yield();
     }
   });
 
@@ -216,11 +218,12 @@ void spsc_queue_consumer_bench_with_busy_producer(benchmark::State& state) {
   running = false;
   producer.join();
 }
-BENCHMARK(spsc_queue_consumer_bench_with_busy_producer);
+BENCHMARK(spsc_queue_medium_consumer_bench_with_busy_producer);
 
-void spsc_queue_producer_bench_with_busy_consumer(benchmark::State& state) {
+void spsc_queue_medium_producer_bench_with_busy_consumer(
+    benchmark::State& state) {
   SpscQueue queue;
-  queue.reserve(kLargeQueueCapacity);
+  queue.reserve(kMediumQueueCapacity);
   std::atomic<bool> running{true};
   uint8_t data = 0xAA;
 
@@ -228,6 +231,7 @@ void spsc_queue_producer_bench_with_busy_consumer(benchmark::State& state) {
   std::thread consumer([&] {
     while (running.load(std::memory_order_relaxed)) {
       queue.dequeue_bytes(&data);
+      std::this_thread::yield();
     }
   });
 
@@ -238,7 +242,55 @@ void spsc_queue_producer_bench_with_busy_consumer(benchmark::State& state) {
   running = false;
   consumer.join();
 }
-BENCHMARK(spsc_queue_producer_bench_with_busy_consumer);
+BENCHMARK(spsc_queue_medium_producer_bench_with_busy_consumer);
+
+void spsc_queue_large_consumer_bench_with_busy_producer(
+    benchmark::State& state) {
+  SpscQueue queue;
+  queue.reserve(kLargeQueueCapacity);
+  std::atomic<bool> running{true};
+  uint8_t data = 0xAA;
+
+  // producer thread: keep enqueueing
+  std::thread producer([&] {
+    while (running.load(std::memory_order_relaxed)) {
+      queue.enqueue_bytes(&data);
+      std::this_thread::yield();
+    }
+  });
+
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(queue.dequeue_bytes(&data));
+  }
+
+  running = false;
+  producer.join();
+}
+BENCHMARK(spsc_queue_large_consumer_bench_with_busy_producer);
+
+void spsc_queue_large_producer_bench_with_busy_consumer(
+    benchmark::State& state) {
+  SpscQueue queue;
+  queue.reserve(kLargeQueueCapacity);
+  std::atomic<bool> running{true};
+  uint8_t data = 0xAA;
+
+  // producer thread: keep dequeueing
+  std::thread consumer([&] {
+    while (running.load(std::memory_order_relaxed)) {
+      queue.dequeue_bytes(&data);
+      std::this_thread::yield();
+    }
+  });
+
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(queue.enqueue_bytes(&data));
+  }
+
+  running = false;
+  consumer.join();
+}
+BENCHMARK(spsc_queue_large_producer_bench_with_busy_consumer);
 
 }  // namespace
 

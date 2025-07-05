@@ -14,6 +14,7 @@ set(SOURCES
 
   ${PROJECT_SOURCE_DIR}/femtolog/femtolog_test.cc
 
+  ${PROJECT_SOURCE_DIR}/logging/impl/args_deserializer_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_test.cc

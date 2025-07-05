@@ -11,8 +11,7 @@
 
 namespace femtolog::logging {
 
-InternalLogger::InternalLogger()
-    : thread_id_(current_thread_id()), serializer_() {}
+InternalLogger::InternalLogger() : thread_id_(current_thread_id()) {}
 
 InternalLogger::~InternalLogger() {
   if (backend_worker_.status() == BackendWorkerStatus::kRunning) {
@@ -21,13 +20,13 @@ InternalLogger::~InternalLogger() {
 }
 
 void InternalLogger::init(const FemtologOptions& options) {
-  DCHECK_GT(options.spsc_queue_size, 0);
+  FEMTOLOG_DCHECK_GT(options.spsc_queue_size, 0);
   queue_.reserve(options.spsc_queue_size);
-  DCHECK_GE(queue_.capacity(), options.spsc_queue_size);
+  FEMTOLOG_DCHECK_GE(queue_.capacity(), options.spsc_queue_size);
 
   if (backend_worker_.status() == BackendWorkerStatus::kUninitialized)
       [[likely]] {
-    backend_worker_.init(&queue_, options);
+    backend_worker_.init(&queue_, &string_registry_, options);
   }
 }
 
