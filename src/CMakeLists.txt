@@ -201,7 +201,7 @@ target arch name: ${TARGET_ARCH_NAME}
 include directories: ${FEMTOLOG_INCLUDE_DIRECTORIES}
 link directories: ${FEMTOLOG_LINK_DIRECTORIES}
 link libraries: ${FEMTOLOG_LINK_LIBRARIES}
-project compile options: ${PROJECT_COMPILE_OPTIONS}
+project compile options: ${FEMTOLOG_COMPILE_OPTIONS}
 project link options: ${FEMTOLOG_LINK_OPTIONS}
 install prefix: ${CMAKE_INSTALL_PREFIX}
 build resources dir: ${BUILD_RESOURCES_DIR}

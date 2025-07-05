@@ -8,10 +8,10 @@ macro(femtolog_setup_windows_flags)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -fdiagnostics-color=always" PARENT_SCOPE)
 
   # Base flags - enable warnings
-  list(APPEND PROJECT_COMPILE_OPTIONS /W4 /clang:-Wall /clang:-Wextra /clang:-Wpedantic)
+  list(APPEND FEMTOLOG_COMPILE_OPTIONS /W4 /clang:-Wall /clang:-Wextra /clang:-Wpedantic)
 
   if(FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS)
-    list(APPEND PROJECT_COMPILE_OPTIONS /WX /clang:-Werror)
+    list(APPEND FEMTOLOG_COMPILE_OPTIONS /WX /clang:-Werror)
   endif()
 
   # Debug configuration
@@ -48,10 +48,12 @@ macro(femtolog_setup_windows_flags)
   endif()
 
   if(FEMTOLOG_ENABLE_OPTIMIZATION_REPORT)
-    list(APPEND PROJECT_COMPILE_OPTIONS "/clang:-fsave-optimization-record;/clang:-fdebug-compilation-dir=.;/clang:-Rpass='.*';/clang:-Rpass-missed='.*';/clang:-Rpass-analysis='.*'")
+    list(APPEND FEMTOLOG_COMPILE_OPTIONS "/clang:-fsave-optimization-record;/clang:-fdebug-compilation-dir=.;/clang:-Rpass='.*';/clang:-Rpass-missed='.*';/clang:-Rpass-analysis='.*'")
   endif()
 
   list(APPEND WINDOWS_LINK_LIBRARIES "dbghelp")
+
+  list(APPEND FEMTOLOG_COMPILE_DEFINITIONS NOMINMAX=1)
 endmacro()
 
 macro(femtolog_setup_unix_flags)
@@ -60,10 +62,10 @@ macro(femtolog_setup_unix_flags)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always -stdlib=libc++ -fPIC")
 
   # Base flags - enable warnings
-  list(APPEND PROJECT_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -fno-common)
+  list(APPEND FEMTOLOG_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -fno-common)
 
   if(FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS)
-    list(APPEND PROJECT_COMPILE_OPTIONS -Werror)
+    list(APPEND FEMTOLOG_COMPILE_OPTIONS -Werror)
   endif()
 
   # Debug configuration
@@ -121,7 +123,7 @@ macro(femtolog_setup_unix_flags)
   endif()
 
   if(FEMTOLOG_ENABLE_OPTIMIZATION_REPORT)
-    list(APPEND PROJECT_COMPILE_OPTIONS "-fsave-optimization-record;-fdebug-compilation-dir=.;-Rpass='.*';-Rpass-missed='.*';-Rpass-analysis='.*'")
+    list(APPEND FEMTOLOG_COMPILE_OPTIONS "-fsave-optimization-record;-fdebug-compilation-dir=.;-Rpass='.*';-Rpass-missed='.*';-Rpass-analysis='.*'")
   endif()
 
   # Sanitize configuration
@@ -159,11 +161,11 @@ macro(femtolog_setup_common_flags)
 
   # Profiling with llvm-xray
   if(FEMTOLOG_ENABLE_XRAY)
-    list(APPEND PROJECT_COMPILE_OPTIONS -fxray-instrument -fxray-instrumentation-bundle=function -fxray-instruction-threshold=1)
+    list(APPEND FEMTOLOG_COMPILE_OPTIONS -fxray-instrument -fxray-instrumentation-bundle=function -fxray-instruction-threshold=1)
     list(APPEND FEMTOLOG_LINK_OPTIONS -fxray-instrument -fxray-instrumentation-bundle=function -fxray-instruction-threshold=1)
 
     if(NOT TARGET_OS_NAME MATCHES "darwin")
-      list(APPEND PROJECT_COMPILE_OPTIONS -fxray-shared)
+      list(APPEND FEMTOLOG_COMPILE_OPTIONS -fxray-shared)
       list(APPEND FEMTOLOG_LINK_OPTIONS -fxray-shared)
     endif()
 
@@ -196,7 +198,7 @@ macro(femtolog_setup_common_flags)
     if(HAS_AVX2)
       message(STATUS "AVX2 support detected")
       add_compile_definitions(FEMTOLOG_ENABLE_AVX2=1)
-      list(APPEND PROJECT_COMPILE_OPTIONS -mavx2)
+      list(APPEND FEMTOLOG_COMPILE_OPTIONS -mavx2)
     else()
       add_compile_definitions(FEMTOLOG_ENABLE_AVX2=0)
       message(STATUS "AVX2 support not available")
@@ -243,7 +245,7 @@ CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}
 CMAKE_SHARED_LINKER_FLAGS: ${CMAKE_SHARED_LINKER_FLAGS}
 CMAKE_SHARED_LINKER_FLAGS_DEBUG: ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}
 CMAKE_SHARED_LINKER_FLAGS_RELEASE: ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}
-PROJECT_COMPILE_OPTIONS: ${PROJECT_COMPILE_OPTIONS}
+FEMTOLOG_COMPILE_OPTIONS: ${FEMTOLOG_COMPILE_OPTIONS}
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ${ColourReset}")
 endfunction()

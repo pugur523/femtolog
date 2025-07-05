@@ -22,6 +22,8 @@ benchmark_exe_dir = os.path.join(
 )
 benchmark_executable = os.path.join(benchmark_exe_dir, "femtolog_bench")
 
+if femtolog_build_util.get_platform_name() == "windows":
+    benchmark_executable= benchmark_executable + ".exe"    
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -44,7 +46,7 @@ def main():
     current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     if not os.path.isfile(benchmark_executable):
-        print("benchmark executable not found")
+        print("benchmark executable not found: ", benchmark_executable)
         return 1
 
     result_json = os.path.join(benchmark_results_dir, f"{current_datetime}.json")

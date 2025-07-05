@@ -95,9 +95,9 @@ def plot_benchmark_percentiles(
 ):
     mpl.rcParams.update({
         "font.family": "Noto Sans CJK JP",
-        "font.size": 12,
+        "font.size": 14,
         "axes.titlesize": 14,
-        "axes.labelsize": 12,
+        "axes.labelsize": 14,
         "xtick.labelsize": 10,
         "ytick.labelsize": 10,
         "legend.fontsize": 10,
@@ -279,7 +279,7 @@ def plot_benchmark_percentiles(
         
         plt.tight_layout(rect=[0.0, 0.0, 0.85, 0.95]) # type: ignore
     
-    fig.savefig(plot_file, dpi=200, bbox_inches='tight', facecolor='white')
+    fig.savefig(plot_file, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close(fig)
     print(f"📊 Plot saved to: {plot_file}")
 

@@ -3,7 +3,7 @@
 # which can be found in the LICENSE file.
 
 function(femtolog_setup_module module_name objects_name)
-  set(multi_value_args INCLUDE_DIRS LINK_DIRS COMPILE_OPTIONS LINK_OPTIONS LINK_LIBS)
+  set(multi_value_args INCLUDE_DIRS LINK_DIRS COMPILE_OPTIONS LINK_OPTIONS LINK_LIBS COMPILE_DEFINITIONS)
   cmake_parse_arguments(ARG "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
   string(TOUPPER ${module_name} UPPER_MODULE_NAME)
@@ -28,6 +28,10 @@ function(femtolog_setup_module module_name objects_name)
 
   if(ARG_LINK_OPTIONS)
     target_link_options(${objects_name} PRIVATE ${ARG_LINK_OPTIONS})
+  endif()
+
+  if(ARG_COMPILE_DEFINITIONS)
+    target_compile_definitions(${objects_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
   endif()
 
   set_target_properties(${objects_name} PROPERTIES
@@ -63,6 +67,10 @@ function(femtolog_setup_module module_name objects_name)
 
   if(ARG_LINK_OPTIONS)
     target_link_options(${module_name} PRIVATE ${ARG_LINK_OPTIONS})
+  endif()
+
+  if(ARG_COMPILE_DEFINITIONS)
+    target_compile_definitions(${module_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
   endif()
 
   set_target_properties(${module_name} PROPERTIES
