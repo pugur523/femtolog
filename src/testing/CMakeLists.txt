@@ -7,22 +7,22 @@ set(TEST_NAME ${MAIN_LIB_NAME}_test)
 message(STATUS "Configuring ${TEST_NAME}...")
 
 set(SOURCES
-  ${CMAKE_CURRENT_SOURCE_DIR}/test_main.cc
+  test_main.cc
+  femtolog_test.cc
 
   ${PROJECT_SOURCE_DIR}/core/base/file_util_test.cc
   ${PROJECT_SOURCE_DIR}/core/base/string_util_test.cc
 
-  ${PROJECT_SOURCE_DIR}/femtolog/femtolog_test.cc
-
   ${PROJECT_SOURCE_DIR}/logging/impl/args_deserializer_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_test.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/backend_worker_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_test.cc
 )
 
 add_executable(${TEST_NAME} ${SOURCES})
 
-target_include_directories(${TEST_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES} ${GTEST_INCLUDE_DIR} ${GMOCK_INCLUDE_DIR})
+target_include_directories(${TEST_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
 target_link_directories(${TEST_NAME} PRIVATE ${FEMTOLOG_LINK_DIRECTORIES})
 target_link_libraries(${TEST_NAME} PRIVATE femtolog ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${FEMTOLOG_LINK_LIBRARIES})
 target_compile_options(${TEST_NAME} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})

@@ -109,7 +109,7 @@ void BackendWorker::set_cpu_affinity() {
   int rc = pthread_setaffinity_np(worker_thread_.native_handle(),
                                   sizeof(cpu_set_t), &cpuset);
   if (rc != 0) {
-    std::cerr << "Failed to set thread affinity to CPU "
+    std::cerr << "Failed to set thread affinity to BackendWorker "
               << worker_thread_cpu_affinity_ << " (errno=" << errno << ")\n";
   }
 #elif FEMTOLOG_IS_WINDOWS
@@ -117,7 +117,7 @@ void BackendWorker::set_cpu_affinity() {
   HANDLE handle = static_cast<HANDLE>(worker_thread_.native_handle());
   DWORD_PTR result = SetThreadAffinityMask(handle, mask);
   if (result == 0) {
-    std::cerr << "Failed to set thread affinity to CPU "
+    std::cerr << "Failed to set thread affinity to BackendWorker "
               << worker_thread_cpu_affinity_
               << " (GetLastError=" << GetLastError() << ")\n";
   }
@@ -125,16 +125,14 @@ void BackendWorker::set_cpu_affinity() {
 }
 
 bool BackendWorker::read_and_process_one() {
-  LogEntry header_tmp;
-  if (queue_->peek_bytes(&header_tmp, sizeof(LogEntry)) !=
+  uint16_t payload_len;
+  if (queue_->peek_bytes(&payload_len, sizeof(payload_len)) !=
       SpscQueueStatus::kOk) {
     return false;
   }
 
-  const std::size_t total_size = header_tmp.aligned_size();
-  if (queue_->size() < total_size) {
-    return false;
-  }
+  const std::size_t total_size = sizeof(LogEntry) + payload_len;
+  FEMTOLOG_DCHECK_GE(queue_->size(), total_size);
   if (queue_->dequeue_bytes(dequeue_buffer_ptr_, total_size) !=
       SpscQueueStatus::kOk) {
     return false;
@@ -166,38 +164,57 @@ void BackendWorker::apply_polling_strategy(bool data_dequeued) {
 
   // Tiered backoff strategy
   if (idle_iterations_ <= 2048) {
-    // Tier 1: __mm_pause or yield cpu to other threads on same core
+    // Tier 1: Busy loop
+    return;
+  } else if (idle_iterations_ <= 4096) {
+    // Tier 2: __mm_pause or yield cpu to other threads on same core
 #if FEMTOLOG_ENABLE_AVX2
     _mm_pause();
 #else
     std::this_thread::yield();
 #endif
     return;
-  } else if (idle_iterations_ <= 4096) {
-    // Tier 2: Short sleep
-    std::this_thread::sleep_for(std::chrono::microseconds(1));
-    return;
   } else if (idle_iterations_ <= 8192) {
-    // Tier 3: Medium sleep
-    std::this_thread::sleep_for(std::chrono::microseconds(10));
+    // Tier 3
+    std::this_thread::sleep_for(std::chrono::nanoseconds(32));
     return;
   } else if (idle_iterations_ <= 16384) {
-    // Tier 4: Long sleep
-    std::this_thread::sleep_for(std::chrono::microseconds(100));
+    // Tier 4
+    std::this_thread::sleep_for(std::chrono::nanoseconds(64));
     return;
   } else if (idle_iterations_ <= 32768) {
-    // Tier 5: Very Long sleep
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // Tier 5
+    std::this_thread::sleep_for(std::chrono::nanoseconds(128));
     return;
   } else if (idle_iterations_ <= 65536) {
-    // Tier 5: Super Long sleep
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // Tier 6
+    std::this_thread::sleep_for(std::chrono::nanoseconds(256));
+    return;
+  } else if (idle_iterations_ <= 131072) {
+    // Tier 7
+    std::this_thread::sleep_for(std::chrono::nanoseconds(512));
+    return;
+  } else if (idle_iterations_ <= 262144) {
+    // Tier 8
+    std::this_thread::sleep_for(std::chrono::microseconds(1));
+    return;
+  } else if (idle_iterations_ <= 524288) {
+    // Tier 9
+    std::this_thread::sleep_for(std::chrono::microseconds(10));
+    return;
+  } else {
+    // Tier 10
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
     return;
   }
 }
 
 void BackendWorker::flush() {
-  while (read_and_process_one()) {}
+  while (true) {
+    if (!read_and_process_one()) {
+      break;
+    }
+  }
 }
 
 void BackendWorker::process_log_entry(LogEntry* entry) {
@@ -212,24 +229,22 @@ void BackendWorker::process_log_entry(LogEntry* entry) {
     std::size_t n = entry->copy_raw_payload(buf, kBufSize);
     buf[n] = '\0';
     for (const auto& sink : sinks_) {
-      FEMTOLOG_DCHECK(!!sink);
+      FEMTOLOG_DCHECK(sink);
       sink->on_log(*entry, buf, n);
     }
   } else {
-    std::string_view format_str = string_registry_->get_string(format_id);
+    format_buffer_.clear();
 
-    ArgsDeserializer deserializer(entry->payload(), string_registry_);
+    auto header =
+        reinterpret_cast<const SerializedArgsHeader*>(entry->payload());
 
-    fmt::dynamic_format_arg_store<fmt::format_context> deserialized_args =
-        deserializer.deserialize();
+    std::size_t size = header->deserialize_and_format_func(
+        &format_buffer_, header->format_func, string_registry_,
+        entry->payload() + sizeof(*header));
 
-    format_buffer_.resize(0);
-    auto result =
-        fmt::vformat_to_n(format_buffer_.data(), format_buffer_.capacity(),
-                          format_str, deserialized_args);
     for (const auto& sink : sinks_) {
-      FEMTOLOG_DCHECK(!!sink);
-      sink->on_log(*entry, format_buffer_.data(), result.size);
+      FEMTOLOG_DCHECK(sink);
+      sink->on_log(*entry, format_buffer_.data(), size);
     }
   }
 }

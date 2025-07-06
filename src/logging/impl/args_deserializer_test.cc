@@ -14,57 +14,26 @@ namespace femtolog::logging {
 
 namespace {
 
-StringRegistry registry;
+TEST(ArgsDeserializerTest, DeserializeAndFormatWorks) {
+  StringRegistry registry;
 
-TEST(ArgsDeserializerTest, BasicTypes) {
-  ArgsSerializer serializer;
-  int32_t a = -42;
-  uint64_t b = 1234567890123ULL;
-  double c = 3.14159;
-  char d = 'x';
-  bool e = true;
+  int i = 42;
+  std::string s = "example";
+  double d = 3.14;
 
-  auto& data = serializer.serialize(&registry, a, b, c, d, e);
-  ArgsDeserializer deserializer(data, &registry);
-  auto store = deserializer.deserialize();
+  ArgsSerializer<256> serializer;
+  auto& args = serializer.serialize<"i={}, s={}, d={}">(&registry, i, s, d);
 
-  std::string result = fmt::vformat("a={}, b={}, c={}, d={}, e={}", store);
-  EXPECT_EQ(result, "a=-42, b=1234567890123, c=3.14159, d=x, e=true");
-}
+  const SerializedArgsHeader* header =
+      reinterpret_cast<const SerializedArgsHeader*>(args.data());
 
-TEST(ArgsDeserializerTest, StringTypes) {
-  ArgsSerializer serializer;
-  std::string_view sv = "hello";
-  const char* cstr = "world";
+  fmt::memory_buffer buffer;
+  std::size_t size = header->deserialize_and_format_func(
+      &buffer, header->format_func, &registry,
+      reinterpret_cast<const char*>(args.data() + sizeof(*header)));
 
-  auto& data = serializer.serialize(&registry, sv, cstr);
-  ArgsDeserializer deserializer(data, &registry);
-  auto store = deserializer.deserialize();
-
-  std::string result = fmt::vformat("{} {}", store);
-  EXPECT_EQ(result, "hello world");
-}
-
-TEST(ArgsDeserializerTest, NullptrCstr) {
-  ArgsSerializer serializer;
-  const char* null_cstr = nullptr;
-
-  auto& data = serializer.serialize(&registry, null_cstr);
-  ArgsDeserializer deserializer(data, &registry);
-  auto store = deserializer.deserialize();
-
-  std::string result = fmt::vformat("{}", store);
-  EXPECT_EQ(result, "nullptr");
-}
-
-TEST(ArgsDeserializerTest, FixedString) {
-  ArgsSerializer serializer;
-  auto& data = serializer.serialize(&registry, "fixed_string");
-  ArgsDeserializer deserializer(data, &registry);
-  auto store = deserializer.deserialize();
-
-  std::string result = fmt::vformat("{}", store);
-  EXPECT_EQ(result, "fixed_string");
+  std::string_view formatted(buffer.data(), size);
+  EXPECT_EQ(formatted, "i=42, s=example, d=3.14");
 }
 
 }  // namespace

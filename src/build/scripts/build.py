@@ -424,7 +424,7 @@ def main(argv):
 
     start_time = time()
 
-    successfull_configs = []
+    successful_configs = []
     failed_configs = []
 
     build_tasks = list(product(target_platforms, target_archs, target_build_types))
@@ -467,7 +467,7 @@ def main(argv):
                     failed_configs.append(entry)
                     continue
             else:
-                successfull_configs.append(entry)
+                successful_configs.append(entry)
     else:
         for target_platform, target_arch, build_type in build_tasks:
             if target_platform == "mingw":
@@ -494,11 +494,11 @@ def main(argv):
                 else:
                     failed_configs.append(config_entry)
                     continue
-            successfull_configs.append(config_entry)
+            successful_configs.append(config_entry)
 
-    if successfull_configs:
+    if successful_configs:
         print("\nSuccessfull Builds:")
-        print(tabulate(successfull_configs, headers="keys", tablefmt="grid"))
+        print(tabulate(successful_configs, headers="keys", tablefmt="grid"))
 
     if failed_configs:
         print("\nFailed Builds:")

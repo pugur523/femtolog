@@ -148,6 +148,15 @@ femtolog_setup_llvm()
 femtolog_setup_zlib()
 femtolog_setup_fmtlib()
 
+if(FEMTOLOG_BUILD_TESTING)
+  femtolog_setup_gtest()
+  enable_testing()
+endif()
+
+if(FEMTOLOG_BUILD_BENCHMARK)
+  femtolog_setup_google_benchmark()
+endif()
+
 include(femtolog_package)
 femtolog_setup_package()
 
@@ -165,12 +174,15 @@ file(REMOVE_RECURSE ${CMAKE_PDB_OUTPUT_DIRECTORY})
 
 list(APPEND FEMTOLOG_INCLUDE_DIRECTORIES
   ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/include
   ${LLVM_INCLUDE_DIRS}
   ${TOML11_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
   ${FMTLIB_INCLUDE_DIR}
   ${ADDITIONAL_INCLUDE_DIRECTORIES}
-  ${PROJECT_SOURCE_DIR}/include
+  ${GTEST_INCLUDE_DIR}
+  ${GMOCK_INCLUDE_DIR}
+  ${GOOGLE_BENCHMARK_INCLUDE_DIR}
 )
 
 list(APPEND FEMTOLOG_LINK_DIRECTORIES
@@ -249,12 +261,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/femtolog)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(FEMTOLOG_BUILD_TESTING)
-  femtolog_setup_gtest()
-  enable_testing()
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/testing)
 endif()
 
 if(FEMTOLOG_BUILD_BENCHMARK)
-  femtolog_setup_google_benchmark()
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/bench)
 endif()

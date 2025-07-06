@@ -47,7 +47,7 @@ void InternalLogger::stop_worker() {
 }
 
 void InternalLogger::enqueue_log_entry(const LogEntry* entry) noexcept {
-  const std::size_t entry_size = entry->aligned_size();
+  const std::size_t entry_size = entry->total_size();
 
   // Direct enqueue with minimal overhead
   const SpscQueueStatus result = queue_.enqueue_bytes(entry, entry_size);

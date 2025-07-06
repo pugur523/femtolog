@@ -26,34 +26,34 @@ class FEMTOLOG_EXPORT Logger {
  public:
   ~Logger() = default;
 
-  Logger(const Logger&) = default;
-  Logger& operator=(const Logger&) = default;
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
 
   Logger(Logger&&) noexcept = default;
   Logger& operator=(Logger&&) noexcept = default;
 
   inline void init(const FemtologOptions& options = FemtologOptions()) {
-    internal_logger().init(options);
+    internal_logger_->init(options);
   }
 
-  template <typename T,
-            typename = typename std::enable_if<
-                std::is_base_of<SinkBase, T>::value>::type,
-            typename... Args>
+  template <
+      typename T,
+      typename = typename std::enable_if_t<std::is_base_of_v<SinkBase, T>>,
+      typename... Args>
   inline void register_sink(Args&&... args) {
-    internal_logger().register_sink(
+    internal_logger_->register_sink(
         std::make_unique<T>(std::forward<Args>(args)...));
   }
 
-  inline void clear_sinks() { internal_logger().clear_sinks(); }
+  inline void clear_sinks() { internal_logger_->clear_sinks(); }
 
-  inline void start_worker() { internal_logger().start_worker(); }
+  inline void start_worker() { internal_logger_->start_worker(); }
 
-  inline void stop_worker() { internal_logger().stop_worker(); }
+  inline void stop_worker() { internal_logger_->stop_worker(); }
 
   template <LogLevel level, FixedString fmt, typename... Args>
   inline constexpr void log(Args&&... args) {
-    internal_logger().log<level, fmt, Args...>(std::forward<Args>(args)...);
+    internal_logger_->log<level, fmt, Args...>(std::forward<Args>(args)...);
   }
 
   template <FixedString fmt, typename... Args>
@@ -81,7 +81,7 @@ class FEMTOLOG_EXPORT Logger {
     log<LogLevel::kTrace, fmt>(std::forward<Args>(args)...);
   }
 
-  inline void level(LogLevel level) { internal_logger().level(level); }
+  inline void level(LogLevel level) { internal_logger_->level(level); }
 
   inline void level(const char* level_str) {
     LogLevel new_level = log_level_from_string(level_str);
@@ -90,7 +90,17 @@ class FEMTOLOG_EXPORT Logger {
     }
   }
 
-  inline LogLevel level() const { return internal_logger().level(); }
+  inline LogLevel level() const { return internal_logger_->level(); }
+
+  inline std::size_t enqueued_count() const {
+    return internal_logger_->enqueued_count();
+  }
+
+  inline std::size_t dropped_count() const {
+    return internal_logger_->dropped_count();
+  }
+
+  inline void reset_count() { internal_logger_->reset_count(); }
 
   inline static Logger& logger() {
     thread_local Logger logger_;
@@ -103,13 +113,9 @@ class FEMTOLOG_EXPORT Logger {
   }
 
  private:
-  Logger() = default;
+  Logger() : internal_logger_(std::make_unique<InternalLogger>()) {}
 
-  inline static InternalLogger& internal_logger() {
-    thread_local std::unique_ptr<InternalLogger> internal_logger_ =
-        std::make_unique<InternalLogger>();
-    return *internal_logger_;
-  }
+  std::unique_ptr<InternalLogger> internal_logger_ = nullptr;
 };
 
 }  // namespace femtolog

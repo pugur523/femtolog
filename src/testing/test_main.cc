@@ -2,6 +2,9 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
+#include "femtolog/core/diagnostics/signal_handler.h"
+#include "femtolog/core/diagnostics/stack_trace.h"
+#include "femtolog/core/diagnostics/terminate_handler.h"
 #include "gtest/gtest.h"
 
 namespace {
@@ -18,6 +21,9 @@ int run_tests() {
 
 [[clang::xray_always_instrument]]
 int main() {
+  core::register_signal_handlers();
+  core::register_terminate_handler();
+  core::register_stack_trace_handler();
   init_tests();
   return run_tests();
 }

@@ -59,6 +59,11 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
     return dropped_count_;
   }
 
+  inline void reset_count() noexcept {
+    enqueued_count_ = 0;
+    dropped_count_ = 0;
+  }
+
   template <LogLevel level, FixedString fmt, typename... Args>
   inline void log(Args&&... args) noexcept {
     FEMTOLOG_DCHECK_EQ(backend_worker_.status(), BackendWorkerStatus::kRunning);
@@ -81,8 +86,8 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
     } else {
       constexpr uint16_t format_id = StringRegistry::get_string_id<fmt>();
       string_registry_.register_string<fmt>();
-      const auto& serialized_args =
-          serializer_.serialize(&string_registry_, std::forward<Args>(args)...);
+      const auto& serialized_args = serializer_.serialize<fmt>(
+          &string_registry_, std::forward<Args>(args)...);
       log_serialized<level>(format_id, serialized_args);
     }
   }
@@ -93,7 +98,8 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
 
  private:
   // Hot data - frequently accessed (first cache line)
-  alignas(128) LogLevel level_ = LogLevel::kInfo;
+  alignas(std::hardware_destructive_interference_size) LogLevel level_ =
+      LogLevel::kInfo;
   const uint32_t thread_id_;
   std::size_t enqueued_count_ = 0;
   std::size_t dropped_count_ = 0;
@@ -101,10 +107,11 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   ArgsSerializer<> serializer_;
 
   // Cold data - less frequently accessed (separate cache line)
-  alignas(128) SpscQueue queue_;
+  alignas(std::hardware_destructive_interference_size) SpscQueue queue_;
 
   // Buffer management (separate cache line)
-  alignas(LogEntry) alignas(128) alignas(8) uint8_t
+  alignas(LogEntry) alignas(
+      std::hardware_destructive_interference_size) alignas(8) uint8_t
       entry_buffer_[sizeof(LogEntry) + kMaxPayloadSize];
 
   BackendWorker backend_worker_;

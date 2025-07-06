@@ -30,8 +30,10 @@ void internal_logger_formatted_log(benchmark::State& state) {
   logger.register_sink(std::make_unique<NullSink>());
   logger.start_worker();
 
+  const char* str = "times";
+
   for (auto _ : state) {
-    logger.log<LogLevel::kInfo, "Benchmark {} {}">(42, "times");
+    logger.log<LogLevel::kInfo, "Benchmark {} {}">(42, str);
   }
 
   logger.stop_worker();

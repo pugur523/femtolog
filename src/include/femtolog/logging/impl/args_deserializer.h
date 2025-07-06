@@ -5,117 +5,139 @@
 #ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_DESERIALIZER_H_
 #define INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_DESERIALIZER_H_
 
-#include "femtolog/logging/impl/args_serializer.h"
+#include <cstring>
+#include <tuple>
+#include <utility>
+
+#include "femtolog/base/serialize_util.h"
+#include "femtolog/base/string_registry.h"
 #include "fmt/args.h"
 
 namespace femtolog::logging {
 
-class ArgsDeserializer {
+template <typename... Args>
+class DeserializeDispatcher {
  public:
-  template <std::size_t Capacity>
-  explicit ArgsDeserializer(const SerializedArgs<Capacity>& serialized_args,
-                            const StringRegistry* string_registry)
-      : data_(serialized_args.data()),
-        header_(reinterpret_cast<const SerializedArgsHeader*>(
-            serialized_args.data())),
-        string_registry_(string_registry) {
-    pos_ = sizeof(SerializedArgsHeader);
+  inline static DeserializeAndFormatFunction function() {
+    return &deserialize_and_format;
   }
-
-  explicit ArgsDeserializer(const char* src,
-                            const StringRegistry* string_registry)
-      : data_(src),
-        header_(reinterpret_cast<const SerializedArgsHeader*>(src)),
-        string_registry_(string_registry) {
-    pos_ = sizeof(SerializedArgsHeader);
-  }
-
-  fmt::dynamic_format_arg_store<fmt::format_context> deserialize() {
-    fmt::dynamic_format_arg_store<fmt::format_context> store;
-    pos_ = sizeof(SerializedArgsHeader);
-
-    for (uint16_t i = 0; i < header_->arg_count; ++i) {
-      const ArgHeader* arg_header =
-          reinterpret_cast<const ArgHeader*>(data_ + pos_);
-      pos_ += sizeof(ArgHeader);
-
-      switch (arg_header->type) {
-        case ArgType::kInt32: {
-          int32_t i32_value;
-          std::memcpy(&i32_value, data_ + pos_, sizeof(i32_value));
-          store.push_back(i32_value);
-          break;
-        }
-        case ArgType::kInt64: {
-          int64_t i64_value;
-          std::memcpy(&i64_value, data_ + pos_, sizeof(i64_value));
-          store.push_back(i64_value);
-          break;
-        }
-        case ArgType::kUint32: {
-          uint32_t u32_value;
-          std::memcpy(&u32_value, data_ + pos_, sizeof(u32_value));
-          store.push_back(u32_value);
-          break;
-        }
-        case ArgType::kUint64: {
-          uint64_t u64_value;
-          std::memcpy(&u64_value, data_ + pos_, sizeof(u64_value));
-          store.push_back(u64_value);
-          break;
-        }
-        case ArgType::kFloat: {
-          float f32_value;
-          std::memcpy(&f32_value, data_ + pos_, sizeof(f32_value));
-          store.push_back(f32_value);
-          break;
-        }
-        case ArgType::kDouble: {
-          double f64_value;
-          std::memcpy(&f64_value, data_ + pos_, sizeof(f64_value));
-          store.push_back(f64_value);
-          break;
-        }
-        case ArgType::kBool: {
-          bool bool_value;
-          std::memcpy(&bool_value, data_ + pos_, sizeof(bool_value));
-          store.push_back(bool_value);
-          break;
-        }
-        case ArgType::kChar: {
-          char char_value;
-          std::memcpy(&char_value, data_ + pos_, sizeof(char_value));
-          store.push_back(char_value);
-          break;
-        }
-        case ArgType::kString:
-        case ArgType::kFixedString: {
-          StringId id;
-          std::memcpy(&id, data_ + pos_, sizeof(StringId));
-          store.push_back(string_registry_->get_string(id));
-          break;
-        }
-        case ArgType::kPointer: {
-          const void* ptr_value;
-          std::memcpy(&ptr_value, data_ + pos_, sizeof(ptr_value));
-          store.push_back(ptr_value);
-          break;
-        }
-      }
-      pos_ += arg_header->size;
-    }
-
-    return store;
-  }
-
-  inline uint16_t arg_count() const { return header_->arg_count; }
-  inline uint32_t total_size() const { return header_->total_size; }
 
  private:
-  const char* data_ = nullptr;
-  std::size_t pos_ = 0;
-  const SerializedArgsHeader* header_ = nullptr;
-  const StringRegistry* string_registry_ = nullptr;
+  inline static std::size_t deserialize_and_format(
+      fmt::memory_buffer* format_buffer,
+      FormatFunction fmt_function,
+      StringRegistry* registry,
+      const char* data) {
+    return deserialize_and_format_impl(format_buffer, fmt_function, registry,
+                                       data,
+                                       std::index_sequence_for<Args...>{});
+  }
+
+  template <std::size_t... I>
+  inline static std::size_t deserialize_and_format_impl(
+      fmt::memory_buffer* format_buffer,
+      FormatFunction fmt_function,
+      StringRegistry* registry,
+      const char* data,
+      std::index_sequence<I...>) {
+    if constexpr (sizeof...(Args) == 1) {
+      using FirstArg = std::tuple_element_t<0, std::tuple<Args...>>;
+      using Decayed = std::decay_t<FirstArg>;
+
+      if constexpr (std::is_trivially_copyable_v<Decayed> &&
+                    !is_string_like_v<Decayed>) {
+        if constexpr (sizeof(Decayed) <= 8) {
+          Decayed value;
+          std::memcpy(&value, data, sizeof(value));
+          return fmt_function(format_buffer, fmt::make_format_args(value));
+        }
+      }
+    }
+
+    return format_directly(format_buffer, fmt_function, registry, data,
+                           std::index_sequence<I...>{});
+  }
+
+  template <std::size_t... I>
+  inline static std::size_t format_directly(fmt::memory_buffer* format_buffer,
+                                            FormatFunction fmt_function,
+                                            StringRegistry* registry,
+                                            const char* data,
+                                            std::index_sequence<I...>) {
+    if constexpr (sizeof...(Args) == 1) {
+      auto arg0 = read_arg<std::tuple_element_t<0, std::tuple<Args...>>>(
+          registry, data, offset_of<0>());
+      return fmt_function(format_buffer, fmt::make_format_args(arg0));
+    } else if constexpr (sizeof...(Args) == 2) {
+      auto arg0 = read_arg<std::tuple_element_t<0, std::tuple<Args...>>>(
+          registry, data, offset_of<0>());
+      auto arg1 = read_arg<std::tuple_element_t<1, std::tuple<Args...>>>(
+          registry, data, offset_of<1>());
+      return fmt_function(format_buffer, fmt::make_format_args(arg0, arg1));
+    } else if constexpr (sizeof...(Args) == 3) {
+      auto arg0 = read_arg<std::tuple_element_t<0, std::tuple<Args...>>>(
+          registry, data, offset_of<0>());
+      auto arg1 = read_arg<std::tuple_element_t<1, std::tuple<Args...>>>(
+          registry, data, offset_of<1>());
+      auto arg2 = read_arg<std::tuple_element_t<2, std::tuple<Args...>>>(
+          registry, data, offset_of<2>());
+      return fmt_function(format_buffer,
+                          fmt::make_format_args(arg0, arg1, arg2));
+    } else if constexpr (sizeof...(Args) == 4) {
+      auto arg0 = read_arg<std::tuple_element_t<0, std::tuple<Args...>>>(
+          registry, data, offset_of<0>());
+      auto arg1 = read_arg<std::tuple_element_t<1, std::tuple<Args...>>>(
+          registry, data, offset_of<1>());
+      auto arg2 = read_arg<std::tuple_element_t<2, std::tuple<Args...>>>(
+          registry, data, offset_of<2>());
+      auto arg3 = read_arg<std::tuple_element_t<3, std::tuple<Args...>>>(
+          registry, data, offset_of<3>());
+      return fmt_function(format_buffer,
+                          fmt::make_format_args(arg0, arg1, arg2, arg3));
+    } else {
+      auto args =
+          std::make_tuple(read_arg<Args>(registry, data, offset_of<I>())...);
+      return std::apply(
+          [&](auto&... unpacked) {
+            return fmt_function(format_buffer,
+                                fmt::make_format_args(unpacked...));
+          },
+          args);
+    }
+  }
+
+  template <typename T>
+  inline static deserialized_arg_type_t<T> read_arg(StringRegistry* registry,
+                                                    const char* base,
+                                                    std::size_t offset) {
+    using Decayed = std::decay_t<T>;
+    const char* ptr = base + offset;
+
+    if constexpr (is_string_like_v<Decayed>) {
+      StringId id;
+      std::memcpy(&id, ptr, sizeof(id));
+      std::string_view view = registry->get_string(id);
+      return view;
+    } else if constexpr (std::is_trivially_copyable_v<Decayed>) {
+      Decayed value;
+      std::memcpy(&value, ptr, sizeof(value));
+      return value;
+    } else {
+      static_assert(sizeof(Decayed) == 0, "attempted to read unsupported type");
+    }
+  }
+
+  template <std::size_t I>
+  static consteval std::size_t offset_of() {
+    constexpr std::array<std::size_t, sizeof...(Args)> offsets = [] {
+      std::array<std::size_t, sizeof...(Args)> out{};
+      std::size_t offset = 0;
+      std::size_t i = 0;
+      ((out[i++] = offset, offset += sizeof(serialized_arg_type_t<Args>)), ...);
+      return out;
+    }();
+    return offsets[I];
+  }
 };
 
 }  // namespace femtolog::logging

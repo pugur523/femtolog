@@ -13,13 +13,13 @@
 namespace femtolog {
 
 TEST(FemtoLogTest, BasicLogging) {
-  Logger logger = Logger::logger();
+  Logger& logger = Logger::logger();
 
   logger.init();
 
   logger.register_sink<StdoutSink<>>();
-  logger.register_sink<FileSink<>>("");
-  logger.register_sink<JsonLinesSink<>>("");
+  logger.register_sink<FileSink<>>();
+  logger.register_sink<JsonLinesSink<>>();
 
   logger.start_worker();
 
@@ -45,12 +45,15 @@ TEST(FemtoLogTest, BasicLogging) {
   logger.clear_sinks();
 }
 
+}  // namespace femtolog
+
 TEST(FemtoLogTest, README_example) {
-  femtolog::Logger logger = femtolog::Logger::logger();
+  femtolog::Logger& logger = femtolog::Logger::logger();
 
   logger.init();
   logger.register_sink<femtolog::StdoutSink<>>();
-  logger.register_sink<femtolog::FileSink<>>("");
+  logger.register_sink<femtolog::FileSink<>>();
+  logger.register_sink<femtolog::JsonLinesSink<>>();
   logger.level("trace");
 
   logger.start_worker();
@@ -71,5 +74,3 @@ TEST(FemtoLogTest, README_example) {
   logger.stop_worker();
   logger.clear_sinks();
 }
-
-}  // namespace femtolog

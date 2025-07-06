@@ -62,12 +62,13 @@
 
 int main() {
   // スレッドローカルなロガーインスタンスを取得
-  femtolog::Logger logger = femtolog::Logger::logger();
+  femtolog::Logger& logger = femtolog::Logger::logger();
 
   // ロガーを初期化し、シンクを登録
   logger.init();
   logger.register_sink<femtolog::StdoutSink<>>();
-  logger.register_sink<femtolog::FileSink<>>("");
+  logger.register_sink<femtolog::FileSink<>>();
+  logger.register_sink<femtolog::JsonLinesSink<>>();
   logger.level("trace");
 
   // ログエントリをデキューするバックエンドワーカーを起動

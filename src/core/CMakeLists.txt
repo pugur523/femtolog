@@ -10,7 +10,12 @@ message(STATUS "Configuring ${MODULE_NAME} module...")
 set(SOURCES
   check.cc
   base/file_util.cc
+  base/memory_util.cc
   base/string_util.cc
+  diagnostics/signal_handler.cc
+  diagnostics/stack_trace_entry.cc
+  diagnostics/stack_trace.cc
+  diagnostics/terminate_handler.cc
 )
 
 add_library(${MODULE_OBJECTS_NAME} OBJECT ${SOURCES})

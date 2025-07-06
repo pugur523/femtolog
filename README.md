@@ -62,12 +62,13 @@ Designed for modern C++ projects where every nanosecond counts.
 
 int main() {
   // get thread local logger instance
-  femtolog::Logger logger = femtolog::Logger::logger();
+  femtolog::Logger& logger = femtolog::Logger::logger();
 
   // initialize logger and register log sink
   logger.init();
   logger.register_sink<femtolog::StdoutSink<>>();
-  logger.register_sink<femtolog::FileSink<>>("");
+  logger.register_sink<femtolog::FileSink<>>();
+  logger.register_sink<femtolog::JsonLinesSink<>>();
   logger.level("trace");
 
   // start the backend worker that dequeues logged entries

@@ -11,6 +11,7 @@
 
 #include "femtolog/base/log_entry.h"
 #include "femtolog/base/string_registry.h"
+#include "femtolog/logging/impl/args_deserializer.h"
 #include "femtolog/logging/impl/spsc_queue.h"
 #include "femtolog/options.h"
 #include "femtolog/sinks/sink_base.h"
@@ -67,7 +68,7 @@ class BackendWorker {
   std::thread worker_thread_;
   std::size_t worker_thread_cpu_affinity_ = 5;
   std::atomic<bool> shutdown_required_{false};
-  fmt::basic_memory_buffer<char, 512> format_buffer_;
+  fmt::memory_buffer format_buffer_;
 
   // Polling strategy state
   std::size_t idle_iterations_ = 0;

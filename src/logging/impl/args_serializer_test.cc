@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <string_view>
 
 #include "gtest/gtest.h"
@@ -16,147 +17,62 @@ namespace {
 
 StringRegistry registry;
 
-TEST(ArgsSerializerTest, SerializeEmpty) {
-  ArgsSerializer serializer;
-  auto result = serializer.serialize(&registry);
-  ASSERT_EQ(result.size(), sizeof(SerializedArgsHeader));
+TEST(ArgsSerializerTest, SerializeBasicTypes) {
+  const int i = 42;
+  const std::string s = "hello";
+  const float f = 1.234;
+  const double d = 1.23456789;
+  const char* cstr = "world";
 
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(result.data());
-  EXPECT_EQ(header->arg_count, 0);
-  EXPECT_EQ(header->total_size, sizeof(SerializedArgsHeader));
+  ArgsSerializer<256> serializer;
+  auto& args =
+      serializer.serialize<"int={}, str={}, float={}, double={}, ptr={}">(
+          &registry, i, s, f, d, cstr);
+
+  EXPECT_EQ(args.size(), sizeof(SerializedArgsHeader) + sizeof(i) +
+                             sizeof(StringId) + sizeof(float) + sizeof(double) +
+                             sizeof(StringId));
+
+  auto header = reinterpret_cast<const SerializedArgsHeader*>(args.data());
+  EXPECT_NE(header->deserialize_and_format_func, nullptr);
+  EXPECT_NE(header->format_func, nullptr);
+
+  fmt::memory_buffer buf;
+  std::size_t n = header->deserialize_and_format_func(
+      &buf, header->format_func, &registry,
+      args.data() + sizeof(SerializedArgsHeader));
+
+  const char* formatted_str = buf.data();
+  EXPECT_EQ(std::string_view(formatted_str, n),
+            "int=42, str=hello, float=1.234, double=1.23456789, ptr=world");
 }
 
-TEST(ArgsSerializerTest, SerializeInts) {
-  ArgsSerializer serializer;
-  auto result =
-      serializer.serialize(&registry, 1, 42u, static_cast<int64_t>(-5));
+TEST(ArgsSerializerTest, OutOfScope) {
+  ArgsSerializer<256> serializer;
+  SerializedArgs<256>* args_ptr = nullptr;
 
-  const char* ptr = result.data();
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
-  EXPECT_EQ(header->arg_count, 3);
-  EXPECT_EQ(header->total_size, result.size());
-}
-
-TEST(ArgsSerializerTest, SerializeStrings) {
-  ArgsSerializer serializer;
-  const char* cstr = "hello";
-  std::string_view sv = "world";
-  auto result = serializer.serialize(&registry, cstr, sv);
-
-  const char* ptr = result.data();
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
-  EXPECT_EQ(header->arg_count, 2);
-  EXPECT_EQ(header->total_size, result.size());
-}
-
-TEST(ArgsSerializerTest, SerializeInt32CheckLayout) {
-  ArgsSerializer serializer;
-  int32_t value = 12345;
-  auto result = serializer.serialize(&registry, value);
-
-  const char* ptr = result.data();
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
-  EXPECT_EQ(header->arg_count, 1);
-  EXPECT_EQ(header->total_size, result.size());
-
-  const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
-  auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kInt32);
-  EXPECT_EQ(arg_header->size, sizeof(int32_t));
-
-  const int32_t* val_ptr =
-      reinterpret_cast<const int32_t*>(arg_ptr + sizeof(ArgHeader));
-  EXPECT_EQ(*val_ptr, value);
-}
-
-TEST(ArgsSerializerTest, SerializeCStringCheckLayout) {
-  ArgsSerializer serializer;
-  const char* cstr = "hi";
-  auto result = serializer.serialize(&registry, cstr);
-
-  const char* ptr = result.data();
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
-  EXPECT_EQ(header->arg_count, 1);
-  EXPECT_EQ(header->total_size, result.size());
-
-  const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
-  auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kString);
-  EXPECT_EQ(arg_header->size, sizeof(StringId));
-
-  const char* data = arg_ptr + sizeof(ArgHeader);
-  StringId id;
-  std::memcpy(&id, data, sizeof(StringId));
-  EXPECT_EQ(registry.get_string(id), "hi");
-}
-
-TEST(ArgsSerializerTest, SerializeNullptrCString) {
-  ArgsSerializer serializer;
-  const char* cstr = nullptr;
-  auto result = serializer.serialize(&registry, cstr);
-
-  const char* ptr = result.data();
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
-  EXPECT_EQ(header->arg_count, 1);
-  EXPECT_EQ(header->total_size, result.size());
-
-  const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
-  auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kString);
-  EXPECT_EQ(arg_header->size, sizeof(StringId));
-
-  const char* data = arg_ptr + sizeof(ArgHeader);
-  StringId id;
-  std::memcpy(&id, data, sizeof(StringId));
-  EXPECT_EQ(registry.get_string(id), "nullptr");
-}
-
-TEST(ArgsSerializerTest, SerializeStringViewCheckLayout) {
-  ArgsSerializer serializer;
-  std::string_view sv = "abc";
-  auto result = serializer.serialize(&registry, sv);
-
-  const char* ptr = result.data();
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
-  EXPECT_EQ(header->arg_count, 1);
-  EXPECT_EQ(header->total_size, result.size());
-
-  const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
-  auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kString);
-  EXPECT_EQ(arg_header->size, sizeof(StringId));
-
-  const char* data = arg_ptr + sizeof(ArgHeader);
-  StringId id;
-  std::memcpy(&id, data, sizeof(StringId));
-  EXPECT_EQ(registry.get_string(id), "abc");
-}
-
-TEST(ArgsSerializerTest, SerializeCharPointerLifetimeIndependent) {
-  ArgsSerializer<512> serializer;
-  SerializedArgs<512>* result = nullptr;
   {
-    char temp[] = "scoped";
-    auto& args = serializer.serialize(&registry, temp);
-    result = &args;
+    const int i = 42;
+    const char* cstr = "test";
 
-    ASSERT_EQ(result->size() > sizeof(SerializedArgsHeader), true);
+    auto& args = serializer.serialize<"int={}, cstr={}">(&registry, i, cstr);
+    args_ptr = &args;
   }
 
-  const char* ptr = result->data();
-  auto* header = reinterpret_cast<const SerializedArgsHeader*>(ptr);
-  EXPECT_EQ(header->arg_count, 1);
-  EXPECT_EQ(header->total_size, result->size());
+  EXPECT_EQ(args_ptr->size(),
+            sizeof(SerializedArgsHeader) + sizeof(int) + sizeof(StringId));
 
-  const char* arg_ptr = ptr + sizeof(SerializedArgsHeader);
-  auto* arg_header = reinterpret_cast<const ArgHeader*>(arg_ptr);
-  EXPECT_EQ(arg_header->type, ArgType::kString);
-  EXPECT_EQ(arg_header->size, sizeof(StringId));
+  auto header = reinterpret_cast<const SerializedArgsHeader*>(args_ptr->data());
+  EXPECT_NE(header->deserialize_and_format_func, nullptr);
+  EXPECT_NE(header->format_func, nullptr);
 
-  const char* data = arg_ptr + sizeof(ArgHeader);
-  StringId id;
-  std::memcpy(&id, data, sizeof(StringId));
-  EXPECT_EQ(registry.get_string(id), "scoped");
+  fmt::memory_buffer buf;
+  std::size_t n = header->deserialize_and_format_func(
+      &buf, header->format_func, &registry,
+      args_ptr->data() + sizeof(SerializedArgsHeader));
+
+  const char* formatted_str = buf.data();
+  EXPECT_EQ(std::string_view(formatted_str, n), "int=42, cstr=test");
 }
 
 }  // namespace

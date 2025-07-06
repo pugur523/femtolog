@@ -69,15 +69,17 @@ class StringRegistry {
   void register_string_arena(StringId id, std::string_view view) {
     FEMTOLOG_DCHECK_LE(arena_size_ + view.size(), arena_capacity_);
 
-    if (!table_[id].empty()) [[unlikely]] {
+    if (!table_[id].empty()) [[likely]] {
       return;
     }
 
     char* dest = arena_buffer_.get() + arena_size_;
-    std::memcpy(dest, view.data(), view.size());
+    // include null termination
+    std::size_t len = view.size();
+    std::memcpy(dest, view.data(), len);
 
-    std::string_view stored(dest, view.size());
-    arena_size_ += view.size();
+    std::string_view stored(dest, len);
+    arena_size_ += len;
     set(id, stored);
   }
 

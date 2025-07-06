@@ -12,7 +12,7 @@
 
 namespace femtolog {
 
-struct alignas(64) LogEntry {
+struct LogEntry {
   LogEntry() = default;
   ~LogEntry() = default;
 
@@ -25,21 +25,17 @@ struct alignas(64) LogEntry {
   }
 
   [[nodiscard]] inline std::string_view message_view() const noexcept {
-    return std::string_view(payload(), content_len);
+    return std::string_view(payload(), payload_len);
   }
 
   [[nodiscard]] inline constexpr std::size_t total_size() const noexcept {
-    return sizeof(LogEntry) + payload_size;
-  }
-
-  [[nodiscard]] inline constexpr std::size_t aligned_size() const noexcept {
-    return align_up(total_size());
+    return sizeof(LogEntry) + payload_len;
   }
 
   [[nodiscard]] inline std::size_t copy_raw_payload(
       char* dst_buf,
       std::size_t dst_size) const noexcept {
-    std::size_t to_copy = std::min<std::size_t>(dst_size, content_len);
+    std::size_t to_copy = std::min<std::size_t>(dst_size, payload_len);
     std::memcpy(dst_buf, payload(), to_copy);
     return to_copy;
   }
@@ -50,39 +46,23 @@ struct alignas(64) LogEntry {
                                         LogLevel level,
                                         uint64_t timestamp_ns,
                                         const char* payload,
-                                        std::size_t content_len) {
+                                        std::size_t payload_len) {
     auto* entry = reinterpret_cast<LogEntry*>(buffer);
+    entry->timestamp_ns = timestamp_ns;
     entry->thread_id = thread_id;
     entry->format_id = format_id;
+    entry->payload_len = static_cast<uint16_t>(payload_len);
     entry->level = level;
-    entry->content_len = static_cast<uint16_t>(content_len);
-    entry->payload_size = static_cast<uint16_t>(sizeof(LogEntry) + content_len);
-    entry->timestamp_ns = timestamp_ns;
 
-    std::memcpy(entry->payload(), payload, content_len);
-
-    if (entry->content_len <= 64) [[likely]] {
-      // Small message - use direct copy for better performance
-      __builtin_memcpy(entry->payload(), payload, content_len);
-    } else {
-      // Larger message - use memcpy
-      std::memcpy(entry->payload(), payload, content_len);
-    }
+    std::memcpy(entry->payload(), payload, payload_len);
     return entry;
   }
 
-  [[nodiscard]] static constexpr std::size_t align_up(
-      std::size_t size) noexcept {
-    constexpr const std::size_t kAlignment = alignof(LogEntry);
-    return (size + kAlignment - 1) & ~(kAlignment - 1);
-  }
-
-  uint32_t thread_id = 0;
+  uint16_t payload_len = 0;
   uint16_t format_id = 0;
-  LogLevel level = LogLevel::kInfo;
-  uint16_t payload_size = 0;
-  uint16_t content_len = 0;
+  uint32_t thread_id = 0;
   uint64_t timestamp_ns = 0;
+  LogLevel level = LogLevel::kInfo;
 };
 
 }  // namespace femtolog

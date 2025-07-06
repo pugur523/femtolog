@@ -10,6 +10,10 @@
 #include <string_view>
 
 #include "femtolog/build/build_flag.h"
+#include "fmt/args.h"
+#include "fmt/core.h"
+#include "fmt/format.h"
+
 #if FEMTOLOG_IS_LINUX
 #include <ctime>
 #else
@@ -50,6 +54,21 @@ inline uint64_t timestamp_ns() noexcept {
       std::chrono::steady_clock::now().time_since_epoch().count());
 #endif
 }
+
+using FormatFunction = std::size_t (*)(fmt::memory_buffer*,
+                                       const fmt::format_args&);
+
+template <FixedString fmt, typename... Args>
+struct FormatDispatcher {
+  static std::size_t format(fmt::memory_buffer* buf,
+                            const fmt::format_args& args) {
+    auto result =
+        fmt::vformat_to_n(buf->data(), buf->capacity(), fmt.view(), args);
+    return result.size;
+  }
+
+  static constexpr FormatFunction function() { return &format; }
+};
 
 }  // namespace femtolog
 
