@@ -29,7 +29,6 @@
 
 namespace femtolog {
 
-template <bool enable_buffering = true>
 class FileSink final : public SinkBase {
  public:
   explicit FileSink(const std::string& file_path) : file_path_(file_path) {
@@ -60,18 +59,14 @@ class FileSink final : public SinkBase {
     fd_ = open(file_path_.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
 #endif
 
-    if constexpr (enable_buffering) {
-      buffer_ = std::make_unique<char[]>(kBufferCapacity);
-    }
+    buffer_ = std::make_unique<char[]>(kBufferCapacity);
   }
 
   FileSink()
       : FileSink(core::join_path(core::exe_dir(), "logs", "latest.log")) {}
 
   ~FileSink() override {
-    if constexpr (enable_buffering) {
-      flush();
-    }
+    flush();
 
     if (fd_ >= 0) {
 #if FEMTOLOG_IS_WINDOWS
@@ -96,12 +91,6 @@ class FileSink final : public SinkBase {
 
     const std::size_t total = timestamp_size + level_len + kSepLen + len;
 
-    if constexpr (!enable_buffering) {
-      direct_write(timestamp_buf, timestamp_size, level_str, level_len, content,
-                   len);
-      return;
-    }
-
     if (cursor_ + total > kBufferCapacity) {
       flush();
     }
@@ -115,27 +104,27 @@ class FileSink final : public SinkBase {
     char* buffer = buffer_.get();
     std::memcpy(buffer + cursor_, timestamp_buf, timestamp_size);
     cursor_ += timestamp_size;
-    std::memcpy(buffer + cursor_, level_str, level_len);
-    cursor_ += level_len;
-    std::memcpy(buffer + cursor_, kSep, kSepLen);
-    cursor_ += kSepLen;
+    if (entry.level != LogLevel::kSilent) {
+      std::memcpy(buffer + cursor_, level_str, level_len);
+      cursor_ += level_len;
+      std::memcpy(buffer + cursor_, kSep, kSepLen);
+      cursor_ += kSepLen;
+    }
     std::memcpy(buffer + cursor_, content, len);
     cursor_ += len;
   }
 
  private:
   inline void flush() {
-    if constexpr (enable_buffering) {
-      if (cursor_ == 0 || !buffer_ || fd_ < 0) {
-        return;
-      }
-#if FEMTOLOG_IS_WINDOWS
-      _write(fd_, buffer_.get(), static_cast<unsigned int>(cursor_));
-#else
-      [[maybe_unused]] ssize_t written = write(fd_, buffer_.get(), cursor_);
-#endif
-      cursor_ = 0;
+    if (cursor_ == 0 || !buffer_ || fd_ < 0) {
+      return;
     }
+#if FEMTOLOG_IS_WINDOWS
+    _write(fd_, buffer_.get(), static_cast<unsigned int>(cursor_));
+#else
+    [[maybe_unused]] ssize_t written = write(fd_, buffer_.get(), cursor_);
+#endif
+    cursor_ = 0;
   }
 
   inline void direct_write(const char* timestamp_buf,

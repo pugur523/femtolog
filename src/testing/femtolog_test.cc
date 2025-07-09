@@ -15,7 +15,7 @@ TEST(FemtoLogTest, README_example) {
 
   logger.init();
   logger.register_sink<femtolog::StdoutSink<>>();
-  logger.register_sink<femtolog::FileSink<>>();
+  logger.register_sink<femtolog::FileSink>();
   logger.register_sink<femtolog::JsonLinesSink<>>();
   logger.level("trace");
 
@@ -46,7 +46,7 @@ TEST(FemtoLogTest, BasicLogging) {
   logger.init();
 
   logger.register_sink<StdoutSink<>>();
-  logger.register_sink<FileSink<>>();
+  logger.register_sink<FileSink>();
   logger.register_sink<JsonLinesSink<>>();
 
   logger.start_worker();

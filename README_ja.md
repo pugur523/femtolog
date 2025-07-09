@@ -67,7 +67,7 @@ int main() {
   // ロガーを初期化し、シンクを登録
   logger.init();
   logger.register_sink<femtolog::StdoutSink<>>();
-  logger.register_sink<femtolog::FileSink<>>();
+  logger.register_sink<femtolog::FileSink>();
   logger.register_sink<femtolog::JsonLinesSink<>>();
   logger.level("trace");
 

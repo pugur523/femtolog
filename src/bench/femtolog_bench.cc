@@ -25,7 +25,7 @@ Logger& setup_logger() {
     // use default options
     logger.init(options);
     // logger.register_sink<NullSink>();
-    logger.register_sink<FileSink<>>(
+    logger.register_sink<FileSink>(
         bench::get_benchmark_log_path("femtolog.log"));
 
     initialized = true;
@@ -61,25 +61,24 @@ void teardown_logger(Logger* logger) {
 
 void femtolog_info_literal(benchmark::State& state) {
   Logger& logger = setup_logger();
-  for (auto _ : state) {
-    logger.info<"Benchmark test message\n">();
-  }
-
-  teardown_logger(&logger);
-}
-BENCHMARK(femtolog_info_literal);
-
-void femtolog_info_format_int(benchmark::State& state) {
-  Logger& logger = setup_logger();
   auto const start = std::chrono::steady_clock::now();
   for (auto _ : state) {
-    logger.info<"Value: {}\n">(123);
+    logger.info<"Benchmark test message\n">();
   }
   auto const end = std::chrono::steady_clock::now();
   auto delta =
       std::chrono::duration_cast<std::chrono::duration<double>>(end - start)
           .count();
   glog().info<"throughput is {} msg/s\n">(state.iterations() / delta);
+  teardown_logger(&logger);
+}
+BENCHMARK(femtolog_info_literal);
+
+void femtolog_info_format_int(benchmark::State& state) {
+  Logger& logger = setup_logger();
+  for (auto _ : state) {
+    logger.info<"Value: {}\n">(123);
+  }
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_int);

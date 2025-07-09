@@ -18,7 +18,8 @@ enum class LogLevel : uint8_t {
   kInfo = 3,
   kDebug = 4,
   kTrace = 5,
-  kUnknown = 6,
+  kSilent = 6,
+  kUnknown = 7,
 
   // Keep this at the end and equal to the last entry.
   kMaxValue = kUnknown,
@@ -32,6 +33,7 @@ inline constexpr const char* log_level_to_lower_str(LogLevel level) {
     case LogLevel::kInfo: return "info";
     case LogLevel::kDebug: return "debug";
     case LogLevel::kTrace: return "trace";
+    case LogLevel::kSilent: return "";
     default: return "unknown";
   }
 }
@@ -44,6 +46,7 @@ inline constexpr const char* log_level_to_upper_str(LogLevel level) {
     case LogLevel::kInfo: return "INFO";
     case LogLevel::kDebug: return "DEBUG";
     case LogLevel::kTrace: return "TRACE";
+    case LogLevel::kSilent: return "";
     default: return "UNKNOWN";
   }
 }
@@ -56,6 +59,7 @@ inline constexpr const char* log_level_to_ansi_color(LogLevel level) {
     case LogLevel::kInfo: return core::kGreen;
     case LogLevel::kDebug: return core::kCyan;
     case LogLevel::kTrace: return core::kGray;
+    case LogLevel::kSilent: return core::kReset;
     default: return "";
   }
 }
@@ -84,6 +88,8 @@ inline LogLevel log_level_from_string(const char* str) {
     return LogLevel::kDebug;
   } else if (std::strcmp(str, "trace") == 0) {
     return LogLevel::kTrace;
+  } else if (std::strcmp(str, "silent") == 0) {
+    return LogLevel::kSilent;
   }
   return LogLevel::kUnknown;
 }
