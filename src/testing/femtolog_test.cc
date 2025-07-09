@@ -10,10 +10,38 @@
 #include "femtolog/sinks/stdout_sink.h"
 #include "gtest/gtest.h"
 
+TEST(FemtoLogTest, README_example) {
+  femtolog::Logger& logger = femtolog::Logger::logger();
+
+  logger.init();
+  logger.register_sink<femtolog::StdoutSink<>>();
+  logger.register_sink<femtolog::FileSink<>>();
+  logger.register_sink<femtolog::JsonLinesSink<>>();
+  logger.level("trace");
+
+  logger.start_worker();
+
+  std::string username = "pugur";
+  float cpu_usage = 42.57;
+  bool result = true;
+  int error_code = -1;
+
+  logger.trace<"Hello {}\n">("World");
+  logger.debug<"Hello World wo formatting\n">();
+  logger.info<"User \"{}\" logged in.\n">(username);
+  logger.warn<"CPU usage is high: {}%\n">(cpu_usage);
+  logger.error<"Return value is: {}\n">(result);
+
+  logger.fatal<"Fatal error occured; error code: {}\n">(error_code);
+
+  logger.stop_worker();
+  logger.clear_sinks();
+}
+
 namespace femtolog {
 
 TEST(FemtoLogTest, BasicLogging) {
-  Logger& logger = Logger::logger();
+  Logger& logger = Logger::global_logger();
 
   logger.init();
 
@@ -46,31 +74,3 @@ TEST(FemtoLogTest, BasicLogging) {
 }
 
 }  // namespace femtolog
-
-TEST(FemtoLogTest, README_example) {
-  femtolog::Logger& logger = femtolog::Logger::logger();
-
-  logger.init();
-  logger.register_sink<femtolog::StdoutSink<>>();
-  logger.register_sink<femtolog::FileSink<>>();
-  logger.register_sink<femtolog::JsonLinesSink<>>();
-  logger.level("trace");
-
-  logger.start_worker();
-
-  std::string username = "pugur";
-  float cpu_usage = 42.57;
-  bool result = true;
-  int error_code = -1;
-
-  logger.trace<"Hello {}\n">("World");
-  logger.debug<"Hello World wo formatting\n">();
-  logger.info<"User \"{}\" logged in.\n">(username);
-  logger.warn<"CPU usage is high: {}%\n">(cpu_usage);
-  logger.error<"Return value is: {}\n">(result);
-
-  logger.fatal<"Fatal error occured; error code: {}\n">(error_code);
-
-  logger.stop_worker();
-  logger.clear_sinks();
-}

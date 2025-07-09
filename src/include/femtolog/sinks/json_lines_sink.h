@@ -38,7 +38,7 @@ class JsonLinesSink final : public SinkBase {
     if (core::file_exists(file_path_.c_str())) {
       constexpr std::size_t kTimestampBufSize = 32;
       char timestamp_buf[kTimestampBufSize];
-      std::size_t timestamp_size =
+      const std::size_t timestamp_size =
           format_timestamp<TimeZone::kLocal, "{:%Y-%m-%d_%H-%M-%S}.">(
               timestamp_ns(), timestamp_buf, kTimestampBufSize);
       std::string compressed_file_name(timestamp_buf, timestamp_size);

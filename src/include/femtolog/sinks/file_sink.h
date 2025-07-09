@@ -87,7 +87,7 @@ class FileSink final : public SinkBase {
                      std::size_t len) override {
     constexpr std::size_t kTimestampBufSize = 32;
     char timestamp_buf[kTimestampBufSize];
-    std::size_t timestamp_size =
+    const std::size_t timestamp_size =
         format_timestamp<TimeZone::kLocal, "[{:%H:%M:%S}.{:09d}] ">(
             entry.timestamp_ns, timestamp_buf, kTimestampBufSize);
 
@@ -112,13 +112,14 @@ class FileSink final : public SinkBase {
       return;
     }
 
-    std::memcpy(buffer_.get() + cursor_, timestamp_buf, timestamp_size);
+    char* buffer = buffer_.get();
+    std::memcpy(buffer + cursor_, timestamp_buf, timestamp_size);
     cursor_ += timestamp_size;
-    std::memcpy(buffer_.get() + cursor_, level_str, level_len);
+    std::memcpy(buffer + cursor_, level_str, level_len);
     cursor_ += level_len;
-    std::memcpy(buffer_.get() + cursor_, kSep, kSepLen);
+    std::memcpy(buffer + cursor_, kSep, kSepLen);
     cursor_ += kSepLen;
-    std::memcpy(buffer_.get() + cursor_, content, len);
+    std::memcpy(buffer + cursor_, content, len);
     cursor_ += len;
   }
 

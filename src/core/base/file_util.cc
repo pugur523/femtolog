@@ -326,8 +326,8 @@ std::string temp_path(const std::string& prefix) {
 bool compress(const char* src_path,
               const char* dest_path,
               bool remove_after_compress) {
-  FEMTOLOG_DCHECK(file_exists(src_path));
-  FEMTOLOG_DCHECK(!file_exists(dest_path));
+  FEMTOLOG_DCHECK(file_exists(src_path)) << src_path << " not exists";
+  FEMTOLOG_DCHECK(!file_exists(dest_path)) << dest_path << " exists";
   FILE* src = std::fopen(src_path, "rb");
   if (!src) {
     return false;

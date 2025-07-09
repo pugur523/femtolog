@@ -46,20 +46,17 @@ Logger& glog() {
     logger.init(default_opts);
     logger.register_sink<StdoutSink<>>();
     initialized = true;
+    logger.start_worker();
   }
-  logger.start_worker();
-  std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
   return logger;
 }
 
 void teardown_logger(Logger* logger) {
   logger->stop_worker();
-  Logger& gl = glog();
-  gl.info<"enqueued count: {}, dropped count: {}\n">(logger->enqueued_count(),
-                                                     logger->dropped_count());
+  glog().info<"enqueued count: {}, dropped count: {}\n">(
+      logger->enqueued_count(), logger->dropped_count());
   logger->reset_count();
-  gl.stop_worker();
 }
 
 void femtolog_info_literal(benchmark::State& state) {
@@ -74,9 +71,15 @@ BENCHMARK(femtolog_info_literal);
 
 void femtolog_info_format_int(benchmark::State& state) {
   Logger& logger = setup_logger();
+  auto const start = std::chrono::steady_clock::now();
   for (auto _ : state) {
     logger.info<"Value: {}\n">(123);
   }
+  auto const end = std::chrono::steady_clock::now();
+  auto delta =
+      std::chrono::duration_cast<std::chrono::duration<double>>(end - start)
+          .count();
+  glog().info<"throughput is {} msg/s\n">(state.iterations() / delta);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_int);

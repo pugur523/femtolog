@@ -497,7 +497,7 @@ def main(argv):
             successful_configs.append(config_entry)
 
     if successful_configs:
-        print("\nSuccessfull Builds:")
+        print("\nSuccessful Builds:")
         print(tabulate(successful_configs, headers="keys", tablefmt="grid"))
 
     if failed_configs:
