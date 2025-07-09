@@ -18,7 +18,7 @@
 #include <immintrin.h>
 #endif  // FEMTOLOG_ENABLE_AVX2
 
-namespace core {
+namespace femtolog::core {
 
 constexpr const std::size_t kPathMaxLength = 4096;
 constexpr const std::size_t kPredictedFilesNbPerDir = 64;
@@ -184,6 +184,6 @@ class FEMTOLOG_CORE_EXPORT File {
   std::vector<std::string> lines_;
 };
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_BASE_FILE_UTIL_H_

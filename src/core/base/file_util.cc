@@ -40,7 +40,7 @@
 #include <string>
 #include <vector>
 
-namespace core {
+namespace femtolog::core {
 
 bool file_exists(const char* file_name) {
 #if FEMTOLOG_IS_WINDOWS
@@ -702,4 +702,4 @@ File::File(std::string&& file_name, std::string&& source)
 File::File(std::string&& file_name)
     : File(std::move(file_name), read_file(file_name.c_str())) {}
 
-}  // namespace core
+}  // namespace femtolog::core

@@ -12,7 +12,7 @@
 #include "femtolog/build/build_flag.h"
 #include "gtest/gtest.h"
 
-namespace core {
+namespace femtolog::core {
 
 TEST(FileUtilTest, TempFileLifecycle) {
   TempFile file("test_prefix_", "content");
@@ -91,4 +91,4 @@ TEST(FileUtilTest, FileExtension) {
   EXPECT_EQ(file_extension("no_extension"), "");
 }
 
-}  // namespace core
+}  // namespace femtolog::core

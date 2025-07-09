@@ -9,7 +9,7 @@
 
 #include "femtolog/core/base/string_util.h"
 
-namespace core {
+namespace femtolog::core {
 
 void StackTraceEntry::to_string(char* out_buf, std::size_t out_buf_size) const {
   char* cursor = out_buf;
@@ -50,4 +50,4 @@ void StackTraceEntry::to_string(char* out_buf, std::size_t out_buf_size) const {
   }
 }
 
-}  // namespace core
+}  // namespace femtolog::core

@@ -7,7 +7,7 @@
 
 #include "femtolog/core/base/core_export.h"
 
-namespace core {
+namespace femtolog::core {
 
 FEMTOLOG_CORE_EXPORT void register_terminate_handler();
 

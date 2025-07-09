@@ -11,17 +11,19 @@
 #include "femtolog/core/base/core_export.h"
 #include "femtolog/core/base/string_util.h"
 
-namespace core {
+namespace femtolog::core {
 
-#define FEMTOLOG_CHECK_IMPL(condition, type) \
-  if (!(condition)) [[unlikely]]             \
-  ::core::CheckFailureStream(#type, __FILE__, __LINE__, #condition).stream()
+#define FEMTOLOG_CHECK_IMPL(condition, type)                                  \
+  if (!(condition)) [[unlikely]]                                              \
+  ::femtolog::core::CheckFailureStream(#type, __FILE__, __LINE__, #condition) \
+      .stream()
 
-#define FEMTOLOG_CHECK_W_OP_IMPL(val1, val2, op, type)                     \
-  __builtin_expect(!(static_cast<bool>((val1)op(val2))), 0)                \
-      ? ::core::log_check_failure(#type, __FILE__, __LINE__,               \
-                                  #val1 " " #op " " #val2, (val1), (val2)) \
-      : ::core::null_stream()
+#define FEMTOLOG_CHECK_W_OP_IMPL(val1, val2, op, type)                       \
+  __builtin_expect(!(static_cast<bool>((val1)op(val2))), 0)                  \
+      ? ::femtolog::core::log_check_failure(#type, __FILE__, __LINE__,       \
+                                            #val1 " " #op " " #val2, (val1), \
+                                            (val2))                          \
+      : ::femtolog::core::null_stream()
 
 #define FEMTOLOG_CHECK(condition) FEMTOLOG_CHECK_IMPL(condition, FEMTOLOG_CHECK)
 #define FEMTOLOG_CHECK_EQ(val1, val2) \
@@ -40,25 +42,25 @@ namespace core {
 #if FEMTOLOG_IS_RELEASE
 #define FEMTOLOG_DCHECK(condition) \
   if constexpr (false)             \
-  ::core::null_stream()
+  ::femtolog::core::null_stream()
 #define FEMTOLOG_DCHECK_EQ(val1, val2) \
   if constexpr (false)                 \
-  ::core::null_stream()
+  ::femtolog::core::null_stream()
 #define FEMTOLOG_DCHECK_NE(val1, val2) \
   if constexpr (false)                 \
-  ::core::null_stream()
+  ::femtolog::core::null_stream()
 #define FEMTOLOG_DCHECK_GT(val1, val2) \
   if constexpr (false)                 \
-  ::core::null_stream()
+  ::femtolog::core::null_stream()
 #define FEMTOLOG_DCHECK_GE(val1, val2) \
   if constexpr (false)                 \
-  ::core::null_stream()
+  ::femtolog::core::null_stream()
 #define FEMTOLOG_DCHECK_LT(val1, val2) \
   if constexpr (false)                 \
-  ::core::null_stream()
+  ::femtolog::core::null_stream()
 #define FEMTOLOG_DCHECK_LE(val1, val2) \
   if constexpr (false)                 \
-  ::core::null_stream()
+  ::femtolog::core::null_stream()
 #else
 #define FEMTOLOG_DCHECK(condition) \
   FEMTOLOG_CHECK_IMPL(condition, FEMTOLOG_DCHECK)
@@ -130,6 +132,6 @@ inline std::ostream& null_stream() {
   return instance;
 }
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_CHECK_H_

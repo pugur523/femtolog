@@ -4,5 +4,5 @@
 
 #include "femtolog/core/base/memory_util.h"
 
-namespace core {}  // namespace core
+namespace femtolog::core {}  // namespace femtolog::core
 

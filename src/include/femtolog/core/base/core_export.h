@@ -7,10 +7,10 @@
 
 #include "femtolog/build/component_export.h"
 
-namespace core {
+namespace femtolog::core {
 
 #define FEMTOLOG_CORE_EXPORT FEMTOLOG_COMPONENT_EXPORT(FEMTOLOG_CORE)
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_BASE_CORE_EXPORT_H_

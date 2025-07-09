@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-namespace core {
+namespace femtolog::core {
 
 TEST(StringUtilTest, ToLowerAsciiChar) {
   EXPECT_EQ(to_lower('A'), 'a');
@@ -120,4 +120,4 @@ TEST(StringUtilTest, StartsWith) {
   EXPECT_TRUE(starts_with("hello", "lo", 3));
 }
 
-}  // namespace core
+}  // namespace femtolog::core

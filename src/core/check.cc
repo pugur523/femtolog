@@ -7,7 +7,7 @@
 #include <exception>
 #include <iostream>
 
-namespace core {
+namespace femtolog::core {
 
 CheckFailureStream::CheckFailureStream(const char* type,
                                        const char* file,
@@ -29,4 +29,4 @@ CheckFailureStream::~CheckFailureStream() {
   std::terminate();
 }
 
-}  // namespace core
+}  // namespace femtolog::core

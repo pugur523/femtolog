@@ -11,7 +11,7 @@
 #include "femtolog/build/build_flag.h"
 #include "femtolog/core/base/core_export.h"
 
-namespace core {
+namespace femtolog::core {
 
 struct StackTraceEntry;
 
@@ -53,6 +53,6 @@ FEMTOLOG_CORE_EXPORT void stack_trace_from_current_context(
 
 FEMTOLOG_CORE_EXPORT void register_stack_trace_handler();
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_DIAGNOSTICS_STACK_TRACE_H_

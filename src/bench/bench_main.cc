@@ -9,9 +9,9 @@
 
 [[clang::xray_always_instrument]]
 int main(int argc, char** argv) {
-  core::register_signal_handlers();
-  core::register_terminate_handler();
-  core::register_stack_trace_handler();
+  femtolog::core::register_signal_handlers();
+  femtolog::core::register_terminate_handler();
+  femtolog::core::register_stack_trace_handler();
 
   benchmark ::MaybeReenterWithoutASLR(argc, argv);
   char arg0_default[] = "benchmark";

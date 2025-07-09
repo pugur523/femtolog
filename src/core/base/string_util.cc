@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-namespace core {
+namespace femtolog::core {
 
 namespace {
 
@@ -384,4 +384,4 @@ std::size_t write_raw(char*& dest, const char* source, std::size_t len) {
   return len;
 }
 
-}  // namespace core
+}  // namespace femtolog::core

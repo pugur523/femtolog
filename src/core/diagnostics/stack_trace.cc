@@ -31,7 +31,7 @@
 #include <execinfo.h>
 #endif
 
-namespace core {
+namespace femtolog::core {
 
 namespace {
 
@@ -420,4 +420,4 @@ void register_stack_trace_handler() {
 #endif
 }
 
-}  // namespace core
+}  // namespace femtolog::core

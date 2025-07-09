@@ -19,7 +19,7 @@
 #include <sys/mman.h>
 #endif
 
-namespace core {
+namespace femtolog::core {
 
 // constexpr std::size_t kPrefetchThreshold = 256;
 
@@ -48,7 +48,7 @@ struct AlignedDeleter {
   inline void operator()(void* ptr) const { aligned_free_wrapper(ptr); }
 };
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_BASE_MEMORY_UTIL_H_
 

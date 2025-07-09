@@ -18,7 +18,7 @@
 #include <unistd.h>
 #endif
 
-namespace core {
+namespace femtolog::core {
 
 namespace {
 
@@ -75,4 +75,4 @@ void register_signal_handlers() {
 #endif
 }
 
-}  // namespace core
+}  // namespace femtolog::core

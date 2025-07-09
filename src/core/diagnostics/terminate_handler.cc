@@ -8,7 +8,7 @@
 
 #include "femtolog/core/diagnostics/stack_trace.h"
 
-namespace core {
+namespace femtolog::core {
 
 void terminate_handler() {
   std::cout << "\nProgram terminated unexpectedly\n"
@@ -22,4 +22,4 @@ void register_terminate_handler() {
   std::set_terminate(terminate_handler);
 }
 
-}  // namespace core
+}  // namespace femtolog::core

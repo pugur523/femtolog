@@ -17,7 +17,7 @@
 
 #include "femtolog/core/base/core_export.h"
 
-namespace core {
+namespace femtolog::core {
 
 [[nodiscard]] FEMTOLOG_CORE_EXPORT std::string encode_escape(
     std::string_view input);
@@ -139,6 +139,6 @@ constexpr const char* kBright_red = "\033[91m";
 constexpr const char* kBright_green = "\033[92m";
 constexpr const char* kBright_cyan = "\033[96m";
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_BASE_STRING_UTIL_H_

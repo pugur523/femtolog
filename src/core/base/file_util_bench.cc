@@ -9,7 +9,7 @@
 #include "benchmark/benchmark.h"
 #include "femtolog/core/base/file_util.h"
 
-namespace core {
+namespace femtolog::core {
 
 namespace {
 
@@ -260,4 +260,4 @@ BENCHMARK(file_util_file_name_access);
 
 }  // namespace
 
-}  // namespace core
+}  // namespace femtolog::core

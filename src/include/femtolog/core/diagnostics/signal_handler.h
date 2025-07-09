@@ -7,10 +7,10 @@
 
 #include "femtolog/core/base/core_export.h"
 
-namespace core {
+namespace femtolog::core {
 
 FEMTOLOG_CORE_EXPORT void register_signal_handlers();
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_DIAGNOSTICS_SIGNAL_HANDLER_H_

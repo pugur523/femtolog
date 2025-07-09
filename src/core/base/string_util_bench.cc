@@ -9,7 +9,7 @@
 #include "benchmark/benchmark.h"
 #include "femtolog/core/base/string_util.h"
 
-namespace core {
+namespace femtolog::core {
 
 namespace {
 
@@ -408,4 +408,4 @@ BENCHMARK(string_util_starts_with_long_string_no_match);
 
 }  // namespace
 
-}  // namespace core
+}  // namespace femtolog::core

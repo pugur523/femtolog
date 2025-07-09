@@ -10,7 +10,7 @@
 
 #include "femtolog/core/base/core_export.h"
 
-namespace core {
+namespace femtolog::core {
 
 static constexpr std::size_t kAddressStrLength = 32;
 static constexpr std::size_t kFunctionStrLength = 256;
@@ -39,6 +39,6 @@ struct FEMTOLOG_CORE_EXPORT StackTraceEntry {
   static constexpr const char* kUnknownFunction = "(unknown function)";
 };
 
-}  // namespace core
+}  // namespace femtolog::core
 
 #endif  // INCLUDE_FEMTOLOG_CORE_DIAGNOSTICS_STACK_TRACE_ENTRY_H_

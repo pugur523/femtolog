@@ -21,9 +21,9 @@ int run_tests() {
 
 [[clang::xray_always_instrument]]
 int main() {
-  core::register_signal_handlers();
-  core::register_terminate_handler();
-  core::register_stack_trace_handler();
+  femtolog::core::register_signal_handlers();
+  femtolog::core::register_terminate_handler();
+  femtolog::core::register_stack_trace_handler();
   init_tests();
   return run_tests();
 }
