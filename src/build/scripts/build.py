@@ -80,6 +80,7 @@ def build_with_all_option_combinations(
     options = {
         "-DFEMTOLOG_ENABLE_AVX2": ["false", "true"],
         "-DFEMTOLOG_ENABLE_SANITIZERS": ["false", "true"],
+        "-DFEMTOLOG_ENABLE_LLVM_UNWIND": ["false", "true"],
     }
 
     common_args = [
@@ -108,6 +109,8 @@ def build_with_all_option_combinations(
 
     def is_valid_combination(platform, build_type, opt_combo):
         opt_dict = dict(zip(option_keys, opt_combo))
+        if platform == "windows" and opt_dict["-DFEMTOLOG_ENABLE_LLVM_UNWIND"] == "true":
+            return False
         if build_type == "release" and opt_dict["-DFEMTOLOG_ENABLE_SANITIZERS"] == "true":
             return False
         return True

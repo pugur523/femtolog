@@ -25,7 +25,7 @@
 #include <unistd.h>
 #endif
 
-#if FEMTOLOG_ENABLE_LLVM_UNWIND && !FEMTOLOG_COMPILER_MSVC
+#if FEMTOLOG_ENABLE_LLVM_UNWIND
 #include <libunwind.h>
 #elif FEMTOLOG_IS_UNIX
 #include <execinfo.h>

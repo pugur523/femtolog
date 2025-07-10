@@ -14,24 +14,24 @@ function(femtolog_setup_module module_name objects_name)
     target_include_directories(${objects_name} PRIVATE ${ARG_INCLUDE_DIRS})
   endif()
 
-  if(ARG_LINK_DIRS)
-    target_link_directories(${objects_name} PRIVATE ${ARG_LINK_DIRS})
-  endif()
-
-  if(ARG_LINK_LIBS)
-    target_link_libraries(${objects_name} PRIVATE ${ARG_LINK_LIBS})
-  endif()
-
   if(ARG_COMPILE_OPTIONS)
     target_compile_options(${objects_name} PRIVATE ${ARG_COMPILE_OPTIONS})
+  endif()
+
+  if(ARG_COMPILE_DEFINITIONS)
+    target_compile_definitions(${objects_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
   endif()
 
   if(ARG_LINK_OPTIONS)
     target_link_options(${objects_name} PRIVATE ${ARG_LINK_OPTIONS})
   endif()
 
-  if(ARG_COMPILE_DEFINITIONS)
-    target_compile_definitions(${objects_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
+  if(ARG_LINK_DIRS)
+    target_link_directories(${objects_name} PRIVATE ${ARG_LINK_DIRS})
+  endif()
+
+  if(ARG_LINK_LIBS)
+    target_link_libraries(${objects_name} PRIVATE ${ARG_LINK_LIBS})
   endif()
 
   set_target_properties(${objects_name} PROPERTIES
@@ -53,24 +53,24 @@ function(femtolog_setup_module module_name objects_name)
     target_include_directories(${module_name} PRIVATE ${ARG_INCLUDE_DIRS})
   endif()
 
-  if(ARG_LINK_DIRS)
-    target_link_directories(${module_name} PRIVATE ${ARG_LINK_DIRS})
-  endif()
-
-  if(ARG_LINK_LIBS)
-    target_link_libraries(${module_name} PRIVATE ${ARG_LINK_LIBS})
-  endif()
-
   if(ARG_COMPILE_OPTIONS)
     target_compile_options(${module_name} PRIVATE ${ARG_COMPILE_OPTIONS})
+  endif()
+
+  if(ARG_COMPILE_DEFINITIONS)
+    target_compile_definitions(${module_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
   endif()
 
   if(ARG_LINK_OPTIONS)
     target_link_options(${module_name} PRIVATE ${ARG_LINK_OPTIONS})
   endif()
 
-  if(ARG_COMPILE_DEFINITIONS)
-    target_compile_definitions(${module_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
+  if(ARG_LINK_DIRS)
+    target_link_directories(${module_name} PRIVATE ${ARG_LINK_DIRS})
+  endif()
+
+  if(ARG_LINK_LIBS)
+    target_link_libraries(${module_name} PRIVATE ${ARG_LINK_LIBS})
   endif()
 
   set_target_properties(${module_name} PROPERTIES

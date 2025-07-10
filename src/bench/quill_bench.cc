@@ -28,18 +28,16 @@ namespace quill {
 
 namespace {
 
-constexpr femtolog::FemtologOptions default_options;
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 
 struct CustomizedFrontendOptions {
   static constexpr QueueType queue_type = QueueType::BoundedDropping;
   static constexpr std::size_t initial_queue_capacity =
-      default_options.spsc_queue_size;
+      femtolog::kFastOptions.spsc_queue_size;
   static constexpr uint32_t blocking_queue_retry_interval_ns = 800;
   static constexpr std::size_t unbounded_queue_max_capacity =
-      default_options.spsc_queue_size;
+      femtolog::kFastOptions.spsc_queue_size;
   static constexpr HugePagesPolicy huge_pages_policy = HugePagesPolicy::Never;
 };
 
@@ -55,12 +53,15 @@ QuillLogger* setup_logger() {
   Backend::start(backend_options);
   std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
-  // return OptimizedFrontend::create_or_get_logger(
-  //     "root", OptimizedFrontend::create_or_get_sink<NullSink>("null"));
   std::string quill_log_path =
       femtolog::bench::get_benchmark_log_path("quill.log");
-  return OptimizedFrontend::create_or_get_logger(
-      "root", OptimizedFrontend::create_or_get_sink<FileSink>(quill_log_path));
+  QuillLogger* logger = nullptr;
+  logger = OptimizedFrontend::create_or_get_logger(
+      "root", OptimizedFrontend::create_or_get_sink<NullSink>("null"));
+  // logger = OptimizedFrontend::create_or_get_logger(
+  //     "root",
+  //     OptimizedFrontend::create_or_get_sink<FileSink>(quill_log_path));
+  return logger;
 }
 
 void teardown_logger() {
@@ -71,7 +72,7 @@ void quill_info_literal(benchmark::State& state) {
   QuillLogger* logger = setup_logger();
 
   for (auto _ : state) {
-    LOG_INFO(logger, "Benchmark test message");
+    QUILL_LOG_INFO(logger, "Benchmark test message");
   }
   teardown_logger();
 }
@@ -80,7 +81,7 @@ BENCHMARK(quill_info_literal);
 void quill_info_format_int(benchmark::State& state) {
   QuillLogger* logger = setup_logger();
   for (auto _ : state) {
-    LOG_INFO(logger, "Value: {}", 123);
+    QUILL_LOG_INFO(logger, "Value: {}", 123);
   }
   teardown_logger();
 }
@@ -89,7 +90,7 @@ BENCHMARK(quill_info_format_int);
 void quill_info_format_multi_int(benchmark::State& state) {
   QuillLogger* logger = setup_logger();
   for (auto _ : state) {
-    LOG_INFO(logger, "A: {}, B: {}, C: {}", 1, 2, 3);
+    QUILL_LOG_INFO(logger, "A: {}, B: {}, C: {}", 1, 2, 3);
   }
   teardown_logger();
 }
@@ -99,7 +100,7 @@ void quill_info_format_small_string(benchmark::State& state) {
   QuillLogger* logger = setup_logger();
   std::string user = "benchmark_user";
   for (auto _ : state) {
-    LOG_INFO(logger, "User: {}", user);
+    QUILL_LOG_INFO(logger, "User: {}", user);
   }
   teardown_logger();
 }
@@ -109,7 +110,7 @@ void quill_info_format_small_string_view(benchmark::State& state) {
   QuillLogger* logger = setup_logger();
   std::string_view sv = "benchmark_view";
   for (auto _ : state) {
-    LOG_INFO(logger, "View: {}", sv);
+    QUILL_LOG_INFO(logger, "View: {}", sv);
   }
   teardown_logger();
 }
@@ -122,8 +123,8 @@ void quill_info_format_mixed(benchmark::State& state) {
   bool success = true;
   int64_t id = 9876543210;
   for (auto _ : state) {
-    LOG_INFO(logger, "User: {}, Op: {}, Success: {}, ID: {}", user, op, success,
-             id);
+    QUILL_LOG_INFO(logger, "User: {}, Op: {}, Success: {}, ID: {}", user, op,
+                   success, id);
   }
   teardown_logger();
 }
@@ -133,7 +134,7 @@ void quill_info_format_large_string(benchmark::State& state) {
   QuillLogger* logger = setup_logger();
   std::string payload(64, 'X');
   for (auto _ : state) {
-    LOG_INFO(logger, "Payload: {}", payload);
+    QUILL_LOG_INFO(logger, "Payload: {}", payload);
   }
   teardown_logger();
 }

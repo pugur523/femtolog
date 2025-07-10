@@ -3,9 +3,10 @@ name: build
 on:
   workflow_call:
     inputs:
-      build_release:
+      build_mode:
         required: true
-        type: boolean
+        type: string
+        default: "release"
       upload_artifacts:
         required: false
         type: boolean
@@ -14,7 +15,6 @@ on:
 env:
   PYTHON_VERSION: 3.13
   CMAKE_VERSION: 4.0.2
-  BUILD_MODE: ${{ inputs.build_release && 'release' || 'debug' }}
 
 jobs:
   build:
@@ -89,6 +89,8 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh ${{ matrix.llvm_version }} all
           rm llvm.sh
+
+          sudo apt-get install -y libunwind-${{ matrix.llvm_version }}-dev
 
           # Set up alternatives
           for bin in clang clang++ clang-tidy clang-format llvm-ar FileCheck; do
@@ -166,13 +168,12 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           python3 -u src/build/scripts/build.py \
-            --build_mode=${{ env.BUILD_MODE }} \
+            --build_mode=${{ inputs.build_mode }} \
             --target_platform=${{ matrix.target_platform }} \
             --no-install \
             --package \
-            --clang_format \
             --cpplint \
-            --extra_args="-DFEMTOLOG_BUILD_SHARED=false,,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
+            --extra_args="-DFEMTOLOG_BUILD_SHARED=false,,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_LLVM_UNWIND=false,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
 
 
       - name: Run build script (Windows)
@@ -181,21 +182,21 @@ jobs:
           call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > path.txt
           set /p InstallPath=<path.txt
           call "%InstallPath%\VC\Auxiliary\Build\vcvarsall.bat" x64
-          python3 -u src/build/scripts/build.py --build_mode=${{ env.BUILD_MODE }} --target_platform=${{ matrix.target_platform }} --no-install --package --clang_format --cpplint --extra_args="-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
+          python3 -u src/build/scripts/build.py --build_mode=${{ inputs.build_mode }} --target_platform=${{ matrix.target_platform }} --no-install --package --cpplint --extra_args="-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_LLVM_UNWIND=false,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
         shell: cmd
 
-      - name: Upload ${{ env.BUILD_MODE }} artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload ${{ inputs.build_mode }} artifacts
         if: ${{ inputs.upload_artifacts }}
+        uses: actions/upload-artifact@v4
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY: 5
         with:
-          name: ${{ env.BUILD_MODE }}-builds-${{ matrix.target_platform }}
+          name: builds-${{ matrix.target_platform }}-${{ inputs.build_mode }}
           path: |
-            out/build/**/${{ env.BUILD_MODE }}/package/**
+            ${{ (inputs.build_mode == 'all' && 'out/build/**/debug/package/**\nout/build/**/release/package/**') || format('out/build/**/{0}/package/**', inputs.build_mode) }}
             !out/build/**/_CPack_Packages/**/*
-          retention-days: 1
+          retention-days: 3
           if-no-files-found: warn
 
   summary:
@@ -215,11 +216,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Download all ${{ env.BUILD_MODE }} artifacts
+      - name: Download all ${{ inputs.build_mode }} artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: ${{ env.BUILD_MODE }}-builds-*
-          path: ./artifacts/${{ env.BUILD_MODE }}/
+          pattern: ${{ inputs.build_mode }}-builds-*
+          path: ./artifacts/${{ inputs.build_mode }}/
         continue-on-error: true
 
       - name: Show artifacts tree

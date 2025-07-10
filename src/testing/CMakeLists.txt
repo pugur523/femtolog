@@ -16,6 +16,7 @@ set(SOURCES
   ${PROJECT_SOURCE_DIR}/logging/impl/args_deserializer_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/backend_worker_test.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/spmc_queue_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_test.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_test.cc
 )
@@ -23,11 +24,11 @@ set(SOURCES
 add_executable(${TEST_NAME} ${SOURCES})
 
 target_include_directories(${TEST_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
+target_compile_options(${TEST_NAME} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
+target_compile_definitions(${TEST_NAME} PRIVATE ${FEMTOLOG_COMPILE_DEFINITIONS})
+target_link_options(${TEST_NAME} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
 target_link_directories(${TEST_NAME} PRIVATE ${FEMTOLOG_LINK_DIRECTORIES})
 target_link_libraries(${TEST_NAME} PRIVATE femtolog ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${FEMTOLOG_LINK_LIBRARIES})
-target_compile_options(${TEST_NAME} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
-target_link_options(${TEST_NAME} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
-target_compile_definitions(${TEST_NAME} PRIVATE ${FEMTOLOG_COMPILE_DEFINITIONS})
 
 set_target_properties(${TEST_NAME} PROPERTIES
   POSITION_INDEPENDENT_CODE TRUE

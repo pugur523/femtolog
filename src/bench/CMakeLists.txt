@@ -23,6 +23,7 @@ set(FEMTOLOG_INTERNAL_BENCH_SOURCES
   ${PROJECT_SOURCE_DIR}/logging/impl/args_serializer_bench.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/backend_worker_bench.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/internal_logger_bench.cc
+  ${PROJECT_SOURCE_DIR}/logging/impl/spmc_queue_bench.cc
   ${PROJECT_SOURCE_DIR}/logging/impl/spsc_queue_bench.cc
 )
 
@@ -34,7 +35,10 @@ if(FEMTOLOG_ENABLE_BENCH_QUILL)
     GIT_REPOSITORY https://github.com/odygrd/quill.git
     GIT_TAG v10.0.0
   )
-  set(QUILL_NO_EXCEPTIONS TRUE)
+  set(QUILL_NO_EXCEPTIONS TRUE CACHE BOOL "" FORCE)
+  set(QUILL_DISABLE_NON_PREFIXED_MACROS TRUE CACHE BOOL "" FORCE)
+  set(QUILL_DISABLE_FUNCTION_NAME TRUE CACHE BOOL "" FORCE)
+  # set(QUILL_DISABLE_FILE_INFO TRUE CACHE BOOL "" FORCE)
 
   # set(QUILL_X86ARCH TRUE)
   FetchContent_MakeAvailable(quill)
@@ -48,8 +52,10 @@ if(FEMTOLOG_ENABLE_BENCH_SPDLOG)
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
     GIT_TAG v1.15.3
   )
+  set(SPDLOG_FMT_EXTERNAL TRUE CACHE BOOL "" FORCE)
+
   FetchContent_MakeAvailable(spdlog)
-  target_compile_definitions(spdlog PUBLIC SPDLOG_NO_EXCEPTIONS)
+  target_compile_definitions(spdlog PUBLIC SPDLOG_NO_EXCEPTIONS=1)
   list(APPEND BENCHMARK_LIBRARIES spdlog)
   list(APPEND SOURCES spdlog_bench.cc)
 endif()
@@ -58,22 +64,22 @@ add_executable(${BENCHMARK_NAME} ${SOURCES})
 add_executable(${BENCHMARK_NAME}_internal ${FEMTOLOG_INTERNAL_BENCH_SOURCES})
 
 target_include_directories(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
+target_compile_options(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
+target_compile_definitions(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_COMPILE_DEFINITIONS})
+target_link_options(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
 target_link_directories(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_LINK_DIRECTORIES})
 target_link_libraries(${BENCHMARK_NAME} PRIVATE femtolog ${BENCHMARK_LIBRARIES} ${GOOGLE_BENCHMARK_LIBRARIES} ${FEMTOLOG_LINK_LIBRARIES})
-target_compile_options(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
-target_link_options(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
-target_compile_definitions(${BENCHMARK_NAME} PRIVATE ${FEMTOLOG_COMPILE_DEFINITIONS})
 
 set_target_properties(${BENCHMARK_NAME} PROPERTIES
   POSITION_INDEPENDENT_CODE TRUE
 )
 
 target_include_directories(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
+target_compile_options(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
+target_compile_definitions(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_COMPILE_DEFINITIONS})
+target_link_options(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_LINK_OPTIONS})
 target_link_directories(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_LINK_DIRECTORIES})
 target_link_libraries(${BENCHMARK_NAME}_internal PRIVATE femtolog ${BENCHMARK_LIBRARIES} ${GOOGLE_BENCHMARK_LIBRARIES} ${FEMTOLOG_LINK_LIBRARIES})
-target_compile_options(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
-target_link_options(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_LINK_OPTIONS})
-target_compile_definitions(${BENCHMARK_NAME}_internal PRIVATE ${FEMTOLOG_COMPILE_DEFINITIONS})
 
 set_target_properties(${BENCHMARK_NAME}_internal PROPERTIES
   POSITION_INDEPENDENT_CODE TRUE

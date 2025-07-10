@@ -18,11 +18,11 @@ namespace spdlog {
 namespace {
 
 std::shared_ptr<logger> setup_logger() {
-  // auto null_sink = std::make_shared<sinks::null_sink_mt>();
-  // auto l = std::make_shared<logger>("spd", null_sink);
-  auto file_sink = std::make_shared<sinks::basic_file_sink_mt>(
-      femtolog::bench::get_benchmark_log_path("spdlog.log"));
-  auto l = std::make_shared<logger>("spd", file_sink);
+  auto null_sink = std::make_shared<sinks::null_sink_mt>();
+  auto l = std::make_shared<logger>("spd", null_sink);
+  // auto file_sink = std::make_shared<sinks::basic_file_sink_mt>(
+  //     femtolog::bench::get_benchmark_log_path("spdlog.log"));
+  // auto l = std::make_shared<logger>("spd", file_sink);
   set_default_logger(l);
   set_level(level::info);
 

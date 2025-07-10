@@ -21,12 +21,10 @@ Logger& setup_logger() {
 
   Logger& logger = Logger::logger();
   if (!initialized) {
-    FemtologOptions options;
-    // use default options
-    logger.init(options);
-    // logger.register_sink<NullSink>();
-    logger.register_sink<FileSink>(
-        bench::get_benchmark_log_path("femtolog.log"));
+    logger.init(kFastOptions);
+    logger.register_sink<NullSink>();
+    // logger.register_sink<FileSink>(
+    //     bench::get_benchmark_log_path("femtolog.log"));
 
     initialized = true;
   }
@@ -36,40 +34,22 @@ Logger& setup_logger() {
   return logger;
 }
 
-Logger& glog() {
-  static bool initialized = false;
-
-  Logger& logger = Logger::global_logger();
-
-  if (!initialized) {
-    FemtologOptions default_opts;
-    logger.init(default_opts);
-    logger.register_sink<StdoutSink<>>();
-    initialized = true;
-    logger.start_worker();
-  }
-
-  return logger;
+inline void summarize_result(const Logger& logger, benchmark::State& state) {
+  state.counters["enqueued count"] = logger.enqueued_count();
+  state.counters["dropped count"] = logger.dropped_count();
 }
 
-void teardown_logger(Logger* logger) {
+inline void teardown_logger(Logger* logger) {
   logger->stop_worker();
-  glog().info<"enqueued count: {}, dropped count: {}\n">(
-      logger->enqueued_count(), logger->dropped_count());
   logger->reset_count();
 }
 
 void femtolog_info_literal(benchmark::State& state) {
   Logger& logger = setup_logger();
-  auto const start = std::chrono::steady_clock::now();
   for (auto _ : state) {
     logger.info<"Benchmark test message\n">();
   }
-  auto const end = std::chrono::steady_clock::now();
-  auto delta =
-      std::chrono::duration_cast<std::chrono::duration<double>>(end - start)
-          .count();
-  glog().info<"throughput is {} msg/s\n">(state.iterations() / delta);
+  summarize_result(logger, state);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_literal);
@@ -79,6 +59,7 @@ void femtolog_info_format_int(benchmark::State& state) {
   for (auto _ : state) {
     logger.info<"Value: {}\n">(123);
   }
+  summarize_result(logger, state);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_int);
@@ -88,6 +69,7 @@ void femtolog_info_format_multi_int(benchmark::State& state) {
   for (auto _ : state) {
     logger.info<"A: {}, B: {}, C: {}\n">(1, 2, 3);
   }
+  summarize_result(logger, state);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_multi_int);
@@ -98,6 +80,7 @@ void femtolog_info_format_small_string(benchmark::State& state) {
   for (auto _ : state) {
     logger.info<"User: {}\n">(name);
   }
+  summarize_result(logger, state);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_small_string);
@@ -109,6 +92,7 @@ void femtolog_info_format_small_string_view(benchmark::State& state) {
   for (auto _ : state) {
     logger.info<"View: {}\n">(sv);
   }
+  summarize_result(logger, state);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_small_string_view);
@@ -124,6 +108,7 @@ void femtolog_info_format_mixed(benchmark::State& state) {
     logger.info<"User: {}, Op: {}, Success: {}, ID: {}\n">(user, op, success,
                                                            id);
   }
+  summarize_result(logger, state);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_mixed);
@@ -135,6 +120,7 @@ void femtolog_info_format_large_string(benchmark::State& state) {
   for (auto _ : state) {
     logger.info<"Payload: {}\n">(long_str);
   }
+  summarize_result(logger, state);
   teardown_logger(&logger);
 }
 BENCHMARK(femtolog_info_format_large_string);

@@ -3,15 +3,13 @@
 // which can be found in the LICENSE file.
 
 #include "benchmark/benchmark.h"
-#include "femtolog/core/diagnostics/signal_handler.h"
-#include "femtolog/core/diagnostics/stack_trace.h"
-#include "femtolog/core/diagnostics/terminate_handler.h"
+#include "femtolog/femtolog.h"
 
 [[clang::xray_always_instrument]]
 int main(int argc, char** argv) {
-  femtolog::core::register_signal_handlers();
-  femtolog::core::register_terminate_handler();
-  femtolog::core::register_stack_trace_handler();
+  femtolog::register_signal_handlers();
+  femtolog::register_terminate_handler();
+  femtolog::register_stack_trace_handler();
 
   benchmark ::MaybeReenterWithoutASLR(argc, argv);
   char arg0_default[] = "benchmark";

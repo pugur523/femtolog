@@ -22,9 +22,15 @@ macro(femtolog_setup_gtest)
 
     # Do not link `gtest_main` and `gmock_main` otherwise the testing will contain duplicate entrypoints.
     set(GTEST_LIBRARIES gtest)
+    target_compile_options(${GTEST_LIBRARIES} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
+    target_link_options(${GTEST_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
+    target_link_libraries(${GTEST_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_LIBRARIES})
 
     if(BUILD_GMOCK)
       set(GMOCK_LIBRARIES gmock)
+      target_compile_options(${GMOCK_LIBRARIES} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
+      target_link_options(${GMOCK_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
+      target_link_libraries(${GMOCK_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_LIBRARIES})
     endif()
   endif()
 endmacro()
@@ -35,14 +41,16 @@ macro(femtolog_setup_google_benchmark)
     set(GOOGLE_BENCHMARK_INCLUDE_DIR ${GOOGLE_BENCHMARK_DIR}/include)
 
     set(BENCHMARK_ENABLE_TESTING FALSE)
-    set(BENCHMARK_ENABLE_EXCEPTIONS TRUE)
-    set(BENCHMARK_FEMTOLOG_ENABLE_LTO ${FEMTOLOG_ENABLE_LTO})
+    set(BENCHMARK_ENABLE_EXCEPTIONS FALSE)
+    set(BENCHMARK_ENABLE_LTO ${FEMTOLOG_ENABLE_LTO})
     set(BENCHMARK_USE_LIBCXX TRUE)
     set(BENCHMARK_ENABLE_WERROR ${FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS})
     set(BENCHMARK_FORCE_WERROR ${FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS})
 
     set(BENCHMARK_ENABLE_INSTALL FALSE)
     set(BENCHMARK_INSTALL_DOCS FALSE)
+
+    set(BENCHMARK_ENABLE_GTEST_TESTS FALSE)
 
     if(MINGW_BUILD)
       set(HAVE_STD_REGEX FALSE)
@@ -57,7 +65,11 @@ macro(femtolog_setup_google_benchmark)
 
     add_subdirectory(${GOOGLE_BENCHMARK_DIR})
 
-    set(GOOGLE_BENCHMARK_LIBRARIES benchmark::benchmark)
+    set(GOOGLE_BENCHMARK_LIBRARIES benchmark)
+
+    target_compile_options(${GOOGLE_BENCHMARK_LIBRARIES} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
+    target_link_options(${GOOGLE_BENCHMARK_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
+    target_link_libraries(${GOOGLE_BENCHMARK_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_LIBRARIES})
   endif()
 endmacro()
 
@@ -81,6 +93,19 @@ macro(femtolog_setup_llvm)
     execute_process(COMMAND ${LLVM_CONFIG_EXECUTABLE} --version
       OUTPUT_VARIABLE LLVM_VERSION
       OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+
+  if(FEMTOLOG_ENABLE_LLVM_UNWIND)
+    list(APPEND FEMTOLOG_COMPILE_DEFINITIONS FEMTOLOG_ENABLE_LLVM_UNWIND=1)
+  else()
+    list(APPEND FEMTOLOG_COMPILE_DEFINITIONS FEMTOLOG_ENABLE_LLVM_UNWIND=0)
+  endif()
+
+  if(NOT APPLE)
+    if(FEMTOLOG_ENABLE_LLVM_UNWIND)
+      list(APPEND FEMTOLOG_LINK_OPTIONS -unwindlib=libunwind -rtlib=compiler-rt -Wl,-lunwind)
+      list(APPEND FEMTOLOG_LINK_LIBRARIES c++abi unwind unwind-ptrace unwind-x86_64)
+    endif()
   endif()
 
   if(MINGW_BUILD)
@@ -122,6 +147,10 @@ macro(femtolog_setup_fmtlib)
 
     add_subdirectory(${FMTLIB_DIR})
 
-    set(FMTLIB_LIBRARIES fmt::fmt)
+    set(FMTLIB_LIBRARIES fmt)
+
+    target_compile_options(${FMTLIB_LIBRARIES} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
+    target_link_options(${FMTLIB_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
+    target_link_libraries(${FMTLIB_LIBRARIES} PRIVATE ${FEMTOLOG_LINK_LIBRARIES})
   endif()
 endmacro()

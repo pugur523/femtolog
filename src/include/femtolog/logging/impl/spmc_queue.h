@@ -2,8 +2,8 @@
 // This source code is licensed under the Apache License, Version 2.0
 // which can be found in the LICENSE file.
 
-#ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_SPSC_QUEUE_H_
-#define INCLUDE_FEMTOLOG_LOGGING_IMPL_SPSC_QUEUE_H_
+#ifndef INCLUDE_FEMTOLOG_LOGGING_IMPL_SPMC_QUEUE_H_
+#define INCLUDE_FEMTOLOG_LOGGING_IMPL_SPMC_QUEUE_H_
 
 #include <atomic>
 #include <cstddef>
@@ -15,7 +15,7 @@
 
 namespace femtolog::logging {
 
-enum class SpscQueueStatus : uint8_t {
+enum class SpmcQueueStatus : uint8_t {
   kOk = 0,
   kUninitialized = 1,
   kUnderflow = 2,
@@ -23,49 +23,49 @@ enum class SpscQueueStatus : uint8_t {
   kSizeIsZero = 4,
 };
 
-class FEMTOLOG_LOGGING_EXPORT SpscQueue {
+class FEMTOLOG_LOGGING_EXPORT SpmcQueue {
  public:
-  SpscQueue();
-  ~SpscQueue() = default;
+  SpmcQueue();
+  ~SpmcQueue() = default;
 
-  SpscQueue(const SpscQueue&) = delete;
-  SpscQueue& operator=(const SpscQueue&) = delete;
+  SpmcQueue(const SpmcQueue&) = delete;
+  SpmcQueue& operator=(const SpmcQueue&) = delete;
 
-  SpscQueue(SpscQueue&&) noexcept = delete;
-  SpscQueue& operator=(SpscQueue&&) noexcept = delete;
+  SpmcQueue(SpmcQueue&&) noexcept = delete;
+  SpmcQueue& operator=(SpmcQueue&&) noexcept = delete;
 
   void reserve(std::size_t capacity_bytes);
 
   template <typename T>
-  inline SpscQueueStatus enqueue_bytes(const T* data) noexcept {
+  inline SpmcQueueStatus enqueue_bytes(const T* data) noexcept {
     return enqueue_bytes(reinterpret_cast<const void*>(data), sizeof(T));
   }
-  SpscQueueStatus enqueue_bytes(const void* data_ptr,
+  SpmcQueueStatus enqueue_bytes(const void* data_ptr,
                                 std::size_t data_size) noexcept;
 
   template <typename T>
-  inline SpscQueueStatus dequeue_bytes(T* data) noexcept {
+  inline SpmcQueueStatus dequeue_bytes(T* data) noexcept {
     return dequeue_bytes(reinterpret_cast<void*>(data), sizeof(T));
   }
-  SpscQueueStatus dequeue_bytes(void* data_ptr, std::size_t data_size) noexcept;
+  SpmcQueueStatus dequeue_bytes(void* data_ptr, std::size_t data_size) noexcept;
 
   template <typename T>
-  inline SpscQueueStatus peek_bytes(T* data) const noexcept {
+  inline SpmcQueueStatus peek_bytes(T* data) const noexcept {
     return peek_bytes(reinterpret_cast<void*>(data), sizeof(T));
   }
-  SpscQueueStatus peek_bytes(void* data_ptr,
+  SpmcQueueStatus peek_bytes(void* data_ptr,
                              std::size_t data_size) const noexcept;
 
   [[nodiscard]] inline bool empty() const noexcept {
-    const std::size_t head = head_cached_;
-    const std::size_t tail = tail_idx_.load(std::memory_order_relaxed);
+    const std::size_t head = head_idx_.load(std::memory_order_acquire);
+    const std::size_t tail = tail_idx_.load(std::memory_order_acquire);
     return head == tail;
   }
 
   [[nodiscard]] inline std::size_t size() const noexcept {
     FEMTOLOG_DCHECK(buffer_);
-    const std::size_t head = head_cached_;
-    const std::size_t tail = tail_idx_.load(std::memory_order_relaxed);
+    const std::size_t head = head_idx_.load(std::memory_order_acquire);
+    const std::size_t tail = tail_idx_.load(std::memory_order_acquire);
     return tail - head;
   }
 
@@ -79,11 +79,11 @@ class FEMTOLOG_LOGGING_EXPORT SpscQueue {
   }
 
   // Bulk operations for better performance
-  SpscQueueStatus enqueue_bulk(const void* const* data_ptrs,
+  SpmcQueueStatus enqueue_bulk(const void* const* data_ptrs,
                                const std::size_t* data_sizes,
                                std::size_t count) noexcept;
 
-  SpscQueueStatus dequeue_bulk(void* const* data_ptrs,
+  SpmcQueueStatus dequeue_bulk(void* const* data_ptrs,
                                const std::size_t* data_sizes,
                                std::size_t count) noexcept;
 
@@ -101,16 +101,13 @@ class FEMTOLOG_LOGGING_EXPORT SpscQueue {
   // Producer side (write-mostly, separate cache line)
   alignas(std::hardware_destructive_interference_size)
       std::atomic<std::size_t> tail_idx_ = 0;
-  mutable std::size_t tail_cached_ = 0;
-  // Cached snapshot of head for producer
-  mutable std::size_t head_cached_snapshot_ = 0;
 
   // Consumer side (read-mostly, separate cache line)
+  // Using ticket-based approach for multiple consumers
   alignas(std::hardware_destructive_interference_size)
       std::atomic<std::size_t> head_idx_ = 0;
-  mutable std::size_t head_cached_ = 0;
-  // Cached snapshot of tail for consumer
-  mutable std::size_t tail_cached_snapshot_ = 0;
+  alignas(std::hardware_destructive_interference_size)
+      std::atomic<std::size_t> commit_idx_ = 0;
 
   // Buffer management
   alignas(std::hardware_destructive_interference_size)
@@ -120,7 +117,7 @@ class FEMTOLOG_LOGGING_EXPORT SpscQueue {
 };
 
 // static
-constexpr std::size_t SpscQueue::next_power_of_2(std::size_t n) noexcept {
+constexpr std::size_t SpmcQueue::next_power_of_2(std::size_t n) noexcept {
   if (n <= 1) {
     return 2;
   }
@@ -134,4 +131,4 @@ constexpr std::size_t SpscQueue::next_power_of_2(std::size_t n) noexcept {
 
 }  // namespace femtolog::logging
 
-#endif  // INCLUDE_FEMTOLOG_LOGGING_IMPL_SPSC_QUEUE_H_
+#endif  // INCLUDE_FEMTOLOG_LOGGING_IMPL_SPMC_QUEUE_H_

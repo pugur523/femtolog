@@ -71,6 +71,7 @@ option(FEMTOLOG_ENABLE_COVERAGE "enable coverage using -fprofile-instr-generate 
 option(FEMTOLOG_ENABLE_OPTIMIZATION_REPORT "generate optimization report" TRUE)
 option(FEMTOLOG_ENABLE_XRAY "enable llvm-xray. not compatible with windows build, debug build, address sanitizers. runs main app and test on post build if available." TRUE)
 option(FEMTOLOG_ENABLE_SANITIZERS "enable address and undefined sanitizers" TRUE)
+option(FEMTOLOG_ENABLE_LLVM_UNWIND "enable llvm libunwind to fetch stacktrace" FALSE)
 option(FEMTOLOG_ENABLE_AVX2 "enable avx2 if available" TRUE)
 
 option(FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS "treat warnings as errors" TRUE)
@@ -108,6 +109,12 @@ if(FEMTOLOG_ENABLE_AVX2 AND TARGET_OS_NAME MATCHES "darwin")
   message(WARNING "FEMTOLOG_ENABLE_AVX2 for Darwin build is not supported.\n"
     "set FEMTOLOG_ENABLE_AVX2 to false forcely.")
   set(FEMTOLOG_ENABLE_AVX2 FALSE)
+endif()
+
+if(FEMTOLOG_ENABLE_LLVM_UNWIND AND TARGET_OS_NAME MATCHES "windows")
+  message(WARNING "FEMTOLOG_ENABLE_LLVM_UNWIND for Windows build is not supported.\n"
+    "set FEMTOLOG_ENABLE_LLVM_UNWIND to false forcely.")
+  set(FEMTOLOG_ENABLE_LLVM_UNWIND FALSE)
 endif()
 
 if(FEMTOLOG_ENABLE_XRAY AND FEMTOLOG_ENABLE_SANITIZERS)
@@ -176,7 +183,6 @@ list(APPEND FEMTOLOG_INCLUDE_DIRECTORIES
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_SOURCE_DIR}/include
   ${LLVM_INCLUDE_DIRS}
-  ${TOML11_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
   ${FMTLIB_INCLUDE_DIR}
   ${ADDITIONAL_INCLUDE_DIRECTORIES}
@@ -210,11 +216,12 @@ host os name: ${HOST_OS_NAME}
 host arch name: ${HOST_ARCH_NAME}
 target os name: ${TARGET_OS_NAME}
 target arch name: ${TARGET_ARCH_NAME}
-include directories: ${FEMTOLOG_INCLUDE_DIRECTORIES}
-link directories: ${FEMTOLOG_LINK_DIRECTORIES}
-link libraries: ${FEMTOLOG_LINK_LIBRARIES}
-project compile options: ${FEMTOLOG_COMPILE_OPTIONS}
-project link options: ${FEMTOLOG_LINK_OPTIONS}
+femtolog include directories: ${FEMTOLOG_INCLUDE_DIRECTORIES}
+femtolog link directories: ${FEMTOLOG_LINK_DIRECTORIES}
+femtolog link libraries: ${FEMTOLOG_LINK_LIBRARIES}
+femtolog compile options: ${FEMTOLOG_COMPILE_OPTIONS}
+femtolog link options: ${FEMTOLOG_LINK_OPTIONS}
+femtolog compile definitions: ${FEMTOLOG_COMPILE_DEFINITIONS}
 install prefix: ${CMAKE_INSTALL_PREFIX}
 build resources dir: ${BUILD_RESOURCES_DIR}
 is mingw build: ${MINGW_BUILD}
@@ -241,6 +248,7 @@ enable profile: ${FEMTOLOG_ENABLE_COVERAGE}
 enable optimization report: ${FEMTOLOG_ENABLE_OPTIMIZATION_REPORT}
 enable xray: ${FEMTOLOG_ENABLE_XRAY}
 enable sanitizers: ${FEMTOLOG_ENABLE_SANITIZERS}
+enable llvm unwind: ${FEMTOLOG_ENABLE_LLVM_UNWIND}
 enable avx2: ${FEMTOLOG_ENABLE_AVX2}
 warnings as errors: ${FEMTOLOG_ENABLE_WARNINGS_AS_ERRORS}
 

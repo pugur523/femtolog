@@ -23,12 +23,13 @@ set(BoldWhite "${Esc}[1;37m")
 
 function(describe_target target_name)
   get_target_property(include_dirs ${target_name} INCLUDE_DIRECTORIES)
+  get_target_property(compile_opts ${target_name} COMPILE_OPTIONS)
+  get_target_property(compile_definitions ${target_name} COMPILE_DEFINITIONS)
+  get_target_property(compile_flags ${target_name} COMPILE_FLAGS)
+  get_target_property(link_opts ${target_name} LINK_OPTIONS)
+  get_target_property(link_flags ${target_name} LINK_FLAGS)
   get_target_property(link_dirs ${target_name} LINK_DIRECTORIES)
   get_target_property(link_libs ${target_name} LINK_LIBRARIES)
-  get_target_property(compile_opts ${target_name} COMPILE_OPTIONS)
-  get_target_property(link_opts ${target_name} LINK_OPTIONS)
-  get_target_property(compile_flags ${target_name} COMPILE_FLAGS)
-  get_target_property(link_flags ${target_name} LINK_FLAGS)
   get_target_property(target_type ${target_name} TYPE)
 
   set(description "\n${Blue}-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
@@ -37,28 +38,32 @@ function(describe_target target_name)
     set(description "${description}\n${target_name} include directories: ${include_dirs}")
   endif()
 
-  if(link_dirs)
-    set(description "${description}\n${target_name} link directories: ${link_dirs}")
-  endif()
-
-  if(link_libs)
-    set(description "${description}\n${target_name} link libraries: ${link_libs}")
-  endif()
-
   if(compile_opts)
     set(description "${description}\n${target_name} compile options: ${compile_opts}")
   endif()
 
-  if(link_opts)
-    set(description "${description}\n${target_name} link options: ${link_opts}")
+  if(compile_definitions)
+    set(description "${description}\n${target_name} compile definitions: ${compile_definitions}")
   endif()
 
   if(compile_flags)
     set(description "${description}\n${target_name} compile flags: ${compile_flags}")
   endif()
 
+  if(link_opts)
+    set(description "${description}\n${target_name} link options: ${link_opts}")
+  endif()
+
   if(link_flags)
     set(description "${description}\n${target_name} link flags: ${link_flags}")
+  endif()
+
+  if(link_dirs)
+    set(description "${description}\n${target_name} link directories: ${link_dirs}")
+  endif()
+
+  if(link_libs)
+    set(description "${description}\n${target_name} link libraries: ${link_libs}")
   endif()
 
   if(target_type)
