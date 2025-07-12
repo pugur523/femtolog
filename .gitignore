@@ -1,6 +1,7 @@
 /out
 /venv
-
+.cache
+compile_commands.json
 __pycache__
 *.log
 *.profraw
