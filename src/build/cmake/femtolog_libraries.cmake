@@ -143,7 +143,11 @@ macro(femtolog_setup_fmtlib)
     set(FMTLIB_DIR ${THIRD_PARTY_DIR}/fmtlib)
     set(FMTLIB_INCLUDE_DIR ${FMTLIB_DIR}/include)
 
-    set(FMT_INSTALL FALSE CACHE BOOL "" FORCE)
+    if(FEMTOLOG_INSTALL_HEADERS)
+      set(FMT_INSTALL TRUE CACHE BOOL "" FORCE)
+    else()
+      set(FMT_INSTALL FALSE CACHE BOOL "" FORCE)
+    endif()
 
     add_subdirectory(${FMTLIB_DIR})
 
