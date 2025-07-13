@@ -40,7 +40,7 @@
 - [🔌 カスタムシンク](#-カスタムシンク)
   - [✨ 独自シンクの実装](#-独自シンクの実装)
 - [🪪 ライセンス](#-ライセンス)
-- [❤️ クレジット](#️-クレジット)
+- [❤️ クレジット](#-クレジット)
 
 
 ## 🚀 特徴
@@ -255,4 +255,4 @@ logger.register_sink<MySink>();
 - **[fmtlib](https://github.com/fmtlib/fmt)**<br/>
   すべてのログメッセージレンダリングのフォーマットエンジン。
 
-[pugur](https://github.com/pugur523)が開発しました
+開発者: [pugur](https://github.com/pugur523)
