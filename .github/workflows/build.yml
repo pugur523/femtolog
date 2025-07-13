@@ -215,8 +215,13 @@ jobs:
         with:
           name: builds-${{ matrix.target_platform }}-${{ inputs.build_mode }}
           path: |
-            ${{ (inputs.build_mode == 'all' && 'out/build/**/debug/package/**\nout/build/**/release/package/**') || format('out/build/**/{0}/package/**', inputs.build_mode) }}
-            !out/build/**/_CPack_Packages/**/*
+            out/package/*/*.deb
+            out/package/*/*.tar.gz
+            out/package/*/*.exe
+            out/package/*/*.zip
+            out/package/*/*.msi
+            out/package/*/*.dmg
+            out/package/*/*.pkg
           retention-days: 3
           if-no-files-found: warn
 

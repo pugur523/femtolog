@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS FALSE)
 
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(PROJECT_ROOT_DIR "${PROJECT_SOURCE_DIR}/..")
+set(PROJECT_OUT_DIR "${PROJECT_ROOT_DIR}/out")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/build/cmake")
 set(BUILD_RESOURCES_DIR "${PROJECT_SOURCE_DIR}/build/resources")
 set(THIRD_PARTY_DIR "${PROJECT_SOURCE_DIR}/third_party")
@@ -272,7 +273,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/logging)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/femtolog)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(FEMTOLOG_BUILD_TESTING)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/testing)

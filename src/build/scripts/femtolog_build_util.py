@@ -40,15 +40,15 @@ def is_installed(tool_name: str) -> bool:
     return shutil.which(tool_name) is not None
 
 
-scripts_dir = os.path.dirname(__file__)
-project_root_dir = os.path.abspath(os.path.join(scripts_dir, "..", "..", ".."))
-project_src_dir = os.path.join(project_root_dir, "src")
-project_config_file = os.path.join(project_root_dir, "project_config.toml")
-third_party_src_dir = os.path.join(project_src_dir, "third_party")
+scripts_dir: str = os.path.dirname(__file__)
+project_root_dir: str = os.path.abspath(os.path.join(scripts_dir, "..", "..", ".."))
+project_src_dir: str = os.path.join(project_root_dir, "src")
+project_config_file: str = os.path.join(project_root_dir, "project_config.toml")
+third_party_src_dir: str = os.path.join(project_src_dir, "third_party")
 
-out_root_dir = os.path.join(project_root_dir, "out")
-build_root_dir = os.path.join(out_root_dir, "build")
-install_root_dir = os.path.join(out_root_dir, "install")
+out_root_dir: str = os.path.join(project_root_dir, "out")
+build_root_dir: str = os.path.join(out_root_dir, "build")
+install_root_dir: str = os.path.join(out_root_dir, "install")
 
 
 def build_platform_dir(platform="", arch=""):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-A script to scan through all build artifacts and generate an artifact summary
+A script to scan through all build artifacts(packages) and generate an artifact summary
 table for GitHub Actions step summary.
 """
 
@@ -28,22 +28,31 @@ def format_size(size: float) -> str:
 
 
 def parse_info(path: Path):
-    # ex: artifacts/debug/debug-builds-linux/x86_64/debug/bin/sample_project
-    parts = path.parts
-    # find debug/release
-    if "debug" in parts:
-        build_type = "Debug"
-    elif "release" in parts:
-        build_type = "Release"
-    else:
-        build_type = "Unknown"
+    # ex: ./artifacts/femtolog-1.0.0-release_linux_x86_64.deb
+    build_type = "Unknown"
+    os_name = "Unknown"
+    arch_name = "Unknown"
 
-    for part in parts:
-        if part.startswith("debug-builds-") or part.startswith("release-builds-"):
-            os = part.split("-")[-1]
+    filename = os.path.basename(path)
+
+    build_type_candidates = [
+        "debug",
+        "release",
+    ]
+    for b in build_type_candidates:
+        if b in filename:
+            build_type = b
             break
-    else:
-        os = "Unknown"
+
+    os_candidates = [
+        "linux",
+        "windows",
+        "darwin",
+    ]
+    for o in os_candidates:
+        if o in filename:
+            os_name = o
+            break
 
     arch_candidates = [
         "x86_64",
@@ -51,9 +60,12 @@ def parse_info(path: Path):
         "arm",
         "arm64",
     ]
-    arch = next((p for p in parts if p in arch_candidates), "Unknown")
+    for a in arch_candidates:
+        if a in filename:
+            arch_name = a
+            break
 
-    return os, arch, build_type
+    return os_name, arch_name, build_type
 
 
 def main(artifact_dir: Path):

@@ -289,7 +289,7 @@ def build_project(
     package_command = ["cmake", "--build", build_dir, "--target", "package"]
 
     if build_async:
-        parallel_command = ["--parallel", os.cpu_count or 4]
+        parallel_command = ["--parallel", str(int((os.cpu_count() or 4) / 2))]
         build_command.extend(parallel_command)
         package_command.extend(parallel_command)
 
