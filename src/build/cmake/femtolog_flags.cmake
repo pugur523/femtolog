@@ -4,8 +4,8 @@
 
 macro(femtolog_setup_windows_flags)
   # Enable color and use libc++
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics -fdiagnostics-color=always")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics -fdiagnostics-color=always")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
 
   # Base flags - enable warnings
   list(APPEND FEMTOLOG_COMPILE_OPTIONS /W4 /clang:-Wall /clang:-Wextra /clang:-Wpedantic)
@@ -59,7 +59,7 @@ endmacro()
 macro(femtolog_setup_unix_flags)
   # Enable color and use libc++
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdiagnostics-color=always -fPIC")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always -stdlib=libc++ -fPIC")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always -fPIC -stdlib=libc++")
 
   # Base flags - enable warnings
   list(APPEND FEMTOLOG_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -fno-common)
