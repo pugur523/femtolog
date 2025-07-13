@@ -245,8 +245,8 @@ jobs:
       - name: Download all ${{ inputs.build_mode }} artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: ${{ inputs.build_mode }}-builds-*
-          path: ./artifacts/${{ inputs.build_mode }}/
+          pattern: builds-*-${{ inputs.build_mode }}
+          path: ./artifacts/
         continue-on-error: true
 
       - name: Show artifacts tree
