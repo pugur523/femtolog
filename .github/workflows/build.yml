@@ -52,6 +52,25 @@ jobs:
     defaults:
       run:
         shell: ${{ matrix.shell }}
+  
+    env:
+      EXTRA_ARGS: |
+        -DFEMTOLOG_INSTALL_LIBS=true,
+        -DFEMTOLOG_INSTALL_HEADERS=true,
+        -DFEMTOLOG_ENABLE_XRAY=false,
+        -DFEMTOLOG_ENABLE_SANITIZERS=false,
+        -DFEMTOLOG_ENABLE_BUILD_REPORT=false,
+        -DFEMTOLOG_ENABLE_LTO=true,
+        -DFEMTOLOG_ENABLE_NATIVE_ARCH=true,
+        -DFEMTOLOG_ENABLE_LLVM_UNWIND=false,
+        -DFEMTOLOG_ENABLE_VERBOSE=true,
+        -DFEMTOLOG_ENABLE_COVERAGE=false,
+        -DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,
+        -DFEMTOLOG_BUILD_SHARED=false,
+        -DFEMTOLOG_BUILD_BENCHMARK=false,
+        -DFEMTOLOG_BUILD_TESTING=false,
+        -DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=false,
+        -DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=false
 
     steps:
       - name: Checkout repository
@@ -173,17 +192,19 @@ jobs:
             --no-install \
             --package \
             --cpplint \
-            --extra_args="-DFEMTOLOG_BUILD_SHARED=false,,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_LLVM_UNWIND=false,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
+            --no-clang_format \
+            --extra_args="${{ env.EXTRA_ARGS }}"
 
 
       - name: Run build script (Windows)
         if: matrix.os == 'windows-latest'
+        shell: cmd
         run: |
           call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > path.txt
           set /p InstallPath=<path.txt
           call "%InstallPath%\VC\Auxiliary\Build\vcvarsall.bat" x64
-          python3 -u src/build/scripts/build.py --build_mode=${{ inputs.build_mode }} --target_platform=${{ matrix.target_platform }} --no-install --package --cpplint --extra_args="-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_INSTALL_LIBS=true,-DINSTALL_FEMTOLOG=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_LLVM_UNWIND=false,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=true,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=true"
-        shell: cmd
+          set BUILD_CMD=python3 -u src/build/scripts/build.py --build_mode=${{ inputs.build_mode }} --target_platform=${{ matrix.target_platform }} --no-install --package --cpplint --no-clang_format --extra_args="${{ env.EXTRA_ARGS }}"
+          call %BUILD_CMD%
 
       - name: Upload ${{ inputs.build_mode }} artifacts
         if: ${{ inputs.upload_artifacts }}
