@@ -311,7 +311,7 @@ std::string temp_path(const std::string& prefix) {
       std::chrono::steady_clock::now().time_since_epoch().count()));
   std::uniform_int_distribution<> dist(0, sizeof(charset) - 2);
 
-  std::string suffix = FEMTOLOG_PROJECT_NAME "_";
+  std::string suffix = "femtolog_";
   for (std::size_t i = 0; i < length; ++i) {
     suffix += charset[dist(rng)];
   }

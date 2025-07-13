@@ -63,3 +63,17 @@ if(FEMTOLOG_INSTALL_LIBS)
     OPTIONAL
   )
 endif()
+
+if(FEMTOLOG_INSTALL_HEADERS)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../include/
+    DESTINATION include
+    COMPONENT Headers
+  )
+
+  # install(
+  #   DIRECTORY ${FEMTOLOG_INCLUDE_DIRECTORIES}/
+  #   DESTINATION include
+  #   COMPONENT Headers
+  # )
+endif()

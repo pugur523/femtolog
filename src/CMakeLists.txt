@@ -267,8 +267,6 @@ use external google benchmark: ${FEMTOLOG_USE_EXTERNAL_GOOGLE_BENCHMARK}
   print_all_build_flags()
 endif()
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/build)
-
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/logging)
 
