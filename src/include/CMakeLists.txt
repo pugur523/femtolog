@@ -9,9 +9,9 @@ if(FEMTOLOG_INSTALL_HEADERS)
     COMPONENT Headers
   )
 
-  install(
-    DIRECTORY ${FEMTOLOG_INCLUDE_DIRECTORIES}/
-    DESTINATION include
-    COMPONENT Headers
-  )
+  # install(
+  #   DIRECTORY ${FEMTOLOG_INCLUDE_DIRECTORIES}/
+  #   DESTINATION include
+  #   COMPONENT Headers
+  # )
 endif()

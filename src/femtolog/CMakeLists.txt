@@ -25,7 +25,7 @@ femtolog_setup_module(${MODULE_NAME} ${MODULE_OBJECTS_NAME}
 
 target_include_directories(${MODULE_NAME}
   PUBLIC 
-    $<BUILD_INTERFACE:${FEMTOLOG_INCLUDE_DIRECTORIES}>
+    $<BUILD_INTERFACE:${FEMTOLOG_PUBLIC_INCLUDE_DIRECTORIES}>
     $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(${MODULE_NAME} PUBLIC femtolog_core femtolog_logging ${FMTLIB_LIBRARIES})
