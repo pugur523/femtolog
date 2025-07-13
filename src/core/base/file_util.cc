@@ -10,7 +10,6 @@
 #include <chrono>
 #include <utility>
 
-#include "build/build_config.h"
 #include "femtolog/build/build_flag.h"
 #include "femtolog/core/check.h"
 
