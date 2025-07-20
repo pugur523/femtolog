@@ -59,10 +59,11 @@ class FileSink final : public SinkBase {
         compressed_file_name.append(base_timestamp_name);
 
         if (counter > 0) {
-          compressed_file_name.append("_");
+          compressed_file_name.append("-");
           compressed_file_name.append(std::to_string(counter));
         }
 
+        compressed_file_name.append(".");
         compressed_file_name.append(original_extension);
         compressed_file_name.append(".gz");
 
