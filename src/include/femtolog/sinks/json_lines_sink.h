@@ -38,13 +38,36 @@ class JsonLinesSink final : public SinkBase {
     if (core::file_exists(file_path_.c_str())) {
       constexpr std::size_t kTimestampBufSize = 32;
       char timestamp_buf[kTimestampBufSize];
-      const std::size_t timestamp_size =
-          format_timestamp<TimeZone::kLocal, "{:%Y-%m-%d_%H-%M-%S}.">(
+      std::size_t timestamp_size =
+          format_timestamp<TimeZone::kLocal, "{:%Y-%m-%d_%H-%M-%S}">(
               timestamp_ns(), timestamp_buf, kTimestampBufSize);
-      std::string compressed_file_name(timestamp_buf, timestamp_size);
-      compressed_file_name.append(core::file_extension(file_path_));
-      compressed_file_name.append(".gz");
-      std::string dest_path = core::join_path(parent_dir, compressed_file_name);
+      std::string base_timestamp_name(timestamp_buf, timestamp_size);
+
+      std::string original_file_name_without_ext =
+          core::file_name_without_extension(file_path_);
+      std::string original_extension = core::file_extension(file_path_);
+
+      int counter = 0;
+      std::string compressed_file_name;
+      std::string dest_path;
+
+      do {
+        compressed_file_name = original_file_name_without_ext;
+        compressed_file_name.append("_");
+        compressed_file_name.append(base_timestamp_name);
+
+        if (counter > 0) {
+          compressed_file_name.append("_");
+          compressed_file_name.append(std::to_string(counter));
+        }
+
+        compressed_file_name.append(original_extension);
+        compressed_file_name.append(".gz");
+
+        dest_path = core::join_path(parent_dir, compressed_file_name);
+        counter++;
+      } while (core::file_exists(dest_path.c_str()));
+
       core::compress(file_path_.c_str(), dest_path.c_str(), true);
     }
     core::create_file(file_path_.c_str());
