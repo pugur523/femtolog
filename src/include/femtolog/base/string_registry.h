@@ -69,7 +69,8 @@ class StringRegistry {
   void register_string_arena(StringId id, std::string_view view) {
     FEMTOLOG_DCHECK_LE(arena_size_ + view.size(), arena_capacity_);
 
-    if (!table_[id].empty()) [[likely]] {
+    const std::string_view previous = table_[id];
+    if (!previous.empty() && previous == view) [[unlikely]] {
       return;
     }
 
