@@ -52,14 +52,14 @@ FEMTOLOG_CORE_EXPORT int rename_file(const char* old_path,
                                      const char* new_path);
 FEMTOLOG_CORE_EXPORT int write_file(const char* path,
                                     const std::string& content);
-
 FEMTOLOG_CORE_EXPORT int write_binary_to_file(const void* binary_data,
                                               std::size_t binary_size,
                                               const std::string& output_path);
 
 [[nodiscard]] FEMTOLOG_CORE_EXPORT std::string file_extension(
     const std::string& path);
-
+[[nodiscard]] FEMTOLOG_CORE_EXPORT std::string file_name_without_extension(
+    const std::string& path);
 [[nodiscard]] FEMTOLOG_CORE_EXPORT std::string sanitize_component(
     const char* part,
     bool is_first);

@@ -516,7 +516,7 @@ int write_binary_to_file(const void* binary_data,
 }
 
 std::string file_extension(const std::string& path) {
-  std::size_t last_slash = path.find_last_of("/\\");
+  std::size_t last_slash = path.find_last_of(FEMTOLOG_DIR_SEPARATOR);
   std::size_t last_dot = path.find_last_of('.');
 
   if (last_dot == std::string::npos ||
@@ -531,6 +531,31 @@ std::string file_extension(const std::string& path) {
   }
 
   return path.substr(last_dot + 1);
+}
+
+std::string file_name_without_extension(const std::string& path) {
+  std::size_t last_slash = path.find_last_of(FEMTOLOG_DIR_SEPARATOR);
+  std::size_t last_dot = path.find_last_of('.');
+
+  std::string_view filename_part;
+  if (last_slash == std::string::npos) {
+    filename_part = path;
+  } else {
+    filename_part = std::string_view(path).substr(last_slash + 1);
+  }
+
+  if (last_dot == std::string::npos ||
+      (last_slash != std::string::npos && last_dot < last_slash) ||
+      last_dot == 0 ||
+      (last_slash != std::string::npos && last_dot == last_slash + 1)) {
+    return std::string(filename_part);
+  } else {
+    std::size_t relative_dot_pos = last_dot;
+    if (last_slash != std::string::npos) {
+      relative_dot_pos = last_dot - (last_slash + 1);
+    }
+    return std::string(filename_part.substr(0, relative_dot_pos));
+  }
 }
 
 std::string sanitize_component(const char* part, bool is_first) {
