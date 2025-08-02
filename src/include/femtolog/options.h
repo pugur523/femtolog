@@ -10,6 +10,12 @@
 
 namespace femtolog {
 
+enum class ColorMode : uint8_t {
+  kAuto = 0,
+  kAlways = 1,
+  kNever = 2,
+};
+
 /**
  * @brief Configuration options for the femtolog's frontend and backend.
  *
@@ -55,20 +61,17 @@ struct FemtologOptions {
    */
   std::size_t backend_worker_cpu_affinity =
       std::numeric_limits<std::size_t>::max();
+
+  ColorMode color_mode = ColorMode::kAuto;
 };
 
 constexpr FemtologOptions kFastOptions{
-    1024 * 1024 * 4,
-    1024 * 64,
-    1024 * 64,
-    5,
+    1024 * 1024 * 4, 1024 * 64, 1024 * 64, 5, ColorMode::kAuto,
 };
 
 constexpr FemtologOptions kMemorySavingOptions{
-    1024 * 4,
-    512,
-    512,
-    std::numeric_limits<std::size_t>::max(),
+    1024 * 4,         512, 512, std::numeric_limits<std::size_t>::max(),
+    ColorMode::kAuto,
 };
 
 }  // namespace femtolog

@@ -104,7 +104,7 @@ class FileSink final : public SinkBase {
     char* buffer = buffer_.get();
     std::memcpy(buffer + cursor_, timestamp_buf, timestamp_size);
     cursor_ += timestamp_size;
-    if (entry.level != LogLevel::kSilent) {
+    if (entry.level != LogLevel::kRaw) {
       std::memcpy(buffer + cursor_, level_str, level_len);
       cursor_ += level_len;
       std::memcpy(buffer + cursor_, kSep, kSepLen);

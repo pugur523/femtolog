@@ -23,7 +23,7 @@ struct FEMTOLOG_CORE_EXPORT StackTraceEntry {
     file.fill('\0');
   }
 
-  void to_string(char* out_buf, size_t out_buf_size) const;
+  void to_string(char* out_buf, std::size_t out_buf_size) const;
 
   std::array<char, kAddressStrLength> address;
   std::array<char, kFunctionStrLength> function;

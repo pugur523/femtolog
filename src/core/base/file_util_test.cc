@@ -50,7 +50,7 @@ TEST(FileUtilTest, WriteBinaryToFile) {
     std::vector<char> read_data((std::istreambuf_iterator<char>(fin)),
                                 std::istreambuf_iterator<char>());
     ASSERT_EQ(read_data.size(), data.size());
-    for (size_t i = 0; i < data.size(); ++i) {
+    for (std::size_t i = 0; i < data.size(); ++i) {
       EXPECT_EQ(static_cast<uint8_t>(read_data[i]), data[i]);
     }
   }

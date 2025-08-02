@@ -13,8 +13,8 @@ on:
         default: true
 
 env:
-  PYTHON_VERSION: 3.13
-  CMAKE_VERSION: 4.0.2
+  PYTHON_VERSION: "3.13"
+  CMAKE_VERSION: "4.0.3"
 
 jobs:
   build:
@@ -25,222 +25,116 @@ jobs:
         include:
           - os: ubuntu-latest
             target_platform: linux
-            shell: bash
             cc: clang
             cxx: clang++
-            llvm_version: "21"
+            llvm_version: "20"
           - os: windows-latest
             target_platform: windows
-            shell: pwsh
             cc: clang-cl
             cxx: clang-cl
-            llvm_version: "20.1.4"
+            llvm_version: "20.1.8"
           - os: macos-latest
             target_platform: darwin
-            shell: bash
             cc: clang
             cxx: clang++
-            llvm_version: "19"
+            llvm_version: "20"
           - os: ubuntu-latest
             target_platform: mingw
-            shell: bash
             cc: x86_64-w64-mingw32-clang
             cxx: x86_64-w64-mingw32-clang++
-            llvm_version: "21"
+            llvm_version: "20"
 
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: ${{ matrix.shell }}
-  
-    env:
-      EXTRA_ARGS: |
-        -DFEMTOLOG_INSTALL_LIBS=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_LLVM_UNWIND=false,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=false,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=false
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies (Linux)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install system dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y \
-            wget \
-            curl \
-            gnupg \
-            lsb-release \
-            software-properties-common \
-            ca-certificates \
-            git \
-            ninja-build
-
-          # Install CMake
-          CMAKE_URL="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
-          wget -nv "${CMAKE_URL}" -O cmake-installer.sh
-          chmod +x cmake-installer.sh
-          sudo ./cmake-installer.sh --skip-license --prefix=/usr/local
-          rm cmake-installer.sh
-
-          # Install LLVM
-          wget -O llvm.sh https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh ${{ matrix.llvm_version }} all
-          rm llvm.sh
-
-          sudo apt-get install -y libunwind-${{ matrix.llvm_version }}-dev
-
-          # Set up alternatives
-          for bin in clang clang++ clang-tidy clang-format llvm-ar FileCheck; do
-            sudo update-alternatives --remove-all "$bin" 2>/dev/null || true
-          done
-
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${{ matrix.llvm_version }} 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${{ matrix.llvm_version }} 100
-          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-${{ matrix.llvm_version }} 100
-          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-${{ matrix.llvm_version }} 100
-          sudo update-alternatives --install /usr/bin/llvm-ar llvm-ar /usr/bin/llvm-ar-${{ matrix.llvm_version }} 100
-          sudo update-alternatives --install /usr/bin/llvm-nm llvm-nm /usr/bin/llvm-nm-${{ matrix.llvm_version }} 100
-          sudo update-alternatives --install /usr/bin/llvm-ranlib llvm-ranlib /usr/bin/llvm-ranlib-${{ matrix.llvm_version }} 100
-          sudo update-alternatives --install /usr/bin/FileCheck FileCheck /usr/bin/FileCheck-${{ matrix.llvm_version }} 100
-
-          sudo update-alternatives --set clang /usr/bin/clang-${{ matrix.llvm_version }}
-          sudo update-alternatives --set clang++ /usr/bin/clang++-${{ matrix.llvm_version }}
-          sudo update-alternatives --set clang-tidy /usr/bin/clang-tidy-${{ matrix.llvm_version }}
-          sudo update-alternatives --set clang-format /usr/bin/clang-format-${{ matrix.llvm_version }}
-          sudo update-alternatives --set llvm-ar /usr/bin/llvm-ar-${{ matrix.llvm_version }}
-          sudo update-alternatives --set llvm-nm /usr/bin/llvm-nm-${{ matrix.llvm_version }}
-          sudo update-alternatives --set llvm-ranlib /usr/bin/llvm-ranlib-${{ matrix.llvm_version }}
-          sudo update-alternatives --set FileCheck /usr/bin/FileCheck-${{ matrix.llvm_version }}
-
-          clang --version
-          clang++ --version
-          clang-tidy --version
-          clang-format --version
-          llvm-ar --version
-          llvm-nm --version
-          llvm-ranlib --version
-          FileCheck --version
-
-      - name: Install dependencies (MinGW)
-        if: matrix.target_platform == 'mingw'
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update && sudo apt-get install -y nsis wine wine32
-          source ./src/build/scripts/install_llvm_mingw.sh
-          echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
-          echo "LLVM_MINGW_DIR resolved to: ${LLVM_MINGW_DIR}"
-
-      - name: Install dependencies (Windows)
-        if: matrix.target_platform == 'windows'
-        run: |
-          choco install --no-progress cmake --version=${{ env.CMAKE_VERSION }} --installargs 'ADD_CMAKE_TO_PATH=System' -y
-          choco install --no-progress llvm --version=${{ matrix.llvm_version }} -y
-          choco install --no-progress nsis wixtoolset ninja -y
-
-      - name: Install dependencies (MacOS)
-        if: matrix.target_platform == 'darwin'
-        run: |
-          brew update
-          brew install --formula cmake yasm nasm llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
-
-          LLVM_PREFIX=$(brew --prefix llvm@${{ matrix.llvm_version }})
-          echo "LLVM_BIN=${LLVM_PREFIX}/bin" >> $GITHUB_ENV
-          echo "PATH=${LLVM_PREFIX}/bin:$PATH" >> $GITHUB_ENV
-          export PATH="${LLVM_PREFIX}/bin:$PATH"
-
-          LLD_PREFIX=$(brew --prefix lld@${{ matrix.llvm_version }})
-          echo "LLD_BIN=${LLD_PREFIX}/bin" >> $GITHUB_ENV
-          echo "PATH=${LLD_PREFIX}/bin:$PATH" >> $GITHUB_ENV
-          export PATH="${LLD_PREFIX}/bin:$PATH"
-      
-      - name: Install Python dependencies
-        run: |
-          python3 -m pip install --upgrade pip setuptools wheel
-          if [ -f "src/build/scripts/requirements.txt" ]; then
-            python3 -m pip install -r src/build/scripts/requirements.txt
+          case "${{ matrix.os }}" in
+            ubuntu-latest)
+              sudo apt-get update && sudo apt-get install -y wget curl ninja-build
+              # Install CMake
+              cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
+              wget -nv "${cmake_url}" -O cmake-installer.sh && chmod +x cmake-installer.sh && sudo ./cmake-installer.sh --skip-license --prefix=/usr/local && rm cmake-installer.sh
+              # Install LLVM
+              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
+              # Setup alternatives
+              for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
+                sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
+              done
+          
+              ;;
+            windows-latest)
+              choco install -y cmake --version=${{ env.CMAKE_VERSION }}
+              choco install -y llvm --version=${{ matrix.llvm_version }} --allow-downgrade
+              choco install -y nsis ninja
+              ;;
+            macos-latest)
+              brew update && brew install cmake llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
+              echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
+              echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
+              ;;
+          esac
+          
+          if [ "${{ matrix.target_platform }}" == "mingw" ]; then
+            sudo apt-get update && sudo apt-get install -y nsis wine
+            source ./src/build/scripts/install_llvm_mingw.sh
+            echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
           fi
         shell: bash
 
-      - name: Run build script (Non-Windows)
-        if: matrix.os != 'windows-latest'
+      - name: Install Python dependencies
         run: |
-          python3 -u src/build/scripts/build.py \
-            --build_mode=${{ inputs.build_mode }} \
-            --target_platform=${{ matrix.target_platform }} \
-            --no-install \
-            --package \
-            --cpplint \
-            --no-clang_format \
-            --extra_args="${{ env.EXTRA_ARGS }}"
+          python3 -m pip install --upgrade pip setuptools wheel
+          [ -f "src/build/scripts/requirements.txt" ] && python3 -m pip install -r src/build/scripts/requirements.txt || true
+        shell: bash
 
-      - name: Run build script (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: cmd
+      - name: Build
         run: |
-          call "%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath > path.txt
-          set /p InstallPath=<path.txt
-          call "%InstallPath%\VC\Auxiliary\Build\vcvarsall.bat" x64
-          set BUILD_CMD=python3 -u src/build/scripts/build.py --build_mode=${{ inputs.build_mode }} --target_platform=${{ matrix.target_platform }} --no-install --package --cpplint --no-clang_format --extra_args="${{ env.EXTRA_ARGS }}"
-          call %BUILD_CMD%
+          BUILD_ARGS="--build_mode=${{ inputs.build_mode }} --target_platform=${{ matrix.target_platform }} --no-install --package --cpplint --no-clang_format"
+          EXTRA_ARGS="-DFEMTOLOG_INSTALL_LIBS=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_LLVM_UNWIND=false,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=false,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=false"
+          
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            # Setup MSVC environment for Windows
+            eval "$(vswhere.exe -latest -products \* -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | sed 's|.*|"&/VC/Auxiliary/Build/vcvarsall.bat" x64|')"
+          fi
+          
+          python3 -u src/build/scripts/build.py $BUILD_ARGS --extra_args="$EXTRA_ARGS"
+        shell: bash
 
-      - name: Upload ${{ inputs.build_mode }} artifacts
+      - name: Upload artifacts
         if: ${{ inputs.upload_artifacts }}
         uses: actions/upload-artifact@v4
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-          ACTIONS_ARTIFACT_UPLOAD_CONCURRENCY: 5
         with:
           name: builds-${{ matrix.target_platform }}-${{ inputs.build_mode }}
-          path: |
-            out/package/*/*.deb
-            out/package/*/*.tar.gz
-            out/package/*/*.exe
-            out/package/*/*.zip
-            out/package/*/*.msi
-            out/package/*/*.dmg
-            out/package/*/*.pkg
+          path: out/package/*/*.*
           retention-days: 3
           if-no-files-found: warn
 
   summary:
-    name: Summarize builds
-    runs-on: ubuntu-latest
-    needs: [build]
     if: ${{ inputs.upload_artifacts }}
-    permissions:
-      contents: read
-
+    runs-on: ubuntu-latest
+    needs: build
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Download all ${{ inputs.build_mode }} artifacts
-        uses: actions/download-artifact@v4
+      
+      - uses: actions/download-artifact@v4
         with:
           pattern: builds-*-${{ inputs.build_mode }}
           path: ./artifacts/
         continue-on-error: true
 
-      - name: Show artifacts tree
+      - name: Generate summary
         run: |
-          if [ -d "./artifacts" ]; then
-            tree ./artifacts || ls -la ./artifacts
-          else
-            echo "No artifacts found"
-          fi
-
-      - name: Generate build summary
-        run: |
-          python3 .github/workflows/scripts/summarize.py artifacts > summary.md
-          cat summary.md >> $GITHUB_STEP_SUMMARY
+          [ -d "./artifacts" ] && (tree ./artifacts || ls -la ./artifacts) || echo "No artifacts found"
+          python3 .github/workflows/scripts/summarize.py artifacts >> $GITHUB_STEP_SUMMARY

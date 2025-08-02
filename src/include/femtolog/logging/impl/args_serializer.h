@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <new>
 #include <string>
 #include <string_view>
 

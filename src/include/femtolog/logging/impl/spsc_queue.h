@@ -8,6 +8,7 @@
 #include <atomic>
 #include <cstddef>
 #include <memory>
+#include <new>
 
 #include "femtolog/core/base/memory_util.h"
 #include "femtolog/core/check.h"

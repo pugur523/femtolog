@@ -57,8 +57,8 @@ class FEMTOLOG_EXPORT Logger {
   }
 
   template <FixedString fmt, typename... Args>
-  inline constexpr void log(Args&&... args) {
-    log<LogLevel::kSilent, fmt>(std::forward<Args>(args)...);
+  inline constexpr void raw(Args&&... args) {
+    log<LogLevel::kRaw, fmt>(std::forward<Args>(args)...);
   }
   template <FixedString fmt, typename... Args>
   inline constexpr void fatal(Args&&... args) {

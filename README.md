@@ -119,7 +119,7 @@ This architecture separates formatting from the hot path of logging, minimizing 
 - **CPU**: Intel Core i3 12100 @ 4.3GHz
 - **RAM**: DDR4 3600MHz 64GB
 
-The following benchmark results were measured using [Google Benchmark](https://github.com/google/benchmark) with Clang-21 -O3 Release build on the above environment. For comparison, results of similar logging benchmarks using the following libraries are also shown:
+The following benchmark results were measured using [Google Benchmark](https://github.com/google/benchmark) with Clang-20 -O3 Release build on the above environment. For comparison, results of similar logging benchmarks using the following libraries are also shown:
 
 - [**quill**](https://github.com/odygrd/quill)
 - [**spdlog**](https://github.com/gabime/spdlog)

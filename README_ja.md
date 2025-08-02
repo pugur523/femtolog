@@ -119,7 +119,7 @@ graph TD
 - **CPU**: Intel Core i3 12100 @ 4.3GHz
 - **RAM**: DDR4 3600MHz 64GB
 
-以下のベンチマーク結果は [Google Benchmark](https://github.com/google/benchmark) を用い、Clang-21 -O3 Release buildを上記の環境で測定したものです。
+以下のベンチマーク結果は [Google Benchmark](https://github.com/google/benchmark) を用い、Clang-20 -O3 Release buildを上記の環境で測定したものです。
 比較のため、以下のライブラリを用いて同様のログを行うベンチマークの結果も示しています。
 
 - [**quill**](https://github.com/odygrd/quill)

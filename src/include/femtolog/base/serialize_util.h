@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <new>
 
 #include "femtolog/base/format_util.h"
 #include "femtolog/base/string_registry.h"

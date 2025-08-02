@@ -6,6 +6,7 @@
 #define INCLUDE_FEMTOLOG_LOGGING_IMPL_INTERNAL_LOGGER_H_
 
 #include <memory>
+#include <new>
 #include <utility>
 
 #include "femtolog/base/log_entry.h"

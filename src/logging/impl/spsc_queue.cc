@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <memory>
+#include <new>
 
 #include "femtolog/build/build_flag.h"
 #include "femtolog/core/base/memory_util.h"
