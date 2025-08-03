@@ -227,7 +227,7 @@ def build_project(
         "-D BUILD_DEBUG=" + ("true" if build_type == "debug" else "false"),
         "-D TARGET_OS_NAME=" + target_platform,
         "-D TARGET_ARCH=" + target_arch,
-        "-D DO_CLANG_TIDY=" + ("true" if do_clang_tidy else "false"),
+        "-D FEMTOLOG_DO_CLANG_TIDY=" + ("true" if do_clang_tidy else "false"),
     ]
     if verbose:
         os.environ["VERBOSE"] = "true"

@@ -77,7 +77,7 @@ function(femtolog_setup_module module_name objects_name)
     POSITION_INDEPENDENT_CODE TRUE
   )
 
-  if(DO_CLANG_TIDY)
+  if(FEMTOLOG_DO_CLANG_TIDY)
     set_target_properties(${objects_name} PROPERTIES
       CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}"
     )

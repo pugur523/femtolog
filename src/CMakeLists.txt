@@ -26,9 +26,9 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_NAME STREQUAL "Windo
   set(MINGW_BUILD TRUE)
 endif()
 
-option(DO_CLANG_TIDY "do clang tidy for linting" TRUE)
+option(FEMTOLOG_DO_CLANG_TIDY "do clang tidy for linting" TRUE)
 
-if(DO_CLANG_TIDY AND NOT MINGW_BUILD)
+if(FEMTOLOG_DO_CLANG_TIDY AND NOT MINGW_BUILD)
   set(CLANG_TIDY_COMMAND "clang-tidy;--config-file=${PROJECT_ROOT_DIR}/.clang-tidy;-p=${CMAKE_BINARY_DIR}")
 endif()
 
