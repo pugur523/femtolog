@@ -67,7 +67,7 @@ COPY ${THIRD_PARTY_DIR} ${THIRD_PARTY_DIR}
 COPY . /app
 
 RUN export PATH="/root/.local/bin:$PATH" \
-    && poetry run python3 -u ${SCRIPTS_DIR}/build.py \
+    && poetry run python -u ${SCRIPTS_DIR}/build.py \
         --build_mode=all \
         --cpplint \
         --no-clang_format \
