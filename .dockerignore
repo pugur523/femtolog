@@ -1,12 +1,32 @@
-/out
-/.vscode
-/.github
-.gitignore
 .git
-venv
-/src/build/docker
+.clang-format
+.clang-tidy
+.clangd
+.gitignore
+.gitmodules
+/cc
 
+# Output
+/out
+
+# Cache
 __pycache__
+.cache
+
+# Editor
+/*venv
+/compile_commands.json
+.vscode
+
+# Logs
+*.log
+*.profraw
+*Zone.Identifier
+
+# Compressed files
+*.xz
+*.gz
+*.zip
 
 # Prerequisites
 *.d
@@ -60,7 +80,7 @@ nohup.out
 
 # Swap
 [._]*.s[a-v][a-z]
-!*.svg  # comment out if you don't need vector files
+!*.svg # comment out if you don't need vector files
 [._]*.sw[a-p]
 [._]s[a-rt-v][a-z]
 [._]ss[a-gi-z]
@@ -77,3 +97,4 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+

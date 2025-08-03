@@ -1,15 +1,24 @@
+# Output
 /out
-/venv
-.cache
-compile_commands.json
+
+# Cache
 __pycache__
+.cache
+
+# Editor
+/*venv
+/compile_commands.json
+.vscode
+
+# Logs
 *.log
 *.profraw
+*Zone.Identifier
+
+# Compressed files
 *.xz
 *.gz
 *.zip
-*Zone.Identifier
-.vscode/
 
 # Prerequisites
 *.d
@@ -80,3 +89,4 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
