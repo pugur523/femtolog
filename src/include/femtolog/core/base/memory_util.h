@@ -9,7 +9,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <new>
 
 #include "femtolog/build/build_flag.h"
 #include "femtolog/core/base/core_export.h"
@@ -49,8 +48,11 @@ struct AlignedDeleter {
   inline void operator()(void* ptr) const { aligned_free_wrapper(ptr); }
 };
 
-constexpr const std::size_t kCacheSize =
-    std::hardware_destructive_interference_size;  // NOLINT
+#ifdef __GCC_DESTRUCTIVE_SIZE
+constexpr const std::size_t kCacheSize = __GCC_DESTRUCTIVE_SIZE;
+#else
+constexpr const std::size_t kCacheSize = 64;
+#endif
 
 }  // namespace femtolog::core
 
