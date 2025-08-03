@@ -51,12 +51,46 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Load cached Poetry installation
+        id: cached-poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.local
+          key: poetry-${{ runner.os }}-${{ env.POETRY_VERSION }}
+
       - name: Install Poetry
-        run: pipx install poetry
+        if: steps.cached-poetry.outputs.cache-hit != 'true'
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          virtualenvs-path: ~/.venv
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-
+
+      - name: Install Python dependencies
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+          poetry install
+
+          # verify installation
+          poetry --version
+          poetry show --tree
+          poetry env info
+        shell: bash
 
       - name: Install system dependencies
         run: |
@@ -93,11 +127,6 @@ jobs:
           fi
         shell: bash
 
-      - name: Install Python dependencies
-        run: |
-          poetry install
-        shell: bash
-
       - name: Build
         run: |
           BUILD_ARGS="--build_mode=${{ inputs.build_mode }} --target_platform=${{ matrix.target_platform }} --no-install --package --cpplint --no-clang_format --clang_tidy"
@@ -126,7 +155,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 

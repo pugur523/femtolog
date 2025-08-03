@@ -44,6 +44,106 @@ build_modes = [
 ] + build_types
 
 
+def create_arg_parser():
+    parser = argparse.ArgumentParser(description="build script.")
+    parser.add_argument(
+        "--build_mode",
+        type=str,
+        default="debug",
+        choices=build_modes,
+        help="comma-separated build types",
+    )
+    parser.add_argument(
+        "--target_platforms",
+        type=str,
+        default=get_platform_name(),
+        help="comma-separated target platforms",
+    )
+    parser.add_argument(
+        "--target_archs",
+        type=str,
+        default=get_arch_name(),
+        help="comma-separated target architectures",
+    )
+    parser.add_argument(
+        "--clang_format",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="run clang-format before build",
+    )
+    parser.add_argument(
+        "--clang_tidy",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="run clang-tidy analysis on build",
+    )
+    parser.add_argument(
+        "--cpplint",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="run cpplint before build",
+    )
+    parser.add_argument(
+        "--build_async",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="build all configs asynchronously",
+    )
+    parser.add_argument(
+        "--install",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="install post build",
+    )
+    parser.add_argument(
+        "--package",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="create package post build",
+    )
+    parser.add_argument(
+        "--fail_fast",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="return fast on build failure",
+    )
+    parser.add_argument(
+        "--verbose",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="verbose mode",
+    )
+    parser.add_argument(
+        "--extra_args",
+        type=str,
+        default="",
+        help='comma-separated extra arguments to pass to CMake (e.g. "-DOPTION=VALUE,-DXXX=YYY")',
+    )
+    return parser
+
+
+def expand_aliases(argv):
+    aliases = {
+        "--release": "--build_mode=release",
+        "--debug": "--build_mode=debug",
+        "--all": "--build_mode=all",
+        "--windows": "--target_platforms=windows",
+        "--linux": "--target_platforms=linux",
+        "--darwin": "--target_platforms=darwin",
+        "--x86_64": "--target_archs=x86_64",
+        "--amd64": "--target_archs=amd64",
+        "--arm64": "--target_archs=arm64",
+    }
+
+    expanded = []
+    for arg in argv:
+        if arg in aliases:
+            expanded.append(aliases[arg])
+        else:
+            expanded.append(arg)
+    return expanded
+
+
 def select_best_toolchain(build_os, target_os):
     toolchains_dir = os.path.join(project_src_dir, "build", "cmake", "toolchains")
     toolchain_name = target_os
@@ -51,20 +151,20 @@ def select_best_toolchain(build_os, target_os):
     if build_os == "windows":
         if target_os != "windows":
             # TODO: cygwin support
-            print("Cross compile on windows is currently not supported.")
+            print("cross compile on windows is currently not supported.")
             return None
     elif build_os == "darwin":
         if target_os != "darwin":
-            print("Cross compile on darwin is currently not supported.")
+            print("cross compile on darwin is currently not supported.")
             return None
     elif build_os == "linux":
         if target_os == "windows" or target_os == "mingw":
             toolchain_name = "mingw"
         elif target_os == "darwin":
-            print("Cross compile for darwin is currently not supported.")
+            print("cross compile for darwin is currently not supported.")
             return None
     else:
-        print("Unknown build os detected: ", build_os)
+        print("unknown build os detected: ", build_os)
         return None
 
     return os.path.join(toolchains_dir, (toolchain_name + ".cmake"))
@@ -158,7 +258,7 @@ def build_with_all_option_combinations(
         )
 
     results = []
-    print(f"Testing {len(all_combinations)} option combinations...")
+    print(f"testing {len(all_combinations)} option combinations...")
 
     start_time = time()
     for platform, arch, build_type, opt_values in all_combinations:
@@ -168,7 +268,7 @@ def build_with_all_option_combinations(
             print(tabulate(results, headers=headers, tablefmt="grid"))
             return 1
 
-    print("\nBuild Result: \n")
+    print("\nbuild result: \n")
     print(tabulate(results, headers=headers, tablefmt="grid"))
 
     ret = 0
@@ -181,7 +281,7 @@ def build_with_all_option_combinations(
     total_sec = time() - start_time
     minutes = int(total_sec // 60)
     seconds = int(total_sec % 60)
-    print(f"\nAll builds completed in {minutes} min {seconds} sec.")
+    print(f"\nall builds completed in {minutes} min {seconds} sec.")
     return ret
 
 
@@ -197,10 +297,10 @@ def build_project(
     extra_args: str = "",
 ):
     if target_platform not in supported_platforms:
-        print(f"Unknown platform specified ({target_platform})")
+        print(f"unknown platform specified ({target_platform})")
         return 1
     if target_arch not in supported_architectures:
-        print(f"Unknown architecture specified ({target_arch})")
+        print(f"unknown architecture specified ({target_arch})")
         return 2
 
     build_dir = os.path.join(
@@ -211,12 +311,12 @@ def build_project(
     )
 
     print(
-        f"Configuring project with CMake for {target_platform} ({target_arch}) in {build_type} mode..."
+        f"configuring project with CMake for {target_platform} ({target_arch}) in {build_type} mode..."
     )
 
     toolchain_file = select_best_toolchain(get_platform_name(), target_platform)
     if not toolchain_file:
-        print("Compatible toolchain not found.")
+        print("compatible toolchain not found.")
         return -1
 
     args = [
@@ -293,10 +393,7 @@ def build_project(
         build_command.extend(parallel_command)
         package_command.extend(parallel_command)
 
-    result = run_command(
-        configure_command,
-        cwd=project_root_dir,
-    )
+    result = run_command(configure_command, cwd=project_root_dir)
     if result.returncode != 0:
         print("cmake configure failed: ", result.returncode)
         return result.returncode
@@ -322,82 +419,23 @@ def build_project(
 
 
 def main(argv):
-    parser = argparse.ArgumentParser(description="build script.")
-    parser.add_argument(
-        "--build_mode",
-        type=str,
-        default="debug",
-        choices=build_modes,
-        help="comma-separated build types",
-    )
-    parser.add_argument(
-        "--target_platforms",
-        type=str,
-        default=get_platform_name(),
-        help="comma-separated target platforms",
-    )
-    parser.add_argument(
-        "--target_archs",
-        type=str,
-        default=get_arch_name(),
-        help="comma-separated target architectures",
-    )
-    parser.add_argument(
-        "--clang_format",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="run clang-format before build",
-    )
-    parser.add_argument(
-        "--clang_tidy",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="run clang-tidy analysis on build",
-    )
-    parser.add_argument(
-        "--cpplint",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="run cpplint before build",
-    )
-    parser.add_argument(
-        "--build_async",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="build all configs asynchronously",
-    )
-    parser.add_argument(
-        "--install",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="install post build",
-    )
-    parser.add_argument(
-        "--package",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="create package post build",
-    )
-    parser.add_argument(
-        "--fail_fast",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="return fast on build failure",
-    )
-    parser.add_argument(
-        "--verbose",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="verbose mode",
-    )
-    parser.add_argument(
-        "--extra_args",
-        type=str,
-        default="",
-        help='comma-separated extra arguments to pass to CMake (e.g. "-DOPTION=VALUE,-DXXX=YYY")',
-    )
+    argv = expand_aliases(argv[1:])
 
-    args = parser.parse_args()
+    # Split known args and unknown args (for -- extra args)
+    if "--" in argv:
+        split_index = argv.index("--")
+        known_args = argv[:split_index]
+        extra_args_list = argv[split_index + 1:]
+    else:
+        known_args = argv
+        extra_args_list = []
+
+    parser = create_arg_parser()
+
+    args = parser.parse_args(known_args)
+
+    if extra_args_list:
+        args.extra_args += (",".join(extra_args_list))
 
     if args.clang_format:
         run_clang_format(project_root_dir)
@@ -460,7 +498,7 @@ def main(argv):
 
             return result, config_entry
 
-        with ThreadPoolExecutor(max_workers=int(os.cpu_count() or 4 / 2)) as executor:
+        with ThreadPoolExecutor(max_workers=int((os.cpu_count() or 4) / 2)) as executor:
             results = list(executor.map(build_helper, build_tasks))
         for result, entry in results:
             if result != 0:
@@ -500,11 +538,11 @@ def main(argv):
             successful_configs.append(config_entry)
 
     if successful_configs:
-        print("\nSuccessful Builds:")
+        print("\nsuccessful builds:")
         print(tabulate(successful_configs, headers="keys", tablefmt="grid"))
 
     if failed_configs:
-        print("\nFailed Builds:")
+        print("\nfailed builds:")
         print(tabulate(failed_configs, headers="keys", tablefmt="grid"))
         failed_counts = len(failed_configs)
         return failed_counts
@@ -513,7 +551,7 @@ def main(argv):
     total_sec = end_time - start_time
     minutes = int(total_sec // 60)
     seconds = int(total_sec % 60)
-    print(f"\nBuild completed in {minutes} min {seconds} sec.")
+    print(f"\nbuild completed in {minutes} min {seconds} sec.")
 
     return 0
 
@@ -522,4 +560,4 @@ if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv))
     except KeyboardInterrupt:
-        print("\nAborted building process.")
+        print("\naborted building process.")

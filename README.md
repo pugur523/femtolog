@@ -40,7 +40,7 @@ Designed for modern C++ projects where every nanosecond counts.
 - [🔌 Custom Sinks](#-custom-sinks)
   - [✨ Implement Your Own Sink](#-implement-your-own-sink)
 - [🪪 License](#-license)
-- [❤️ Credits](#-credits)
+- [❤️ Credits](#️-credits)
 
 
 ## 🚀 Features
