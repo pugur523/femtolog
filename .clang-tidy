@@ -47,6 +47,7 @@ WarningsAsErrors: "*"
 ExtraArgsBefore:
   - "-Wno-unused-command-line-argument"
 UseColor: true
+ExtraArgs: [ -std=c++17 ]
 CheckOptions:
   - key: bugprone-assert-side-effect.AssertMacros
     value: assert,FEMTOLOG_DCHECK
