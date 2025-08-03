@@ -17,11 +17,11 @@ else
 fi
 
 
-if [ "$action" == "build" ]; then
+if [ "$action" = "build" ]; then
   ${build_scripts_dir}/build.py $remain_args
-elif [ "$action" == "run" ]; then
+elif [ "$action" = "run" ]; then
   ${out_bin_dir}/redy $remain_args
-elif [ "$action" == "test" ]; then
+elif [ "$action" = "test" ]; then
   ${out_bin_dir}/redy_test $remain_args
 else
   exit 1

@@ -83,7 +83,7 @@ jobs:
               ;;
           esac
           
-          if [ "${{ matrix.target_platform }}" == "mingw" ]; then
+          if [ "${{ matrix.target_platform }}" = "mingw" ]; then
             sudo apt-get update && sudo apt-get install -y nsis wine
             source ./src/build/scripts/install_llvm_mingw.sh
             echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
