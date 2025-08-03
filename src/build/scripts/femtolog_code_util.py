@@ -15,9 +15,6 @@ from femtolog_build_util import (
 
 
 def run_cpplint(root_dir, cpplint_cfg=""):
-    if not is_installed("cpplint"):
-        print("cpplint not found. please install cpplint and add it to $PATH.")
-        return 1
     if not cpplint_cfg:
         cpplint_cfg = "CPPLINT.cfg"
     command = [
@@ -26,6 +23,7 @@ def run_cpplint(root_dir, cpplint_cfg=""):
         "cpplint",
         "--exclude=./src/third_party",
         "--exclude=./out",
+        "--exclude=./.venv",
         "--recursive",
         "--config=" + cpplint_cfg,
         root_dir,
