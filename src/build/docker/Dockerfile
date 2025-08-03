@@ -1,3 +1,7 @@
+# Copyright 2025 pugur
+# This source code is licensed under the Apache License, Version 2.0
+# which can be found in the LICENSE file.
+
 FROM archlinux:latest
 
 ARG SCRIPTS_DIR=./src/build/scripts
@@ -42,19 +46,22 @@ RUN pacman -Scc --noconfirm \
 
 WORKDIR /app
 
-COPY ${SCRIPTS_DIR}/requirements.txt ${SCRIPTS_DIR}/
-
-RUN pip3 install --break-system-packages --no-cache-dir --ignore-installed -r ${SCRIPTS_DIR}/requirements.txt
-
 COPY ${SCRIPTS_DIR} ${SCRIPTS_DIR}
-COPY ${THIRD_PARTY_DIR} ${THIRD_PARTY_DIR}
-COPY . /app
+COPY pyproject.toml .
+COPY poetry.lock .
 
-RUN python3 -u ${SCRIPTS_DIR}/build.py \
+RUN curl -sSL https://install.python-poetry.org | python3 - \
+    && export PATH="/root/.local/bin:$PATH" \
+    && poetry install
+
+COPY ${THIRD_PARTY_DIR} ${THIRD_PARTY_DIR}
+COPY . .
+
+RUN export PATH="/root/.local/bin:$PATH" \
+    && poetry run python3 -u ${SCRIPTS_DIR}/build.py \
         --build_mode=all \
         --cpplint \
         --no-clang_format \
         --clang_tidy \
-        --build_async \
         --no-fail_fast \
         --extra_args="-DFEMTOLOG_ENABLE_BUILD_REPORT=true,-DFEMTOLOG_ENABLE_COVERAGE=true,-DFEMTOLOG_ENABLE_OPTIMIZATION_REPORT=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false"

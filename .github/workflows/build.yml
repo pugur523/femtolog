@@ -108,7 +108,8 @@ jobs:
             eval "$(vswhere.exe -latest -products \* -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | sed 's|.*|"&/VC/Auxiliary/Build/vcvarsall.bat" x64|')"
           fi
           
-          poetry run python3 -u src/build/scripts/build.py $BUILD_ARGS --extra_args="$EXTRA_ARGS"
+          $(poetry env activate)
+          python3 -u src/build/scripts/build.py $BUILD_ARGS --extra_args="$EXTRA_ARGS"
         shell: bash
 
       - name: Upload artifacts
@@ -142,4 +143,5 @@ jobs:
       - name: Generate summary
         run: |
           [ -d "./artifacts" ] && (tree ./artifacts || ls -la ./artifacts) || echo "No artifacts found"
-          poetry run python3 .github/workflows/scripts/summarize.py artifacts >> $GITHUB_STEP_SUMMARY
+          $(poetry env activate)
+          python3 .github/workflows/scripts/summarize.py artifacts >> $GITHUB_STEP_SUMMARY
