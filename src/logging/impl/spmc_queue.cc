@@ -24,7 +24,7 @@ void SpmcQueue::reserve(std::size_t capacity_bytes) {
   FEMTOLOG_DCHECK_GT(capacity_bytes, 0);
 
   const std::size_t capacity = next_power_of_2(capacity_bytes);
-  constexpr std::size_t alignment = std::hardware_destructive_interference_size;
+  constexpr std::size_t alignment = core::kCacheSize;
   const std::size_t alloc_size = capacity + alignment;
 
   std::byte* new_buffer = static_cast<std::byte*>(

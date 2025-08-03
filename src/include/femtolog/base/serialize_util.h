@@ -11,6 +11,7 @@
 
 #include "femtolog/base/format_util.h"
 #include "femtolog/base/string_registry.h"
+#include "femtolog/core/base/memory_util.h"
 #include "femtolog/core/check.h"
 
 namespace femtolog {
@@ -48,7 +49,7 @@ class SerializedArgs {
   inline consteval std::size_t capacity() const noexcept { return Capacity; }
 
  private:
-  alignas(std::hardware_destructive_interference_size) char buffer_[Capacity];
+  alignas(core::kCacheSize) char buffer_[Capacity];
   std::size_t size_ = 0;
 };
 

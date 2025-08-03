@@ -17,6 +17,7 @@
 #include "femtolog/base/serialize_util.h"
 #include "femtolog/base/string_registry.h"
 #include "femtolog/build/build_flag.h"
+#include "femtolog/core/base/memory_util.h"
 #include "femtolog/core/check.h"
 #include "femtolog/logging/impl/args_deserializer.h"
 
@@ -117,8 +118,7 @@ class ArgsSerializer {
   }
 
  private:
-  alignas(std::hardware_destructive_interference_size)
-      SerializedArgs<Capacity> args_;
+  alignas(core::kCacheSize) SerializedArgs<Capacity> args_;
 };
 
 // Type aliases

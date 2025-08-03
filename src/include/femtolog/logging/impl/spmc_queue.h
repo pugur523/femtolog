@@ -95,23 +95,20 @@ class FEMTOLOG_LOGGING_EXPORT SpmcQueue {
       std::size_t n) noexcept;
 
   // Cache line aligned buffer
-  alignas(std::hardware_destructive_interference_size) std::byte* buffer_;
+  alignas(core::kCacheSize) std::byte* buffer_;
   std::size_t capacity_ = 0;
   std::size_t mask_ = 0;
 
   // Producer side (write-mostly, separate cache line)
-  alignas(std::hardware_destructive_interference_size)
-      std::atomic<std::size_t> tail_idx_ = 0;
+  alignas(core::kCacheSize) std::atomic<std::size_t> tail_idx_ = 0;
 
   // Consumer side (read-mostly, separate cache line)
   // Using ticket-based approach for multiple consumers
-  alignas(std::hardware_destructive_interference_size)
-      std::atomic<std::size_t> head_idx_ = 0;
-  alignas(std::hardware_destructive_interference_size)
-      std::atomic<std::size_t> commit_idx_ = 0;
+  alignas(core::kCacheSize) std::atomic<std::size_t> head_idx_ = 0;
+  alignas(core::kCacheSize) std::atomic<std::size_t> commit_idx_ = 0;
 
   // Buffer management
-  alignas(std::hardware_destructive_interference_size)
+  alignas(core::kCacheSize)
       std::unique_ptr<std::byte[], core::AlignedDeleter> buffer_deleter_ =
           nullptr;
   std::size_t allocation_size_ = 0;

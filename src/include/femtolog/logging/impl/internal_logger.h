@@ -99,8 +99,7 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
 
  private:
   // Hot data - frequently accessed (first cache line)
-  alignas(std::hardware_destructive_interference_size) LogLevel level_ =
-      LogLevel::kInfo;
+  alignas(core::kCacheSize) LogLevel level_ = LogLevel::kInfo;
   const uint32_t thread_id_;
   std::size_t enqueued_count_ = 0;
   std::size_t dropped_count_ = 0;
@@ -108,11 +107,10 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   ArgsSerializer<> serializer_;
 
   // Cold data - less frequently accessed (separate cache line)
-  alignas(std::hardware_destructive_interference_size) SpscQueue queue_;
+  alignas(core::kCacheSize) SpscQueue queue_;
 
   // Buffer management (separate cache line)
-  alignas(LogEntry) alignas(
-      std::hardware_destructive_interference_size) alignas(8) uint8_t
+  alignas(LogEntry) alignas(core::kCacheSize) alignas(8) uint8_t
       entry_buffer_[sizeof(LogEntry) + kMaxPayloadSize];
 
   BackendWorker backend_worker_;

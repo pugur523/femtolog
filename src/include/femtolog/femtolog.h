@@ -5,6 +5,8 @@
 #ifndef INCLUDE_FEMTOLOG_FEMTOLOG_H_
 #define INCLUDE_FEMTOLOG_FEMTOLOG_H_
 
+#include <new>
+
 #include "femtolog/base/femtolog_export.h"
 #include "femtolog/base/format_util.h"
 #include "femtolog/base/log_entry.h"

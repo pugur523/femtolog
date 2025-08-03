@@ -24,7 +24,7 @@ void SpscQueue::reserve(std::size_t capacity_bytes) {
 
   // Allocate cache-line aligned buffer for optimal memory access
   // Use larger alignment for better performance on modern CPUs
-  constexpr std::size_t alignment = std::hardware_destructive_interference_size;
+  constexpr std::size_t alignment = core::kCacheSize;
   const std::size_t alloc_size = capacity + alignment;
 
   std::byte* new_buffer = static_cast<std::byte*>(
