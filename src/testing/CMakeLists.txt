@@ -23,7 +23,7 @@ set(SOURCES
 
 add_executable(${TEST_NAME} ${SOURCES})
 
-target_include_directories(${TEST_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES})
+target_include_directories(${TEST_NAME} PRIVATE ${FEMTOLOG_INCLUDE_DIRECTORIES} ${PROJECT_SOURCE_DIR}/include)
 target_compile_options(${TEST_NAME} PRIVATE ${FEMTOLOG_COMPILE_OPTIONS})
 target_compile_definitions(${TEST_NAME} PRIVATE ${FEMTOLOG_COMPILE_DEFINITIONS})
 target_link_options(${TEST_NAME} PRIVATE ${FEMTOLOG_LINK_OPTIONS})
