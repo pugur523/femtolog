@@ -94,27 +94,13 @@ jobs:
         
       - name: Cache LLVM
         id: cache-llvm
+        if: matrix.os != 'ubuntu-latest'
         uses: actions/cache@v4
         with:
           path: |
-            ${{ matrix.os == 'ubuntu-latest' && format('/opt/llvm-{0}', matrix.llvm_version) || '' }}
             ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM' || '' }}
             ${{ matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm' || '' }}
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
-
-      - name: Install LLVM (Linux)
-        if: matrix.os == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
-        run: |
-          # Install LLVM
-          # use latest llvm tools
-          wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all /opt/llvm-${{ matrix.llvm_version }} && rm ./llvm.sh
-          echo "/opt/llvm-${{ matrix.llvm_version }}/bin" >> $GITHUB_PATH
-
-          # Setup alternatives
-          # TODO: restore these 3 lines when we switch to older LLVM tools
-          # for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
-          #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
-          # done
 
       - name: Install LLVM (Windows)
         if: matrix.os == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
@@ -149,6 +135,17 @@ jobs:
               chmod +x cmake-installer.sh
               sudo ./cmake-installer.sh --skip-license --prefix=/usr/local
               rm cmake-installer.sh
+
+              # Install LLVM
+              # use latest llvm tools
+              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all /opt/llvm-${{ matrix.llvm_version }} && rm ./llvm.sh
+              echo "/opt/llvm-${{ matrix.llvm_version }}/bin" >> $GITHUB_PATH
+
+              # Setup alternatives
+              # TODO: restore these 3 lines when we switch to older LLVM tools
+              # for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
+              #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
+              # done
 
               if [ "${{ matrix.target_platform }}" = "mingw" ]; then
                 sudo apt-get -qq install --no-install-recommends nsis wine
