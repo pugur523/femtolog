@@ -107,7 +107,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ matrix.os == 'ubuntu-latest' && format('/usr/lib/llvm-{0}', matrix.llvm_version) || '' }}
+            ${{ matrix.os == 'ubuntu-latest' && format('/opt/llvm-{0}', matrix.llvm_version) || '' }}
             ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM' || '' }}
             ${{ matrix.os == 'macos-latest' && format('/usr/local/opt/llvm@{0}', matrix.llvm_version) || '' }}
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
@@ -136,8 +136,8 @@ jobs:
         run: |
           # Install LLVM
           # use latest llvm tools
-          wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
-          # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
+          wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all /opt/llvm-${{ matrix.llvm_version }} && rm ./llvm.sh
+          echo "/opt/llvm-${ matrix.llvm_version }/bin" >> $GITHUB_PATH
 
           # Setup alternatives
           # TODO: restore these 3 lines when we switch to older LLVM tools
