@@ -30,7 +30,7 @@ enum class TimeZone : uint8_t {
 
 class SinkBase {
  public:
-  SinkBase() = default;
+  explicit SinkBase() = default;
   virtual ~SinkBase() = default;
 
   SinkBase(const SinkBase&) = delete;
@@ -81,10 +81,6 @@ class SinkBase {
 
     buf[result.size] = '\0';
     return result.size;
-  }
-
-  static inline constexpr std::size_t level_len(LogLevel lvl) {
-    return core::safe_strlen(log_level_to_lower_str(lvl));
   }
 };
 

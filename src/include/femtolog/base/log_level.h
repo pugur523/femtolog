@@ -101,6 +101,14 @@ inline constexpr LogLevel log_level_from_string(const char* str) {
   }
 }
 
+inline constexpr std::size_t level_len(LogLevel lvl) {
+  return std::char_traits<char>::length(log_level_to_lower_str(lvl));
+}
+
+inline constexpr std::size_t level_ansi_len(LogLevel lvl) {
+  return std::char_traits<char>::length(log_level_to_ansi_color(lvl));
+}
+
 }  // namespace femtolog
 
 #endif  // INCLUDE_FEMTOLOG_BASE_LOG_LEVEL_H_

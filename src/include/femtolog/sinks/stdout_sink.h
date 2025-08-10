@@ -75,24 +75,25 @@ class StdoutSink final : public SinkBase {
                                    const char* content,
                                    std::size_t content_len) const {
     char* p = out;
-    if (is_color_enabled()) {
-      std::memcpy(p, kBold, kAnsiStyleLen);
-      p += kAnsiStyleLen;
-      const char* col = log_level_to_ansi_color(level);
-      std::memcpy(p, col, kAnsiStyleLen);
-      p += kAnsiStyleLen;
-    }
     if (level != LogLevel::kRaw) {
+      if (is_color_enabled()) {
+        std::memcpy(p, kBold, kAnsiStyleLen);
+        p += kAnsiStyleLen;
+        const char* col = log_level_to_ansi_color(level);
+        const std::size_t ansi_len = level_ansi_len(level);
+        std::memcpy(p, col, ansi_len);
+        p += ansi_len;
+      }
       const char* lvl = log_level_to_lower_str(level);
       std::size_t lvl_len = level_len(level);
       std::memcpy(p, lvl, lvl_len);
       p += lvl_len;
+      if (is_color_enabled()) {
+        std::memcpy(p, kReset, kResetLen);
+        p += kResetLen;
+      }
       std::memcpy(p, kSep, kSepLen);
       p += kSepLen;
-    }
-    if (is_color_enabled()) {
-      std::memcpy(p, kReset, kResetLen);
-      p += kResetLen;
     }
     std::memcpy(p, content, content_len);
     p += content_len;

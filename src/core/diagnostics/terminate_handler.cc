@@ -11,8 +11,8 @@
 namespace femtolog::core {
 
 void terminate_handler() {
-  std::cout << "\nProgram terminated unexpectedly\n"
-            << "Stack trace (most recent call last):\n"
+  std::cout << "\nfemtolog: program terminated unexpectedly\n"
+            << "stack trace (most recent call last):\n"
             << stack_trace_from_current_context() << "\n";
 
   std::exit(EXIT_FAILURE);

@@ -62,7 +62,21 @@ struct FemtologOptions {
   std::size_t backend_worker_cpu_affinity =
       std::numeric_limits<std::size_t>::max();
 
+  /**
+   * @brief When to enable ANSI color sequence.
+   *
+   * ColorMode::kAuto: detect automatically if the ANSI escape sequence is
+   * available. ColorMode::kAlways: always use ANSI escape sequence.
+   * ColorMode::kNever: never use ANSI escape sequence.
+   */
   ColorMode color_mode = ColorMode::kAuto;
+
+  /**
+   * @brief Whether terminate or not on Logger::fatal call
+   * If true, terminates the whole program when the backend worker receives log
+   * entry whose level is LogLevel::kFatal.
+   */
+  bool terminate_on_fatal : 1 = true;
 };
 
 constexpr FemtologOptions kFastOptions{

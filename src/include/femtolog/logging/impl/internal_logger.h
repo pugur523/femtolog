@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "femtolog/base/log_entry.h"
+#include "femtolog/base/log_level.h"
 #include "femtolog/base/string_registry.h"
 #include "femtolog/logging/base/logging_export.h"
 #include "femtolog/logging/impl/args_serializer.h"
@@ -67,8 +68,6 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
 
   template <LogLevel level, FixedString fmt, typename... Args>
   inline void log(Args&&... args) noexcept {
-    FEMTOLOG_DCHECK_EQ(backend_worker_.status(), BackendWorkerStatus::kRunning);
-
     // Compile-time level check
     // Assuming `info` is common threshold
     if constexpr (level > LogLevel::kInfo) {
@@ -79,6 +78,11 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
       if (level > level_) [[likely]] {
         return;
       }
+    }
+
+    if (backend_worker_.status() != BackendWorkerStatus::kRunning)
+        [[unlikely]] {
+      return;
     }
 
     if constexpr (sizeof...(Args) == 0) {
@@ -148,10 +152,11 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   alignas(core::kCacheSize) SpscQueue queue_;
 
   // Buffer management (separate cache line)
-  alignas(LogEntry) alignas(core::kCacheSize) alignas(8) uint8_t
+  alignas(LogEntry) alignas(core::kCacheSize) uint8_t
       entry_buffer_[sizeof(LogEntry) + kMaxPayloadSize];
 
   BackendWorker backend_worker_;
+  bool terminate_on_fatal_ : 1 = true;
 };
 
 inline void InternalLogger::enqueue_log_entry(const LogEntry* entry) noexcept {
@@ -163,6 +168,11 @@ inline void InternalLogger::enqueue_log_entry(const LogEntry* entry) noexcept {
     enqueued_count_++;
   } else {
     dropped_count_++;
+  }
+
+  if (entry->level == LogLevel::kFatal && terminate_on_fatal_) {
+    backend_worker_.stop();
+    std::terminate();
   }
 }
 

@@ -9,9 +9,11 @@
 #include <utility>
 #include <vector>
 
+#include "femtolog/base/log_level.h"
 #include "femtolog/base/string_registry.h"
 #include "femtolog/build/build_flag.h"
 #include "femtolog/core/check.h"
+#include "femtolog/femtolog.h"
 #include "femtolog/logging/impl/args_deserializer.h"
 #include "femtolog/logging/impl/internal_logger.h"
 #include "femtolog/options.h"
@@ -69,7 +71,9 @@ void BackendWorker::start() {
 }
 
 void BackendWorker::stop() {
-  FEMTOLOG_DCHECK_EQ(status_, BackendWorkerStatus::kRunning);
+  if (status_ != BackendWorkerStatus::kRunning) {
+    return;
+  }
   shutdown_required_.store(true, std::memory_order_release);
   if (worker_thread_.joinable()) {
     worker_thread_.join();

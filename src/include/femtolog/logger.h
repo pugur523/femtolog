@@ -12,6 +12,9 @@
 
 #include "femtolog/base/femtolog_export.h"
 #include "femtolog/base/format_util.h"
+#include "femtolog/core/diagnostics/signal_handler.h"
+#include "femtolog/core/diagnostics/stack_trace.h"
+#include "femtolog/core/diagnostics/terminate_handler.h"
 #include "femtolog/logging/impl/backend_worker.h"
 #include "femtolog/logging/impl/internal_logger.h"
 #include "femtolog/options.h"
@@ -34,6 +37,7 @@ class FEMTOLOG_EXPORT Logger {
 
   inline void init(const FemtologOptions& options = FemtologOptions()) {
     internal_logger_->init(options);
+    register_exception_handlers();
   }
 
   template <
@@ -117,6 +121,16 @@ class FEMTOLOG_EXPORT Logger {
   }
 
   inline static Logger create_logger() { return Logger(); }
+
+  static bool register_exception_handlers() {
+    static const bool initialized = [] {
+      core::register_terminate_handler();
+      core::register_signal_handlers();
+      core::register_stack_trace_handler();
+      return true;
+    }();
+    return initialized;
+  }
 
  private:
   Logger() : internal_logger_(std::make_unique<InternalLogger>()) {}
