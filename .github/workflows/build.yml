@@ -91,18 +91,70 @@ jobs:
           poetry show --tree
           poetry env info
         shell: bash
+        
+      - name: Cache CMake
+        id: cache-cmake
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ matrix.os == 'ubuntu-latest' && '/usr/local/bin/cmake' || '' }}
+            ${{ matrix.os == 'windows-latest' && 'C:/Program Files/CMake' || '' }}
+            ${{ matrix.os == 'macos-latest' && '/usr/local/bin/cmake' || '' }}
+          key: cmake-${{ matrix.os }}-${{ env.CMAKE_VERSION }}
 
-      - name: Install CMake for Windows
-        if: startsWith(matrix.os, 'windows')
+      - name: Cache LLVM
+        id: cache-llvm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ matrix.os == 'ubuntu-latest' && format('/usr/lib/llvm-{0}', matrix.llvm_version) || '' }}
+            ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM' || '' }}
+            ${{ matrix.os == 'macos-latest' && format('/usr/local/opt/llvm@{0}', matrix.llvm_version) || '' }}
+          key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
+
+      - name: Install CMake (Linux)
+        if: matrix.os == 'ubuntu-latest' && steps.cache-cmake.outputs.cache-hit != 'true'
+        run: |
+          cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
+          wget -nv "${cmake_url}" -O cmake-installer.sh
+          chmod +x cmake-installer.sh
+          sudo ./cmake-installer.sh --skip-license --prefix=/usr/local
+          rm cmake-installer.sh
+
+      - name: Install CMake (Windows)
+        if: matrix.os == 'windows-latest' && steps.cache-cmake.outputs.cache-hit != 'true'
         uses: jwlawson/actions-setup-cmake@v2.0.2
         with:
           cmake-version: ${{ env.CMAKE_VERSION }}
 
-      - name: Install LLVM for Windows
-        if: startsWith(matrix.os, 'windows')
+      - name: Install CMake (macOS)
+        if: matrix.os == 'macos-latest' && steps.cache-cmake.outputs.cache-hit != 'true'
+        run: brew install cmake@${{ env.CMAKE_VERSION }}
+
+      - name: Install LLVM (Linux)
+        if: matrix.os == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
+        run: |
+          # Install LLVM
+          # use latest llvm tools
+          wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
+          # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
+
+          # Setup alternatives
+          # TODO: restore these 3 lines when we switch to older LLVM tools
+          # for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
+          #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
+          # done
+
+      - name: Install LLVM (Windows)
+        if: matrix.os == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
         uses: KyleMayes/install-llvm-action@v2.0.7
         with:
           version: ${{ matrix.llvm_version }}
+
+      - name: Install LLVM (macOS)
+        if: matrix.os == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
+        run: brew install llvm@${{ matrix.llvm_version }}
+      
 
       - name: Install system dependencies
         run: |
@@ -115,21 +167,6 @@ jobs:
               sudo apt-get -qq update
               sudo apt-get -qq install --no-install-recommends $packages
 
-              # Install CMake
-              cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
-              wget -nv "${cmake_url}" -O cmake-installer.sh && chmod +x cmake-installer.sh && sudo ./cmake-installer.sh --skip-license --prefix=/usr/local && rm cmake-installer.sh
-
-              # Install LLVM
-              # use latest llvm tools
-              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
-              # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
-
-              # Setup alternatives
-              # TODO: restore these 3 lines when we switch to older LLVM tools
-              # for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
-              #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
-              # done
-
               if [ "${{ matrix.target_platform }}" = "mingw" ]; then
                 sudo apt-get -qq install --no-install-recommends nsis wine
                 source ./src/build/scripts/install_llvm_mingw.sh
@@ -141,7 +178,7 @@ jobs:
               ;;
             macos-latest)
               brew update
-              brew install --quiet nasm cmake llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
+              brew install --quiet nasm cmake lld@${{ matrix.llvm_version }}
               echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               ;;
