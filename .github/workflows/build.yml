@@ -141,8 +141,7 @@ jobs:
               ;;
             macos-latest)
               brew update
-              brew install --quiet nasm cmake@${{ env.CMAKE_VERSION }} llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
-              brew link --force --overwrite cmake@${{ env.CMAKE_VERSION }}
+              brew install --quiet nasm cmake llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
               echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               ;;
