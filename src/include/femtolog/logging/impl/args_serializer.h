@@ -63,8 +63,7 @@ inline std::string_view to_string_view(const T& value) {
 }
 
 template <typename T>
-inline void add_dynamic_string_length(std::size_t* dest,
-                                             const T& value) {
+inline void add_dynamic_string_length(std::size_t* dest, const T& value) {
   using Decayed = std::decay_t<T>;
   if constexpr (is_string_like_v<Decayed>) {
     const std::string_view view = to_string_view(value);

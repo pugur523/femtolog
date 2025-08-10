@@ -21,6 +21,7 @@ TEST(FemtoLogTest, README_example) {
       .backend_dequeue_buffer_size = 1024 * 64,
       .backend_worker_cpu_affinity = 5,
       .color_mode = femtolog::ColorMode::kAuto,
+      .terminate_on_fatal = false,
   };
   logger.init(options);
   logger.register_sink<femtolog::StdoutSink<>>();
@@ -54,7 +55,10 @@ namespace femtolog {
 TEST(FemtoLogTest, BasicLogging) {
   Logger& logger = Logger::global_logger();
 
-  logger.init();
+  femtolog::FemtologOptions options{
+      .terminate_on_fatal = false,
+  };
+  logger.init(options);
 
   logger.register_sink<StdoutSink<>>();
   logger.register_sink<FileSink>();

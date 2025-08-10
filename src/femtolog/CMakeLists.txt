@@ -9,6 +9,7 @@ message(STATUS "Configuring ${MODULE_NAME} module...")
 
 set(SOURCES
   femtolog.cc
+  logger.cc
 )
 
 add_library(${MODULE_OBJECTS_NAME} OBJECT ${SOURCES})

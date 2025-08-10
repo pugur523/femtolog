@@ -76,7 +76,7 @@ struct FemtologOptions {
    * If true, terminates the whole program when the backend worker receives log
    * entry whose level is LogLevel::kFatal.
    */
-  bool terminate_on_fatal : 1 = true;
+  bool terminate_on_fatal : 1 = false;
 };
 
 constexpr FemtologOptions kFastOptions{

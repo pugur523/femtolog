@@ -28,6 +28,7 @@ void InternalLogger::init(const FemtologOptions& options) {
       [[likely]] {
     backend_worker_.init(&queue_, options);
   }
+  terminate_on_fatal_ = options.terminate_on_fatal;
 }
 
 void InternalLogger::register_sink(std::unique_ptr<SinkBase> sink) {

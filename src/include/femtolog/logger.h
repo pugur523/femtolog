@@ -110,15 +110,9 @@ class FEMTOLOG_EXPORT Logger {
 
   inline void reset_count() { internal_logger_->reset_count(); }
 
-  inline static Logger& logger() {
-    thread_local Logger logger_;
-    return logger_;
-  }
+  static Logger& logger();
 
-  inline static Logger& global_logger() {
-    static Logger logger_;
-    return logger_;
-  }
+  static Logger& global_logger();
 
   inline static Logger create_logger() { return Logger(); }
 
