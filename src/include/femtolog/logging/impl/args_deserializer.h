@@ -6,6 +6,7 @@
 #define INCLUDE_FEMTOLOG_LOGGING_IMPL_ARGS_DESERIALIZER_H_
 
 #include <cstring>
+#include <string>
 #include <tuple>
 #include <utility>
 
