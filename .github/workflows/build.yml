@@ -92,16 +92,6 @@ jobs:
           poetry env info
         shell: bash
         
-      - name: Cache CMake
-        id: cache-cmake
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ matrix.os == 'ubuntu-latest' && '/usr/local/bin/cmake' || '' }}
-            ${{ matrix.os == 'windows-latest' && 'C:/Program Files/CMake' || '' }}
-            ${{ matrix.os == 'macos-latest' && '/usr/local/bin/cmake' || '' }}
-          key: cmake-${{ matrix.os }}-${{ env.CMAKE_VERSION }}
-
       - name: Cache LLVM
         id: cache-llvm
         uses: actions/cache@v4
@@ -112,24 +102,11 @@ jobs:
             ${{ matrix.os == 'macos-latest' && format('/usr/local/opt/llvm@{0}', matrix.llvm_version) || '' }}
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
 
-      - name: Install CMake (Linux)
-        if: matrix.os == 'ubuntu-latest' && steps.cache-cmake.outputs.cache-hit != 'true'
-        run: |
-          cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
-          wget -nv "${cmake_url}" -O cmake-installer.sh
-          chmod +x cmake-installer.sh
-          sudo ./cmake-installer.sh --skip-license --prefix=/usr/local
-          rm cmake-installer.sh
-
       - name: Install CMake (Windows)
-        if: matrix.os == 'windows-latest' && steps.cache-cmake.outputs.cache-hit != 'true'
+        if: matrix.os == 'windows-latest'
         uses: jwlawson/actions-setup-cmake@v2.0.2
         with:
           cmake-version: ${{ env.CMAKE_VERSION }}
-
-      - name: Install CMake (macOS)
-        if: matrix.os == 'macos-latest' && steps.cache-cmake.outputs.cache-hit != 'true'
-        run: brew update && brew install cmake
 
       - name: Install LLVM (Linux)
         if: matrix.os == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
@@ -166,6 +143,13 @@ jobs:
               fi
               sudo apt-get -qq update
               sudo apt-get -qq install --no-install-recommends $packages
+
+              # Install CMake
+              cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
+              wget -nv "${cmake_url}" -O cmake-installer.sh
+              chmod +x cmake-installer.sh
+              sudo ./cmake-installer.sh --skip-license --prefix=/usr/local
+              rm cmake-installer.sh
 
               if [ "${{ matrix.target_platform }}" = "mingw" ]; then
                 sudo apt-get -qq install --no-install-recommends nsis wine
