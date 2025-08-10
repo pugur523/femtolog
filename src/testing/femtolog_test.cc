@@ -11,14 +11,24 @@
 #include "gtest/gtest.h"
 
 TEST(FemtoLogTest, README_example) {
+  // get thread local logger instance
   femtolog::Logger& logger = femtolog::Logger::logger();
 
-  logger.init();
+  // initialize logger and register log sink
+  femtolog::FemtologOptions options = {
+      .spsc_queue_size = 1024 * 1024 * 4,
+      .backend_format_buffer_size = 1024 * 64,
+      .backend_dequeue_buffer_size = 1024 * 64,
+      .backend_worker_cpu_affinity = 5,
+      .color_mode = femtolog::ColorMode::kAuto,
+  };
+  logger.init(options);
   logger.register_sink<femtolog::StdoutSink<>>();
   logger.register_sink<femtolog::FileSink>();
   logger.register_sink<femtolog::JsonLinesSink<>>();
   logger.level("trace");
 
+  // start the backend worker that dequeues logged entries
   logger.start_worker();
 
   std::string username = "pugur";
@@ -26,6 +36,7 @@ TEST(FemtoLogTest, README_example) {
   bool result = true;
   int error_code = -1;
 
+  // log messages with compile-time interpreted format strings:
   logger.trace<"Hello {}\n">("World");
   logger.debug<"Hello World wo formatting\n">();
   logger.info<"User \"{}\" logged in.\n">(username);

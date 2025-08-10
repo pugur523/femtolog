@@ -65,7 +65,14 @@ int main() {
   femtolog::Logger& logger = femtolog::Logger::logger();
 
   // initialize logger and register log sink
-  logger.init();
+  femtolog::FemtologOptions options = {
+      .spsc_queue_size = 1024 * 1024 * 4,
+      .backend_format_buffer_size = 1024 * 64,
+      .backend_dequeue_buffer_size = 1024 * 64,
+      .backend_worker_cpu_affinity = 5,
+      .color_mode = femtolog::ColorMode::kAuto,
+  };
+  logger.init(options);
   logger.register_sink<femtolog::StdoutSink<>>();
   logger.register_sink<femtolog::FileSink>();
   logger.register_sink<femtolog::JsonLinesSink<>>();

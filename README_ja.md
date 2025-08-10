@@ -65,13 +65,20 @@ int main() {
   femtolog::Logger& logger = femtolog::Logger::logger();
 
   // ロガーを初期化し、シンクを登録
-  logger.init();
+  femtolog::FemtologOptions options = {
+      .spsc_queue_size = 1024 * 1024 * 4,
+      .backend_format_buffer_size = 1024 * 64,
+      .backend_dequeue_buffer_size = 1024 * 64,
+      .backend_worker_cpu_affinity = 5,
+      .color_mode = femtolog::ColorMode::kAuto,
+  };
+  logger.init(options);
   logger.register_sink<femtolog::StdoutSink<>>();
   logger.register_sink<femtolog::FileSink>();
   logger.register_sink<femtolog::JsonLinesSink<>>();
   logger.level("trace");
 
-  // ログエントリをデキューするバックエンドワーカーを起動
+  // ログエントリをデキューするバックエンドワーカーのスレッドを起動
   logger.start_worker();
 
   std::string username = "pugur";
@@ -79,14 +86,14 @@ int main() {
   bool result = true;
   int error_code = -1;
 
-  // コンパイル時解釈されるさォーマット文字列を使用しログ出力:
-  logger.trace<"Hello {}\n">("World");
-  logger.debug<"Hello World wo formatting\n">();
-  logger.info<"User \"{}\" logged in.\n">(username);
-  logger.warn<"CPU usage is high: {}%\n">(cpu_usage);
-  logger.error<"Return value is: {}\n">(result);
+  // コンパイル時解釈されるフォーマット文字列を使用しログ出力:
+  logger.trace<"ハロー{}\n">("ワールド");
+  logger.debug<"フォーマットなし～\n">();
+  logger.info<"\"{}\"さんがログインしました.\n">(username);
+  logger.warn<"CPU使用率は{}%です\n">(cpu_usage);
+  logger.error<"返り値は{}です\n">(result);
 
-  logger.fatal<"Fatal error occured; error code: {}\n">(error_code);
+  logger.fatal<"致命的なエラー; エラーコード: {}\n">(error_code);
 
   logger.stop_worker();
   logger.clear_sinks();

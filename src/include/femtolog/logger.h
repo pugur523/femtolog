@@ -116,6 +116,8 @@ class FEMTOLOG_EXPORT Logger {
     return logger_;
   }
 
+  inline static Logger create_logger() { return Logger(); }
+
  private:
   Logger() : internal_logger_(std::make_unique<InternalLogger>()) {}
 

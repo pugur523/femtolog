@@ -29,26 +29,26 @@ struct FemtologOptions {
    *
    * This queue is used by frontend threads to send log messages to the backend.
    * A larger size can reduce blocking but consumes more memory.
-   * Default: 64KiB (1024 * 64 bytes)
+   * Default: 8KiB (1024 * 8 bytes)
    */
-  std::size_t spsc_queue_size = 1024 * 64;
+  std::size_t spsc_queue_size = 1024 * 8;
 
   /**
    * @brief Size of the buffer used by the backend for formatting log messages.
    *
    * This buffer holds formatted log strings before they are written to sinks.
-   * Default: 16KiB (1024 * 16 bytes)
+   * Default: 2KiB (1024 * 2 bytes)
    */
-  std::size_t backend_format_buffer_size = 1024 * 16;
+  std::size_t backend_format_buffer_size = 1024 * 2;
 
   /**
    * @brief Size of the buffer used by the backend for dequeuing messages.
    *
    * The backend thread dequeues messages in batches into this buffer for
    * processing.
-   * Default: 16KiB (1024 * 16 bytes)
+   * Default: 4KiB (1024 * 4 bytes)
    */
-  std::size_t backend_dequeue_buffer_size = 1024 * 16;
+  std::size_t backend_dequeue_buffer_size = 1024 * 4;
 
   /**
    * @brief CPU core ID for the backend worker thread's affinity.
