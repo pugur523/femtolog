@@ -102,12 +102,6 @@ jobs:
             ${{ matrix.os == 'macos-latest' && format('/usr/local/opt/llvm@{0}', matrix.llvm_version) || '' }}
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
 
-      - name: Install CMake (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: jwlawson/actions-setup-cmake@v2.0.2
-        with:
-          cmake-version: ${{ env.CMAKE_VERSION }}
-
       - name: Install LLVM (Linux)
         if: matrix.os == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
         run: |
@@ -132,6 +126,11 @@ jobs:
         if: matrix.os == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
         run: brew install llvm@${{ matrix.llvm_version }}
       
+      - name: Install CMake (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: jwlawson/actions-setup-cmake@v2.0.2
+        with:
+          cmake-version: ${{ env.CMAKE_VERSION }}
 
       - name: Install system dependencies
         run: |
