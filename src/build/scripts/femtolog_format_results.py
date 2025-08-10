@@ -93,15 +93,17 @@ def plot_benchmark_percentiles(
     font_scale: float = 1.0,
     plot_by_percentile: bool = True,
 ):
-    mpl.rcParams.update({
-        "font.family": "Noto Sans CJK JP",
-        "font.size": 14,
-        "axes.titlesize": 14,
-        "axes.labelsize": 14,
-        "xtick.labelsize": 10,
-        "ytick.labelsize": 10,
-        "legend.fontsize": 10,
-    })
+    mpl.rcParams.update(
+        {
+            "font.family": "Noto Sans CJK JP",
+            "font.size": 14,
+            "axes.titlesize": 14,
+            "axes.labelsize": 14,
+            "xtick.labelsize": 10,
+            "ytick.labelsize": 10,
+            "legend.fontsize": 10,
+        }
+    )
     sns.set_theme(style="whitegrid")
     sns.set_context("notebook", font_scale=font_scale)
 
@@ -112,31 +114,31 @@ def plot_benchmark_percentiles(
 
     if plot_by_percentile:
         num_percentiles = len(percentiles)
-        
+
         fig_width = max(12, len(rows) * 0.8)
         fig_height = max(4 * num_percentiles, 8)
         fig = plt.figure(figsize=(fig_width, fig_height))
-        
+
         if num_percentiles > 1:
             n_subplots = num_percentiles * 2 - 1
             height_ratios = [1 if i % 2 == 0 else 0.1 for i in range(n_subplots)]
         else:
             n_subplots = 1
             height_ratios = [1]
-        
+
         gs = gridspec.GridSpec(n_subplots, 1, height_ratios=height_ratios)
-        
+
         all_values = []
         for row in rows:
             for p in percentiles:
                 all_values.append(row[f"P{p}"])
         ymax = max(all_values) * 1.15 if all_values else 1
-        
+
         group_colors = {}
         color_palette = sns.color_palette("Set2", len(groups))
         for i, group_name in enumerate(groups.keys()):
             group_colors[group_name] = color_palette[i]
-        
+
         benchmark_names = [row["Benchmark"] for row in rows]
         short_names = []
         for name in benchmark_names:
@@ -147,98 +149,100 @@ def plot_benchmark_percentiles(
                 short_names.append(parts[-1])
             else:
                 short_names.append(name)
-        
+
         subplot_idx = 0
         for i, p in enumerate(percentiles):
             ax = fig.add_subplot(gs[subplot_idx])
             subplot_idx += 2 if num_percentiles > 1 else 1
-            
+
             values = []
             colors = []
             for row in rows:
                 values.append(row[f"P{p}"])
                 group_prefix = row["Benchmark"].split("_")[0]
                 colors.append(group_colors[group_prefix])
-            
+
             bars = ax.bar(
-                range(len(values)), 
-                values, 
+                range(len(values)),
+                values,
                 color=colors,
                 edgecolor="white",
                 linewidth=1.0,
-                alpha=0.8
+                alpha=0.8,
             )
-            
+
             for bar, value in zip(bars, values):
                 height = bar.get_height()
                 ax.text(
-                    bar.get_x() + bar.get_width()/2, 
+                    bar.get_x() + bar.get_width() / 2,
                     height + ymax * 0.005,
-                    f'{value:.1f}',
-                    ha='center', va='bottom',
-                    fontsize=9, fontweight='bold'
+                    f"{value:.1f}",
+                    ha="center",
+                    va="bottom",
+                    fontsize=9,
+                    fontweight="bold",
                 )
-            
+
             ax.set_xticks(range(len(short_names)))
-            ax.set_xticklabels(short_names, rotation=30, ha='right', fontsize=10)
+            ax.set_xticklabels(short_names, rotation=30, ha="right", fontsize=10)
             ax.set_ylim(0, ymax)
             ax.set_ylabel(f"{field} (ns)", fontsize=11, fontweight="bold")
             ax.set_title(f"P{p:.1f} Percentile", fontsize=14, fontweight="bold", pad=15)
-            
-            ax.grid(True, alpha=0.3, linestyle='--')
+
+            ax.grid(True, alpha=0.3, linestyle="--")
             ax.set_axisbelow(True)
-        
+
         if len(groups) > 1:
             legend_elements = []
             for group_name, color in group_colors.items():
                 legend_elements.append(
-                    plt.Rectangle((0, 0), 1, 1, facecolor=color, alpha=0.8, label=group_name) # type: ignore
+                    plt.Rectangle((0, 0), 1, 1, facecolor=color, alpha=0.8, label=group_name)  # type: ignore
                 )
-            
+
             fig.legend(
                 handles=legend_elements,
-                loc='center right',
+                loc="center right",
                 bbox_to_anchor=(0.98, 0.5),
-                title='Benchmark Groups',
+                title="Benchmark Groups",
                 title_fontsize=12,
                 fontsize=11,
                 frameon=True,
                 fancybox=True,
-                shadow=True
+                shadow=True,
             )
-        
+
         fig.suptitle(
             "Benchmark Comparison by Percentile",
             fontsize=35,
             fontweight="black",
-            y=0.98
+            y=0.98,
         )
-        
-        plt.tight_layout(rect=[0.0, 0.0, 0.85, 0.95]) # type: ignore
-        
+
+        plt.tight_layout(rect=[0.0, 0.0, 0.85, 0.95])  # type: ignore
+
     else:
         num_groups = len(groups)
         n_subplots = num_groups * 2 - 1 if num_groups > 1 else 1
-        
+
         fig = plt.figure(figsize=(14, max(3.5 * num_groups, 6)))
         height_ratios = [1 if i % 2 == 0 else 0.07 for i in range(n_subplots)]
         gs = gridspec.GridSpec(n_subplots, 1, height_ratios=height_ratios)
-        
+
         subplot_idx = 0
         for i, (prefix, group_rows) in enumerate(groups.items()):
             ax = fig.add_subplot(gs[subplot_idx])
             subplot_idx += 2 if num_groups > 1 else 1
-            
+
             bar_width = min(0.8 / len(group_rows), 0.08)
             x = np.arange(len(percentiles))
             colors = sns.color_palette("tab20", len(group_rows))
-            
+
             group_values = []
             for row in group_rows:
                 for p in percentiles:
                     group_values.append(row[f"P{p}"])
             ymax = max(group_values) * 1.1 if group_values else 1
-            
+
             for j, (row, color) in enumerate(zip(group_rows, colors)):
                 values = [row[f"P{p}"] for p in percentiles]
                 ax.bar(
@@ -248,38 +252,33 @@ def plot_benchmark_percentiles(
                     label=row["Benchmark"],
                     color=color,
                     edgecolor="white",
-                    alpha=0.8
+                    alpha=0.8,
                 )
-            
+
             ax.set_xticks(x + bar_width * (len(group_rows) - 1) / 2)
             ax.set_xticklabels([f"P{p:.1f}" for p in percentiles])
             ax.set_ylim(0, ymax)
             ax.set_ylabel(f"{field} (ns)", fontsize=11, fontweight="bold")
             ax.set_title(
-                f"Benchmark Percentiles: {prefix}", 
-                fontsize=16, 
-                fontweight="bold"
+                f"Benchmark Percentiles: {prefix}", fontsize=16, fontweight="bold"
             )
             ax.legend(
-                loc="upper left", 
-                bbox_to_anchor=(1.01, 1.0), 
-                fontsize=11, 
-                frameon=True
+                loc="upper left", bbox_to_anchor=(1.01, 1.0), fontsize=11, frameon=True
             )
-            
-            ax.grid(True, alpha=0.3, linestyle='--')
+
+            ax.grid(True, alpha=0.3, linestyle="--")
             ax.set_axisbelow(True)
-        
+
         fig.suptitle(
             "Logging Benchmark Percentile Comparison",
             fontsize=18,
             fontweight="bold",
-            y=0.98
+            y=0.98,
         )
-        
-        plt.tight_layout(rect=[0.0, 0.0, 0.85, 0.95]) # type: ignore
-    
-    fig.savefig(plot_file, dpi=300, bbox_inches='tight', facecolor='white')
+
+        plt.tight_layout(rect=[0.0, 0.0, 0.85, 0.95])  # type: ignore
+
+    fig.savefig(plot_file, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"📊 Plot saved to: {plot_file}")
 

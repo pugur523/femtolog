@@ -12,6 +12,7 @@
 #include "femtolog/base/log_entry.h"
 #include "femtolog/base/log_level.h"
 #include "femtolog/build/build_flag.h"
+#include "femtolog/options.h"
 #include "femtolog/sinks/sink_base.h"
 
 #if FEMTOLOG_IS_WINDOWS
@@ -24,22 +25,22 @@
 
 namespace femtolog {
 
-template <bool use_color = true,
-          bool enable_buffering = false,
-          bool sync_write = true>
+template <bool enable_buffering = false, bool sync_write = true>
 class StdoutSink final : public SinkBase {
  public:
-  StdoutSink() {
-#if FEMTOLOG_IS_WINDOWS && use_color
-    static bool initialized = [] {
-      HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-      DWORD dwMode = 0;
-      if (hOut != INVALID_HANDLE_VALUE && GetConsoleMode(hOut, &dwMode)) {
-        SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-      }
-      return true;
-    }();
-    (void)initialized;
+  explicit StdoutSink(ColorMode mode = ColorMode::kAuto) : mode_(mode) {
+#if FEMTOLOG_IS_WINDOWS
+    if (is_color_enabled()) {
+      static bool initialized = [] {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD dwMode = 0;
+        if (hOut != INVALID_HANDLE_VALUE && GetConsoleMode(hOut, &dwMode)) {
+          SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+        }
+        return true;
+      }();
+      (void)initialized;
+    }
 #endif
 
     if constexpr (enable_buffering) {
@@ -74,7 +75,7 @@ class StdoutSink final : public SinkBase {
     const char* level_str = log_level_to_lower_str(entry.level);
     std::size_t level_len = core::safe_strlen(level_str);
 
-    if constexpr (use_color) {
+    if (is_color_enabled()) {
       std::memcpy(buffer_.get() + cursor_, core::kBold, kBoldLen);
       cursor_ += kBoldLen;
 
@@ -86,7 +87,7 @@ class StdoutSink final : public SinkBase {
     std::memcpy(buffer_.get() + cursor_, level_str, level_len);
     cursor_ += level_len;
     std::memcpy(buffer_.get() + cursor_, kSep, kSepLen);
-    if constexpr (use_color) {
+    if (is_color_enabled()) {
       std::memcpy(buffer_.get() + cursor_, kReset, kResetLen);
       cursor_ += kResetLen;
     }
@@ -121,7 +122,7 @@ class StdoutSink final : public SinkBase {
 #if FEMTOLOG_IS_WINDOWS
     constexpr std::size_t kMaxStackBuffer = 4096;
 
-    if constexpr (use_color) {
+    if constexpr (is_color_enabled()) {
       const char* color = log_level_to_ansi_color(level);
       std::size_t color_len = core::safe_strlen(color);
 
@@ -184,7 +185,7 @@ class StdoutSink final : public SinkBase {
       }
     }
 #else
-    if constexpr (use_color) {
+    if (is_color_enabled()) {
       const char* color = log_level_to_ansi_color(level);
       std::size_t color_len = core::safe_strlen(color);
       struct iovec iov[6];
@@ -235,8 +236,14 @@ class StdoutSink final : public SinkBase {
     }
   }
 
+  inline bool is_color_enabled() const {
+    return mode_ == ColorMode::kAlways ||
+           (mode_ == ColorMode::kAuto && is_ansi_sequence_available());
+  }
+
   std::unique_ptr<char[]> buffer_;
   std::size_t cursor_ = 0;
+  ColorMode mode_ = ColorMode::kAuto;
 
   static constexpr int kStdOutFd = 1;
   static constexpr std::size_t kBufferCapacity = 4096;

@@ -13,13 +13,12 @@ namespace femtolog::logging {
 namespace {
 
 void args_deserializer_deserialize_and_format(benchmark::State& state) {
-  StringRegistry registry;
   int x = 100;
   std::string y = "benchmark";
   double z = 9.99;
 
   ArgsSerializer<256> serializer;
-  auto& args = serializer.serialize<"x={}, y={}, z={}">(&registry, x, y, z);
+  auto& args = serializer.serialize<"x={}, y={}, z={}">(x, y, z);
 
   const SerializedArgsHeader* header =
       reinterpret_cast<const SerializedArgsHeader*>(args.data());
@@ -29,8 +28,8 @@ void args_deserializer_deserialize_and_format(benchmark::State& state) {
   fmt::memory_buffer buf;
   buf.reserve(1024);
   for (auto _ : state) {
-    std::size_t n = header->deserialize_and_format_func(
-        &buf, header->format_func, &registry, payload);
+    std::size_t n =
+        header->deserialize_and_format_func(&buf, header->format_func, payload);
     // benchmark::DoNotOptimize(buf.data());
     benchmark::DoNotOptimize(n);
   }

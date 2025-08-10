@@ -18,7 +18,6 @@ namespace femtolog {
 
 using DeserializeAndFormatFunction = std::size_t (*)(fmt::memory_buffer*,
                                                      FormatFunction,
-                                                     StringRegistry*,
                                                      const char*);
 
 struct SerializedArgsHeader {
@@ -71,6 +70,7 @@ struct ArgTypeInfo {
 
   static constexpr bool is_dynamic_string =
       (std::is_convertible_v<Decayed, std::string_view> ||
+       std::is_same_v<Decayed, std::string> ||
        std::is_same_v<Decayed, std::string_view> || is_char_array) &&
       !is_static_string;
 
@@ -94,17 +94,9 @@ template <typename T>
 inline constexpr bool is_serializeable_v = ArgTypeInfo<T>::is_serializeable;
 
 template <typename T>
-struct SerializedArgType {
-  using type =
-      std::conditional_t<is_string_like_v<T>, StringId, std::decay_t<T>>;
-};
-template <typename T>
-using serialized_arg_type_t = typename SerializedArgType<T>::type;
-
-template <typename T>
 struct DeserializedArgType {
-  using type = std::
-      conditional_t<is_string_like_v<T>, std::string_view, std::decay_t<T>>;
+  using type =
+      std::conditional_t<is_string_like_v<T>, std::string, std::decay_t<T>>;
 };
 template <typename T>
 using deserialized_arg_type_t = typename DeserializedArgType<T>::type;

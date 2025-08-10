@@ -70,8 +70,7 @@ constexpr FemtologOptions kFastOptions{
 };
 
 constexpr FemtologOptions kMemorySavingOptions{
-    1024 * 4,         512, 512, std::numeric_limits<std::size_t>::max(),
-    ColorMode::kAuto,
+    1024, 256, 512, std::numeric_limits<std::size_t>::max(), ColorMode::kAuto,
 };
 
 }  // namespace femtolog

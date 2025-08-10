@@ -87,8 +87,8 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
     } else {
       constexpr uint16_t format_id = StringRegistry::get_string_id<fmt>();
       string_registry_.register_string<fmt>();
-      const auto& serialized_args = serializer_.serialize<fmt>(
-          &string_registry_, std::forward<Args>(args)...);
+      const auto& serialized_args =
+          serializer_.serialize<fmt>(std::forward<Args>(args)...);
       log_serialized<level>(format_id, serialized_args);
     }
   }
@@ -145,12 +145,24 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
     enqueue_log_entry(entry);
   }
 
-  void enqueue_log_entry(const LogEntry* entry) noexcept;
+  inline void enqueue_log_entry(const LogEntry* entry) noexcept;
 
   [[nodiscard]] static uint32_t current_thread_id() noexcept;
 
   friend void internal_logger_enqueue_log_entry_bench(InternalLogger* logger);
 };
+
+inline void InternalLogger::enqueue_log_entry(const LogEntry* entry) noexcept {
+  const std::size_t entry_size = entry->total_size();
+
+  // Direct enqueue with minimal overhead
+  const SpscQueueStatus result = queue_.enqueue_bytes(entry, entry_size);
+  if (result == SpscQueueStatus::kOk) [[likely]] {
+    enqueued_count_++;
+  } else {
+    dropped_count_++;
+  }
+}
 
 }  // namespace femtolog::logging
 

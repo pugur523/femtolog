@@ -23,8 +23,7 @@ void backend_worker_run_loop(benchmark::State& state) {
   options.backend_worker_cpu_affinity = std::numeric_limits<std::size_t>::max();
 
   SpscQueue queue;
-  StringRegistry registry;
-  worker.init(&queue, &registry, options);
+  worker.init(&queue, options);
   worker.register_sink(std::move(sink));
 
   for (auto _ : state) {

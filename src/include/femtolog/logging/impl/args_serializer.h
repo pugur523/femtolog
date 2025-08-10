@@ -24,25 +24,31 @@
 namespace femtolog::logging {
 
 template <typename T>
-inline void write_arg(StringRegistry* registry, char*& pos, const T& value) {
+inline void write_arg(char*& pos,
+                      const T& value,
+                      std::size_t* dynamic_string_length) {
   using Decayed = std::decay_t<T>;
 
   if constexpr (is_string_like_v<Decayed>) {
     std::string_view view;
     if constexpr (is_char_array_v<Decayed>) {
       if (value == nullptr) [[unlikely]] {
-        view = "nullptr";
+        view = "(nullptr)";
       } else {
         view = value;
       }
     } else {
       view = value;
     }
+    const std::size_t str_len = view.size();
+    std::memcpy(pos, &str_len, sizeof(str_len));
+    pos += sizeof(str_len);
 
-    StringId id = hash_string_from_pointer(view.data());
-    registry->register_string_arena(id, view);
-    std::memcpy(pos, &id, sizeof(id));
-    pos += sizeof(id);
+    if (str_len > 0) [[likely]] {
+      std::memcpy(pos, view.data(), str_len);
+      pos += str_len;
+    }
+    *dynamic_string_length += sizeof(str_len) + str_len;
   } else if constexpr (std::is_trivially_copyable_v<Decayed>) {
     std::memcpy(pos, &value, sizeof(Decayed));
     pos += sizeof(Decayed);
@@ -58,7 +64,8 @@ consteval std::size_t calculate_serialized_size() {
   auto add_arg_size = []<typename T>() constexpr -> std::size_t {
     using Decayed = std::decay_t<T>;
     if constexpr (is_string_like_v<Decayed>) {
-      return sizeof(StringId);
+      // dynamic; add lazily
+      return 0;
     } else if constexpr (std::is_trivially_copyable_v<Decayed>) {
       return sizeof(Decayed);
     } else {
@@ -90,14 +97,15 @@ class ArgsSerializer {
 
   // for 0 args: we don't use this
   template <FixedString fmt>
-  SerializedArgs<Capacity>& serialize(StringRegistry*) = delete;
+  SerializedArgs<Capacity>& serialize() = delete;
 
   template <FixedString fmt, typename... Args>
   [[nodiscard, gnu::hot]] constexpr SerializedArgs<Capacity>& serialize(
-      StringRegistry* registry,
       Args&&... args) {
-    constexpr std::size_t total_size = calculate_serialized_size<Args...>();
-    static_assert(Capacity >= total_size, "Buffer too small for arguments");
+    constexpr std::size_t kTotalSizeExcludingDynStr =
+        calculate_serialized_size<Args...>();
+    static_assert(Capacity >= kTotalSizeExcludingDynStr,
+                  "Buffer too small for arguments");
 
     FormatFunction format_function_ptr =
         FormatDispatcher<fmt, std::decay_t<Args>...>::function();
@@ -111,9 +119,10 @@ class ArgsSerializer {
     std::memcpy(pos, &header, sizeof(header));
     pos += sizeof(header);
 
-    (write_arg(registry, pos, args), ...);
+    std::size_t dynamic_strings_length = 0;
+    (write_arg(pos, args, &dynamic_strings_length), ...);
 
-    args_.resize(total_size);
+    args_.resize(kTotalSizeExcludingDynStr + dynamic_strings_length);
     return args_;
   }
 

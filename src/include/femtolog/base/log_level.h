@@ -6,20 +6,21 @@
 #define INCLUDE_FEMTOLOG_BASE_LOG_LEVEL_H_
 
 #include <cstdint>
+#include <string>
 
 #include "femtolog/core/base/string_util.h"
 
 namespace femtolog {
 
 enum class LogLevel : uint8_t {
-  kFatal = 0,
-  kError = 1,
-  kWarn = 2,
-  kInfo = 3,
-  kDebug = 4,
-  kTrace = 5,
-  kRaw = 6,
-  kUnknown = 7,
+  kRaw = 0,
+  kFatal = 1,
+  kError = 2,
+  kWarn = 3,
+  kInfo = 4,
+  kDebug = 5,
+  kTrace = 6,
+  kUnknown = 8,
 
   // Keep this at the end and equal to the last entry.
   kMaxValue = kUnknown,
@@ -27,39 +28,39 @@ enum class LogLevel : uint8_t {
 
 inline constexpr const char* log_level_to_lower_str(LogLevel level) {
   switch (level) {
+    case LogLevel::kRaw: return "";
     case LogLevel::kFatal: return "fatal";
     case LogLevel::kError: return "error";
     case LogLevel::kWarn: return "warn";
     case LogLevel::kInfo: return "info";
     case LogLevel::kDebug: return "debug";
     case LogLevel::kTrace: return "trace";
-    case LogLevel::kRaw: return "";
     default: return "unknown";
   }
 }
 
 inline constexpr const char* log_level_to_upper_str(LogLevel level) {
   switch (level) {
+    case LogLevel::kRaw: return "";
     case LogLevel::kFatal: return "FATAL";
     case LogLevel::kError: return "ERROR";
     case LogLevel::kWarn: return "WARN";
     case LogLevel::kInfo: return "INFO";
     case LogLevel::kDebug: return "DEBUG";
     case LogLevel::kTrace: return "TRACE";
-    case LogLevel::kRaw: return "";
     default: return "UNKNOWN";
   }
 }
 
 inline constexpr const char* log_level_to_ansi_color(LogLevel level) {
   switch (level) {
+    case LogLevel::kRaw: return core::kReset;
     case LogLevel::kFatal: return core::kMagenta;
     case LogLevel::kError: return core::kRed;
     case LogLevel::kWarn: return core::kYellow;
     case LogLevel::kInfo: return core::kGreen;
     case LogLevel::kDebug: return core::kCyan;
     case LogLevel::kTrace: return core::kGray;
-    case LogLevel::kRaw: return core::kReset;
     default: return "";
   }
 }
@@ -75,23 +76,29 @@ constexpr bool compare_array_and_cstring(const std::array<char, N>& arr,
   return cstr[arr.size()] == '\0';
 }
 
-inline LogLevel log_level_from_string(const char* str) {
-  if (std::strcmp(str, "fatal") == 0) {
-    return LogLevel::kFatal;
-  } else if (std::strcmp(str, "error") == 0) {
-    return LogLevel::kError;
-  } else if (std::strcmp(str, "warn") == 0) {
-    return LogLevel::kWarn;
-  } else if (std::strcmp(str, "info") == 0) {
-    return LogLevel::kInfo;
-  } else if (std::strcmp(str, "debug") == 0) {
-    return LogLevel::kDebug;
-  } else if (std::strcmp(str, "trace") == 0) {
-    return LogLevel::kTrace;
-  } else if (std::strcmp(str, "silent") == 0) {
+inline constexpr bool cmpstr(const char* a, const char* b) {
+  return std::char_traits<char>::compare(
+             a, b, std::char_traits<char>::length(b)) == 0;
+}
+
+inline constexpr LogLevel log_level_from_string(const char* str) {
+  if (cmpstr(str, "raw")) {
     return LogLevel::kRaw;
+  } else if (cmpstr(str, "fatal")) {
+    return LogLevel::kFatal;
+  } else if (cmpstr(str, "error")) {
+    return LogLevel::kError;
+  } else if (cmpstr(str, "warn")) {
+    return LogLevel::kWarn;
+  } else if (cmpstr(str, "info")) {
+    return LogLevel::kInfo;
+  } else if (cmpstr(str, "debug")) {
+    return LogLevel::kDebug;
+  } else if (cmpstr(str, "trace")) {
+    return LogLevel::kTrace;
+  } else {
+    return LogLevel::kUnknown;
   }
-  return LogLevel::kUnknown;
 }
 
 }  // namespace femtolog

@@ -40,7 +40,6 @@ class BackendWorker {
   BackendWorker& operator=(BackendWorker&&) noexcept = delete;
 
   void init(SpscQueue* queue,
-            StringRegistry* string_registry,
             const FemtologOptions& options = FemtologOptions());
 
   void start();
@@ -64,7 +63,6 @@ class BackendWorker {
   uint8_t* dequeue_buffer_ptr_ = nullptr;
   std::vector<std::unique_ptr<SinkBase>> sinks_;
   SpscQueue* queue_ = nullptr;
-  StringRegistry* string_registry_ = nullptr;
   std::thread worker_thread_;
   std::size_t worker_thread_cpu_affinity_ = 5;
   std::atomic<bool> shutdown_required_{false};

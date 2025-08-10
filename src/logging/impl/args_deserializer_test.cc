@@ -22,14 +22,14 @@ TEST(ArgsDeserializerTest, DeserializeAndFormatWorks) {
   double d = 3.14;
 
   ArgsSerializer<256> serializer;
-  auto& args = serializer.serialize<"i={}, s={}, d={}">(&registry, i, s, d);
+  auto& args = serializer.serialize<"i={}, s={}, d={}">(i, s, d);
 
   const SerializedArgsHeader* header =
       reinterpret_cast<const SerializedArgsHeader*>(args.data());
 
   fmt::memory_buffer buffer;
   std::size_t size = header->deserialize_and_format_func(
-      &buffer, header->format_func, &registry,
+      &buffer, header->format_func,
       reinterpret_cast<const char*>(args.data() + sizeof(*header)));
 
   std::string_view formatted(buffer.data(), size);

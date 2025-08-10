@@ -23,7 +23,8 @@ benchmark_exe_dir = os.path.join(
 benchmark_executable = os.path.join(benchmark_exe_dir, "femtolog_bench")
 
 if femtolog_build_util.get_platform_name() == "windows":
-    benchmark_executable= benchmark_executable + ".exe"    
+    benchmark_executable = benchmark_executable + ".exe"
+
 
 def parse_args():
     parser = argparse.ArgumentParser(

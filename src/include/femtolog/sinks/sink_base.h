@@ -10,8 +10,16 @@
 
 #include "femtolog/base/format_util.h"
 #include "femtolog/base/log_entry.h"
+#include "femtolog/build/build_flag.h"
 #include "femtolog/core/check.h"
 #include "fmt/format.h"
+
+#if FEMTOLOG_IS_WINDOWS
+#include <io.h>
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace femtolog {
 
@@ -73,6 +81,35 @@ class SinkBase {
 
     buf[result.size] = '\0';
     return result.size;
+  }
+
+  static inline bool is_ansi_sequence_available() {
+    static const bool result = [] {
+#if FEMTOLOG_IS_WINDOWS
+      // check if GetStdHandle() returns terminal handle
+      HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+      if (hOut == INVALID_HANDLE_VALUE) {
+        return false;
+      }
+
+      DWORD dwMode = 0;
+      if (!GetConsoleMode(hOut, &dwMode)) {
+        return false;
+      }
+
+      // enable virtual terminal processing
+      dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+      if (!SetConsoleMode(hOut, dwMode)) {
+        // cannot use ansi sequence if fail to enable virtual terminal
+        return false;
+      }
+      return true;
+#else
+      return isatty(STDOUT_FILENO);
+#endif
+    }();
+
+    return result;
   }
 };
 

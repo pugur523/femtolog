@@ -15,8 +15,6 @@ namespace femtolog::logging {
 
 namespace {
 
-StringRegistry registry;
-
 TEST(ArgsSerializerTest, SerializeBasicTypes) {
   const int i = 42;
   const std::string s = "hello";
@@ -27,11 +25,12 @@ TEST(ArgsSerializerTest, SerializeBasicTypes) {
   ArgsSerializer<256> serializer;
   auto& args =
       serializer.serialize<"int={}, str={}, float={}, double={}, ptr={}">(
-          &registry, i, s, f, d, cstr);
+          i, s, f, d, cstr);
 
   EXPECT_EQ(args.size(), sizeof(SerializedArgsHeader) + sizeof(i) +
-                             sizeof(StringId) + sizeof(float) + sizeof(double) +
-                             sizeof(StringId));
+                             sizeof(std::size_t) + s.size() + sizeof(float) +
+                             sizeof(double) + sizeof(std::size_t) +
+                             strlen(cstr));
 
   auto header = reinterpret_cast<const SerializedArgsHeader*>(args.data());
   EXPECT_NE(header->deserialize_and_format_func, nullptr);
@@ -39,8 +38,7 @@ TEST(ArgsSerializerTest, SerializeBasicTypes) {
 
   fmt::memory_buffer buf;
   std::size_t n = header->deserialize_and_format_func(
-      &buf, header->format_func, &registry,
-      args.data() + sizeof(SerializedArgsHeader));
+      &buf, header->format_func, args.data() + sizeof(SerializedArgsHeader));
 
   const char* formatted_str = buf.data();
   EXPECT_EQ(std::string_view(formatted_str, n),
@@ -55,12 +53,12 @@ TEST(ArgsSerializerTest, OutOfScope) {
     const int i = 42;
     const char* cstr = "test";
 
-    auto& args = serializer.serialize<"int={}, cstr={}">(&registry, i, cstr);
+    auto& args = serializer.serialize<"int={}, cstr={}">(i, cstr);
     args_ptr = &args;
   }
 
-  EXPECT_EQ(args_ptr->size(),
-            sizeof(SerializedArgsHeader) + sizeof(int) + sizeof(StringId));
+  EXPECT_EQ(args_ptr->size(), sizeof(SerializedArgsHeader) + sizeof(int) +
+                                  sizeof(std::size_t) + 4);
 
   auto header = reinterpret_cast<const SerializedArgsHeader*>(args_ptr->data());
   EXPECT_NE(header->deserialize_and_format_func, nullptr);
@@ -68,7 +66,7 @@ TEST(ArgsSerializerTest, OutOfScope) {
 
   fmt::memory_buffer buf;
   std::size_t n = header->deserialize_and_format_func(
-      &buf, header->format_func, &registry,
+      &buf, header->format_func,
       args_ptr->data() + sizeof(SerializedArgsHeader));
 
   const char* formatted_str = buf.data();

@@ -26,7 +26,7 @@ void InternalLogger::init(const FemtologOptions& options) {
 
   if (backend_worker_.status() == BackendWorkerStatus::kUninitialized)
       [[likely]] {
-    backend_worker_.init(&queue_, &string_registry_, options);
+    backend_worker_.init(&queue_, options);
   }
 }
 
@@ -44,18 +44,6 @@ void InternalLogger::start_worker() {
 
 void InternalLogger::stop_worker() {
   backend_worker_.stop();
-}
-
-void InternalLogger::enqueue_log_entry(const LogEntry* entry) noexcept {
-  const std::size_t entry_size = entry->total_size();
-
-  // Direct enqueue with minimal overhead
-  const SpscQueueStatus result = queue_.enqueue_bytes(entry, entry_size);
-  if (result == SpscQueueStatus::kOk) [[likely]] {
-    enqueued_count_++;
-  } else {
-    dropped_count_++;
-  }
 }
 
 // static

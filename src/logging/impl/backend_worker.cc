@@ -40,17 +40,13 @@ BackendWorker::~BackendWorker() {
   }
 }
 
-void BackendWorker::init(SpscQueue* queue,
-                         StringRegistry* string_registry,
-                         const FemtologOptions& options) {
+void BackendWorker::init(SpscQueue* queue, const FemtologOptions& options) {
   FEMTOLOG_DCHECK_EQ(status_, BackendWorkerStatus::kUninitialized);
   FEMTOLOG_DCHECK_GT(options.backend_dequeue_buffer_size, 0);
   FEMTOLOG_DCHECK_GT(options.backend_format_buffer_size, 0);
   FEMTOLOG_DCHECK(queue);
-  FEMTOLOG_DCHECK(string_registry);
 
   queue_ = queue;
-  string_registry_ = string_registry;
   status_ = BackendWorkerStatus::kIdling;
   dequeue_buffer_.reserve(options.backend_dequeue_buffer_size);
   dequeue_buffer_.resize(options.backend_dequeue_buffer_size);
@@ -239,7 +235,7 @@ void BackendWorker::process_log_entry(LogEntry* entry) {
         reinterpret_cast<const SerializedArgsHeader*>(entry->payload());
 
     std::size_t size = header->deserialize_and_format_func(
-        &format_buffer_, header->format_func, string_registry_,
+        &format_buffer_, header->format_func,
         entry->payload() + sizeof(*header));
 
     for (const auto& sink : sinks_) {

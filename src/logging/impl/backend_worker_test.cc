@@ -18,8 +18,7 @@ TEST(BackendWorkerTest, RegisterAndClearSinks) {
   auto sink = std::make_unique<NullSink>();
   FemtologOptions options;
   SpscQueue queue;
-  StringRegistry registry;
-  worker.init(&queue, &registry, options);
+  worker.init(&queue, options);
 
   worker.register_sink(std::move(sink));
   worker.clear_sinks();
@@ -32,8 +31,7 @@ TEST(BackendWorkerTest, CPUAffinityNoCrash) {
   FemtologOptions options;
   options.backend_worker_cpu_affinity = 5;
   SpscQueue queue;
-  StringRegistry registry;
-  worker.init(&queue, &registry, options);
+  worker.init(&queue, options);
   worker.register_sink(std::move(sink));
   worker.start();
   worker.stop();
