@@ -129,7 +129,7 @@ jobs:
 
       - name: Install CMake (macOS)
         if: matrix.os == 'macos-latest' && steps.cache-cmake.outputs.cache-hit != 'true'
-        run: brew install cmake@${{ env.CMAKE_VERSION }}
+        run: brew update && brew install cmake
 
       - name: Install LLVM (Linux)
         if: matrix.os == 'ubuntu-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
