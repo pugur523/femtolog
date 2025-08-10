@@ -108,8 +108,13 @@ jobs:
         run: |
           case "${{ matrix.os }}" in
             ubuntu-latest)
+              packages="wget curl ninja-build nasm"
+              if [ "${{ matrix.target_platform }}" = "mingw" ]; then
+                  packages="$packages nsis wine"
+              fi
               sudo apt-get -qq update
-              sudo apt-get -qq install --no-install-recommends wget curl ninja-build
+              sudo apt-get -qq install --no-install-recommends $packages
+
               # Install CMake
               cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
               wget -nv "${cmake_url}" -O cmake-installer.sh && chmod +x cmake-installer.sh && sudo ./cmake-installer.sh --skip-license --prefix=/usr/local && rm cmake-installer.sh
@@ -125,24 +130,23 @@ jobs:
               #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
               # done
 
+              if [ "${{ matrix.target_platform }}" = "mingw" ]; then
+                sudo apt-get -qq install --no-install-recommends nsis wine
+                source ./src/build/scripts/install_llvm_mingw.sh
+                echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
+              fi
               ;;
             windows-latest)
-              # choco install -y cmake --version=${{ env.CMAKE_VERSION }}
-              # choco install -y llvm --version=${{ matrix.llvm_version }} --allow-downgrade
-              choco install --no-progress -y nsis ninja
+              choco install --no-progress -y nsis ninja nasm
               ;;
             macos-latest)
-              brew update && brew install --quiet cmake llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
+              brew update
+              brew install --quiet nasm cmake@${{ env.CMAKE_VERSION }} llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
+              brew link --force --overwrite cmake@${{ env.CMAKE_VERSION }}
               echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               ;;
           esac
-
-          if [ "${{ matrix.target_platform }}" = "mingw" ]; then
-            sudo apt-get -qq install --no-install-recommends nsis wine
-            source ./src/build/scripts/install_llvm_mingw.sh
-            echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
-          fi
         shell: bash
 
       - name: Build
