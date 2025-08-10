@@ -92,13 +92,13 @@ jobs:
           poetry env info
         shell: bash
 
-        name: Install CMake
-      - uses: jwlawson/actions-setup-cmake@v2.0.2
+      - name: Install CMake
+        uses: jwlawson/actions-setup-cmake@v2.0.2
         with:
           cmake-version: ${{ env.CMAKE_VERSION }}
 
-        name: Install LLVM
-      - uses: KyleMayes/install-llvm-action@v2.0.7
+      - name: Install LLVM
+        uses: KyleMayes/install-llvm-action@v2.0.7
         with:
           version: ${{ matrix.llvm_version }}
 
