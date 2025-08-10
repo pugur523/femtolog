@@ -99,7 +99,7 @@ jobs:
           path: |
             ${{ matrix.os == 'ubuntu-latest' && format('/opt/llvm-{0}', matrix.llvm_version) || '' }}
             ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM' || '' }}
-            ${{ matrix.os == 'macos-latest' && format('/usr/local/opt/llvm@{0}', matrix.llvm_version) || '' }}
+            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm' || '' }}
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
 
       - name: Install LLVM (Linux)
