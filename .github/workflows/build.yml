@@ -92,18 +92,30 @@ jobs:
           poetry env info
         shell: bash
 
+        name: Install CMake
+      - uses: jwlawson/actions-setup-cmake@v2.0.2
+        with:
+          cmake-version: ${{ env.CMAKE_VERSION }}
+
+        name: Install LLVM
+      - uses: KyleMayes/install-llvm-action@v2.0.7
+        with:
+          version: ${{ matrix.llvm_version }}
+
       - name: Install system dependencies
         run: |
           case "${{ matrix.os }}" in
             ubuntu-latest)
-              sudo apt-get update && sudo apt-get install -y wget curl ninja-build
+              sudo apt-get -qq update
+              sudo apt-get -qq install --no-install-recommends wget curl ninja-build
+              # sudo apt-get update && sudo apt-get install -y wget curl ninja-build
               # Install CMake
-              cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
-              wget -nv "${cmake_url}" -O cmake-installer.sh && chmod +x cmake-installer.sh && sudo ./cmake-installer.sh --skip-license --prefix=/usr/local && rm cmake-installer.sh
+              # cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
+              # wget -nv "${cmake_url}" -O cmake-installer.sh && chmod +x cmake-installer.sh && sudo ./cmake-installer.sh --skip-license --prefix=/usr/local && rm cmake-installer.sh
 
               # Install LLVM
               # use latest llvm tools
-              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
+              # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
               # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
 
               # Setup alternatives
@@ -114,19 +126,19 @@ jobs:
 
               ;;
             windows-latest)
-              choco install -y cmake --version=${{ env.CMAKE_VERSION }}
-              choco install -y llvm --version=${{ matrix.llvm_version }} --allow-downgrade
-              choco install -y nsis ninja
+              # choco install -y cmake --version=${{ env.CMAKE_VERSION }}
+              # choco install -y llvm --version=${{ matrix.llvm_version }} --allow-downgrade
+              choco install --no-progress -y nsis ninja
               ;;
             macos-latest)
-              brew update && brew install cmake llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
-              echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
-              echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
+              brew install --quiet cmake llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
+              # echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
+              # echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               ;;
           esac
 
           if [ "${{ matrix.target_platform }}" = "mingw" ]; then
-            sudo apt-get update && sudo apt-get install -y nsis wine
+            sudo apt-get -qq install --no-install-recommends nsis wine
             source ./src/build/scripts/install_llvm_mingw.sh
             echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
           fi
