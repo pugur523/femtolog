@@ -100,13 +100,18 @@ jobs:
               # Install CMake
               cmake_url="https://github.com/Kitware/CMake/releases/download/v${{ env.CMAKE_VERSION }}/cmake-${{ env.CMAKE_VERSION }}-linux-x86_64.sh"
               wget -nv "${cmake_url}" -O cmake-installer.sh && chmod +x cmake-installer.sh && sudo ./cmake-installer.sh --skip-license --prefix=/usr/local && rm cmake-installer.sh
+
               # Install LLVM
-              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
+              # use latest llvm tools
+              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
+              # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
+
               # Setup alternatives
-              for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
-                sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
-              done
-          
+              # TODO: restore these 3 lines when we switch to older LLVM tools
+              # for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
+              #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
+              # done
+
               ;;
             windows-latest)
               choco install -y cmake --version=${{ env.CMAKE_VERSION }}
@@ -119,7 +124,7 @@ jobs:
               echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               ;;
           esac
-          
+
           if [ "${{ matrix.target_platform }}" = "mingw" ]; then
             sudo apt-get update && sudo apt-get install -y nsis wine
             source ./src/build/scripts/install_llvm_mingw.sh
@@ -131,12 +136,12 @@ jobs:
         run: |
           BUILD_ARGS="--build_mode=${{ inputs.build_mode }} --target_platform=${{ matrix.target_platform }} --no-install --package --no-cpplint --no-clang_format --clang_tidy"
           EXTRA_ARGS="-DFEMTOLOG_INSTALL_LIBS=true,-DFEMTOLOG_INSTALL_HEADERS=true,-DFEMTOLOG_ENABLE_XRAY=false,-DFEMTOLOG_ENABLE_SANITIZERS=false,-DFEMTOLOG_ENABLE_BUILD_REPORT=false,-DFEMTOLOG_ENABLE_LTO=true,-DFEMTOLOG_ENABLE_NATIVE_ARCH=true,-DFEMTOLOG_ENABLE_LLVM_UNWIND=false,-DFEMTOLOG_ENABLE_VERBOSE=true,-DFEMTOLOG_ENABLE_COVERAGE=false,-DFEMTOLOG_ENABLE_WARNINGS_AS_ERRORS=false,-DFEMTOLOG_BUILD_SHARED=false,-DFEMTOLOG_BUILD_BENCHMARK=false,-DFEMTOLOG_BUILD_TESTING=false,-DFEMTOLOG_ENABLE_RUN_BENCHMARK_POST_BUILD=false,-DFEMTOLOG_ENABLE_RUN_TESTING_POST_BUILD=false"
-          
+
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             # Setup MSVC environment for Windows
             eval "$(vswhere.exe -latest -products \* -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | sed 's|.*|"&/VC/Auxiliary/Build/vcvarsall.bat" x64|')"
           fi
-          
+
           poetry run python -u src/build/scripts/build.py $BUILD_ARGS --extra_args="$EXTRA_ARGS"
         shell: bash
 
@@ -161,7 +166,7 @@ jobs:
 
       - name: Install Poetry
         run: pipx install poetry
-      
+
       - uses: actions/download-artifact@v4
         with:
           pattern: builds-*-${{ inputs.build_mode }}

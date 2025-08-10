@@ -28,7 +28,7 @@ enum class LogLevel : uint8_t {
 
 inline constexpr const char* log_level_to_lower_str(LogLevel level) {
   switch (level) {
-    case LogLevel::kRaw: return "";
+    case LogLevel::kRaw: return "raw";
     case LogLevel::kFatal: return "fatal";
     case LogLevel::kError: return "error";
     case LogLevel::kWarn: return "warn";
@@ -41,7 +41,7 @@ inline constexpr const char* log_level_to_lower_str(LogLevel level) {
 
 inline constexpr const char* log_level_to_upper_str(LogLevel level) {
   switch (level) {
-    case LogLevel::kRaw: return "";
+    case LogLevel::kRaw: return "RAW";
     case LogLevel::kFatal: return "FATAL";
     case LogLevel::kError: return "ERROR";
     case LogLevel::kWarn: return "WARN";

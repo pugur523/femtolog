@@ -146,7 +146,7 @@ class JsonLinesSink final : public SinkBase {
 #if FEMTOLOG_IS_WINDOWS
       _write(fd_, buffer_.get(), static_cast<uint32_t>(cursor_));
 #else
-      [[maybe_unused]] ssize_t written = write(fd_, buffer_.get(), cursor_);
+      const auto _ = write(fd_, buffer_.get(), cursor_);
 #endif
       cursor_ = 0;
     }
@@ -160,7 +160,7 @@ class JsonLinesSink final : public SinkBase {
 #if FEMTOLOG_IS_WINDOWS
     _write(fd_, data, static_cast<uint32_t>(size));
 #else
-    [[maybe_unused]] ssize_t written = write(fd_, data, size);
+    const auto _ = write(fd_, data, size);
 #endif
   }
 

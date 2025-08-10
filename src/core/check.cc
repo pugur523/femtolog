@@ -16,16 +16,12 @@ CheckFailureStream::CheckFailureStream(const char* type,
     : type_(type), file_(file), line_(line), condition_(condition) {}
 
 std::ostream& CheckFailureStream::stream() {
-  has_output_ = true;
   std::cerr << type_ << " failed: \"" << condition_ << "\" at " << file_ << ":"
             << line_ << "\n";
   return std::cerr;
 }
 
 CheckFailureStream::~CheckFailureStream() {
-  if (has_output_) {
-    std::cerr << std::flush;
-  }
   std::terminate();
 }
 

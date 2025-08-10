@@ -92,7 +92,6 @@ class FEMTOLOG_CORE_EXPORT CheckFailureStream {
   const char* file_;
   int line_;
   const char* condition_;
-  bool has_output_ = false;
 };
 
 template <typename L, typename R>

@@ -97,24 +97,9 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
 
   [[nodiscard]] inline LogLevel level() const noexcept { return level_; }
 
+  [[nodiscard]] static bool is_ansi_sequence_available();
+
  private:
-  // Hot data - frequently accessed (first cache line)
-  alignas(core::kCacheSize) LogLevel level_ = LogLevel::kInfo;
-  const uint32_t thread_id_;
-  std::size_t enqueued_count_ = 0;
-  std::size_t dropped_count_ = 0;
-  StringRegistry string_registry_;
-  ArgsSerializer<> serializer_;
-
-  // Cold data - less frequently accessed (separate cache line)
-  alignas(core::kCacheSize) SpscQueue queue_;
-
-  // Buffer management (separate cache line)
-  alignas(LogEntry) alignas(core::kCacheSize) alignas(8) uint8_t
-      entry_buffer_[sizeof(LogEntry) + kMaxPayloadSize];
-
-  BackendWorker backend_worker_;
-
   template <LogLevel level>
   inline void log_literal(const std::string_view& message) {
     const std::size_t payload_len = message.size();
@@ -150,6 +135,23 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   [[nodiscard]] static uint32_t current_thread_id() noexcept;
 
   friend void internal_logger_enqueue_log_entry_bench(InternalLogger* logger);
+
+  // Hot data - frequently accessed (first cache line)
+  alignas(core::kCacheSize) LogLevel level_ = LogLevel::kInfo;
+  const uint32_t thread_id_;
+  std::size_t enqueued_count_ = 0;
+  std::size_t dropped_count_ = 0;
+  StringRegistry string_registry_;
+  ArgsSerializer<> serializer_;
+
+  // Cold data - less frequently accessed (separate cache line)
+  alignas(core::kCacheSize) SpscQueue queue_;
+
+  // Buffer management (separate cache line)
+  alignas(LogEntry) alignas(core::kCacheSize) alignas(8) uint8_t
+      entry_buffer_[sizeof(LogEntry) + kMaxPayloadSize];
+
+  BackendWorker backend_worker_;
 };
 
 inline void InternalLogger::enqueue_log_entry(const LogEntry* entry) noexcept {

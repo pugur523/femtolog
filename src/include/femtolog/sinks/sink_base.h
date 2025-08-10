@@ -83,33 +83,8 @@ class SinkBase {
     return result.size;
   }
 
-  static inline bool is_ansi_sequence_available() {
-    static const bool result = [] {
-#if FEMTOLOG_IS_WINDOWS
-      // check if GetStdHandle() returns terminal handle
-      HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-      if (hOut == INVALID_HANDLE_VALUE) {
-        return false;
-      }
-
-      DWORD dwMode = 0;
-      if (!GetConsoleMode(hOut, &dwMode)) {
-        return false;
-      }
-
-      // enable virtual terminal processing
-      dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-      if (!SetConsoleMode(hOut, dwMode)) {
-        // cannot use ansi sequence if fail to enable virtual terminal
-        return false;
-      }
-      return true;
-#else
-      return isatty(STDOUT_FILENO);
-#endif
-    }();
-
-    return result;
+  static inline constexpr std::size_t level_len(LogLevel lvl) {
+    return core::safe_strlen(log_level_to_lower_str(lvl));
   }
 };
 

@@ -5,6 +5,7 @@
 #ifndef INCLUDE_FEMTOLOG_BASE_SERIALIZE_UTIL_H_
 #define INCLUDE_FEMTOLOG_BASE_SERIALIZE_UTIL_H_
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <new>
@@ -32,24 +33,24 @@ struct SerializedArgsHeader {
         deserialize_and_format_func(deserialize_func_ptr) {}
 };
 
-template <std::size_t Capacity = 4096>
+template <std::size_t kCapacity = 8192>
 class SerializedArgs {
  public:
   inline char* data() noexcept { return buffer_; }
   inline const char* data() const noexcept { return buffer_; }
 
   inline void resize(std::size_t size) noexcept {
-    FEMTOLOG_DCHECK_LE(size, Capacity);
+    FEMTOLOG_DCHECK_LE(size, kCapacity);
     size_ = size;
   }
 
   inline void clear() noexcept { size_ = 0; }
 
   inline std::size_t size() const noexcept { return size_; }
-  inline consteval std::size_t capacity() const noexcept { return Capacity; }
+  inline consteval std::size_t capacity() const noexcept { return kCapacity; }
 
  private:
-  alignas(core::kCacheSize) char buffer_[Capacity];
+  alignas(core::kCacheSize) char buffer_[kCapacity];
   std::size_t size_ = 0;
 };
 

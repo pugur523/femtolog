@@ -111,16 +111,16 @@ class FileSink final : public SinkBase {
             entry.timestamp_ns, timestamp_buf, kTimestampBufSize);
 
     const char* level_str = log_level_to_lower_str(entry.level);
-    std::size_t level_len = core::safe_strlen(level_str);
+    const std::size_t lv_len = level_len(entry.level);
 
-    const std::size_t total = timestamp_size + level_len + kSepLen + len;
+    const std::size_t total = timestamp_size + lv_len + kSepLen + len;
 
     if (cursor_ + total > kBufferCapacity) {
       flush();
     }
 
     if (total > kBufferCapacity) {
-      direct_write(timestamp_buf, timestamp_size, level_str, level_len, content,
+      write_direct(timestamp_buf, timestamp_size, level_str, lv_len, content,
                    len);
       return;
     }
@@ -128,12 +128,10 @@ class FileSink final : public SinkBase {
     char* buffer = buffer_.get();
     std::memcpy(buffer + cursor_, timestamp_buf, timestamp_size);
     cursor_ += timestamp_size;
-    if (entry.level != LogLevel::kRaw) {
-      std::memcpy(buffer + cursor_, level_str, level_len);
-      cursor_ += level_len;
-      std::memcpy(buffer + cursor_, kSep, kSepLen);
-      cursor_ += kSepLen;
-    }
+    std::memcpy(buffer + cursor_, level_str, lv_len);
+    cursor_ += lv_len;
+    std::memcpy(buffer + cursor_, kSep, kSepLen);
+    cursor_ += kSepLen;
     std::memcpy(buffer + cursor_, content, len);
     cursor_ += len;
   }
@@ -151,7 +149,7 @@ class FileSink final : public SinkBase {
     cursor_ = 0;
   }
 
-  inline void direct_write(const char* timestamp_buf,
+  inline void write_direct(const char* timestamp_buf,
                            std::size_t timestamp_size,
                            const char* level_str,
                            std::size_t level_len,
@@ -163,14 +161,18 @@ class FileSink final : public SinkBase {
 
 #if FEMTOLOG_IS_WINDOWS
     constexpr const std::size_t kMaxStackBuffer = 4096;
-    std::size_t total = timestamp_size + level_len + kSepLen + content_len;
-    if (total <= kMaxStackBuffer) {
-      char tmp[kMaxStackBuffer];
-      std::memcpy(tmp, timestamp_buf, timestamp_size);
-      std::memcpy(tmp + timestamp_size, level_str, level_len);
-      std::memcpy(tmp + timestamp_size + level_len, kSep, kSepLen);
-      std::memcpy(tmp + timestamp_size + level_len + kSepLen, content,
-                  content_len);
+    std::size_t total =
+        timestamp_size + (has_level ? level_len + kSepLen : 0) + content_len;
+    if (total <= kTmpBufSize) {
+      char tmp[kTmpBufSize];
+      char* p = tmp;
+      std::memcpy(p, timestamp_buf, timestamp_size);
+      p += timestamp_size;
+      std::memcpy(p, level_str, level_len);
+      p += level_len;
+      std::memcpy(p, kSep, kSepLen);
+      p += kSepLen;
+      std::memcpy(p, content, content_len);
       _write(fd_, tmp, static_cast<unsigned int>(total));
     } else {
       _write(fd_, timestamp_buf, static_cast<unsigned int>(timestamp_size));
@@ -179,16 +181,13 @@ class FileSink final : public SinkBase {
       _write(fd_, content, static_cast<unsigned int>(content_len));
     }
 #else
-    struct iovec iov[4];
-    iov[0].iov_base = const_cast<char*>(const_cast<char*>(timestamp_buf));
-    iov[0].iov_len = timestamp_size;
-    iov[1].iov_base = const_cast<char*>(const_cast<char*>(level_str));
-    iov[1].iov_len = level_len;
-    iov[2].iov_base = const_cast<char*>(const_cast<char*>(kSep));
-    iov[2].iov_len = kSepLen;
-    iov[3].iov_base = const_cast<char*>(const_cast<char*>(content));
-    iov[3].iov_len = content_len;
-    [[maybe_unused]] ssize_t written = writev(fd_, iov, 4);
+    struct iovec iov[3];
+    int iovcnt = 0;
+    iov[iovcnt++] = {const_cast<char*>(timestamp_buf), timestamp_size};
+    iov[iovcnt++] = {const_cast<char*>(level_str), level_len};
+    iov[iovcnt++] = {const_cast<char*>(kSep), kSepLen};
+    iov[iovcnt++] = {const_cast<char*>(content), content_len};
+    const auto _ = writev(fd_, iov, iovcnt);
 #endif
   }
 
