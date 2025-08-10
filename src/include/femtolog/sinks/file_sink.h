@@ -144,7 +144,7 @@ class FileSink final : public SinkBase {
 #if FEMTOLOG_IS_WINDOWS
     _write(fd_, buffer_.get(), static_cast<unsigned int>(cursor_));
 #else
-    [[maybe_unused]] ssize_t written = write(fd_, buffer_.get(), cursor_);
+    const auto _ = write(fd_, buffer_.get(), cursor_);
 #endif
     cursor_ = 0;
   }
@@ -160,9 +160,8 @@ class FileSink final : public SinkBase {
     }
 
 #if FEMTOLOG_IS_WINDOWS
-    constexpr const std::size_t kMaxStackBuffer = 4096;
-    std::size_t total =
-        timestamp_size + (has_level ? level_len + kSepLen : 0) + content_len;
+    constexpr const std::size_t kTmpBufSize = 4096;
+    std::size_t total = timestamp_size + level_len + kSepLen + content_len;
     if (total <= kTmpBufSize) {
       char tmp[kTmpBufSize];
       char* p = tmp;
