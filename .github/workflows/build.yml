@@ -73,25 +73,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: ${{ env.POETRY_VERSION }}
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          virtualenvs-path: ~/.venv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Install Python dependencies
-        run: |
-          poetry config virtualenvs.create true
-          poetry install
-
-          # verify installation
-          poetry --version
-          poetry show --tree
-          poetry env info
+        run: uv sync
         shell: bash
-        
+
       - name: Cache LLVM
         id: cache-llvm
         if: matrix.os != 'ubuntu-latest'
@@ -111,7 +99,7 @@ jobs:
       - name: Install LLVM (macOS)
         if: matrix.os == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
         run: brew install llvm@${{ matrix.llvm_version }}
-      
+
       - name: Install CMake (Windows)
         if: matrix.os == 'windows-latest'
         uses: jwlawson/actions-setup-cmake@v2.0.2
@@ -138,8 +126,8 @@ jobs:
 
               # Install LLVM
               # use latest llvm tools
-              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all /opt/llvm-${{ matrix.llvm_version }} && rm ./llvm.sh
-              echo "/opt/llvm-${{ matrix.llvm_version }}/bin" >> $GITHUB_PATH
+              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
+              # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
 
               # Setup alternatives
               # TODO: restore these 3 lines when we switch to older LLVM tools
@@ -175,7 +163,7 @@ jobs:
             eval "$(vswhere.exe -latest -products \* -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | sed 's|.*|"&/VC/Auxiliary/Build/vcvarsall.bat" x64|')"
           fi
 
-          poetry run python -u src/build/scripts/build.py $BUILD_ARGS --extra_args="$EXTRA_ARGS"
+          uv run python -u src/build/scripts/build.py $BUILD_ARGS --extra_args="$EXTRA_ARGS"
         shell: bash
 
       - name: Upload artifacts
@@ -197,9 +185,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
-        run: pipx install poetry
-
       - uses: actions/download-artifact@v4
         with:
           pattern: builds-*-${{ inputs.build_mode }}
@@ -209,4 +194,5 @@ jobs:
       - name: Generate summary
         run: |
           [ -d "./artifacts" ] && (tree ./artifacts || ls -la ./artifacts) || echo "No artifacts found"
-          poetry run python .github/workflows/scripts/summarize.py artifacts >> $GITHUB_STEP_SUMMARY
+          python .github/workflows/scripts/summarize.py artifacts >> $GITHUB_STEP_SUMMARY
+
