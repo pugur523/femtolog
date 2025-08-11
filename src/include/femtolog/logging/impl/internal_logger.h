@@ -70,8 +70,8 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   template <LogLevel level, FixedString fmt, bool ref_mode, typename... Args>
   inline void log(Args&&... args) noexcept {
     // Compile-time level check
-    // Assuming `info` is common threshold
-    if constexpr (level > LogLevel::kInfo) {
+    // Assuming `debug` is common threshold
+    if constexpr (level > LogLevel::kDebug) {
       if (level > level_) [[unlikely]] {
         return;
       }
