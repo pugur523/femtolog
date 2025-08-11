@@ -21,8 +21,9 @@
 
 namespace femtolog::logging {
 
-// 4KiB max per entry. (consider sizeof LogEntry)
-static constexpr const std::size_t kMaxPayloadSize = 4096 - sizeof(LogEntry);
+// 1KiB max per entry. (consider sizeof LogEntry)
+// Use reference mode if you need to output strings longer than this limit
+static constexpr const std::size_t kMaxPayloadSize = 1024 - sizeof(LogEntry);
 
 class FEMTOLOG_LOGGING_EXPORT InternalLogger {
  public:
@@ -66,7 +67,7 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
     dropped_count_ = 0;
   }
 
-  template <LogLevel level, FixedString fmt, typename... Args>
+  template <LogLevel level, FixedString fmt, bool ref_mode, typename... Args>
   inline void log(Args&&... args) noexcept {
     // Compile-time level check
     // Assuming `info` is common threshold
@@ -91,11 +92,14 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
     } else {
       constexpr uint16_t format_id = StringRegistry::get_string_id<fmt>();
       string_registry_.register_string<fmt>();
+
       const auto& serialized_args =
-          serializer_.serialize<fmt>(std::forward<Args>(args)...);
+          serializer_.serialize<fmt, ref_mode>(std::forward<Args>(args)...);
       log_serialized<level>(format_id, serialized_args);
     }
   }
+
+  inline void flush() noexcept { backend_worker_.flush(); }
 
   inline void level(LogLevel level) noexcept { level_ = level; }
 
@@ -122,7 +126,8 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   template <LogLevel level, std::size_t Capacity>
   inline void log_serialized(uint16_t format_id,
                              const SerializedArgs<Capacity>& serialized) {
-    if (serialized.size() >= kMaxPayloadSize) [[unlikely]] {
+    if (serialized.size() >= kMaxPayloadSize || serialized.size() == 0)
+        [[unlikely]] {
       dropped_count_++;
       return;
     }

@@ -56,38 +56,77 @@ class FEMTOLOG_EXPORT Logger {
   inline void stop_worker() { internal_logger_->stop_worker(); }
 
   template <LogLevel level, FixedString fmt, typename... Args>
-  inline constexpr void log(Args&&... args) {
-    internal_logger_->log<level, fmt, Args...>(std::forward<Args>(args)...);
+  inline constexpr void log(Args&&... args) noexcept {
+    internal_logger_->log<level, fmt, false, Args...>(
+        std::forward<Args>(args)...);
   }
 
   template <FixedString fmt, typename... Args>
-  inline constexpr void raw(Args&&... args) {
+  inline constexpr void raw(Args&&... args) noexcept {
     log<LogLevel::kRaw, fmt>(std::forward<Args>(args)...);
   }
   template <FixedString fmt, typename... Args>
-  inline constexpr void fatal(Args&&... args) {
+  inline constexpr void fatal(Args&&... args) noexcept {
     log<LogLevel::kFatal, fmt>(std::forward<Args>(args)...);
   }
   template <FixedString fmt, typename... Args>
-  inline constexpr void error(Args&&... args) {
+  inline constexpr void error(Args&&... args) noexcept {
     log<LogLevel::kError, fmt>(std::forward<Args>(args)...);
   }
   template <FixedString fmt, typename... Args>
-  inline constexpr void warn(Args&&... args) {
+  inline constexpr void warn(Args&&... args) noexcept {
     log<LogLevel::kWarn, fmt>(std::forward<Args>(args)...);
   }
   template <FixedString fmt, typename... Args>
-  inline constexpr void info(Args&&... args) {
+  inline constexpr void info(Args&&... args) noexcept {
     log<LogLevel::kInfo, fmt>(std::forward<Args>(args)...);
   }
   template <FixedString fmt, typename... Args>
-  inline constexpr void debug(Args&&... args) {
+  inline constexpr void debug(Args&&... args) noexcept {
     log<LogLevel::kDebug, fmt>(std::forward<Args>(args)...);
   }
   template <FixedString fmt, typename... Args>
-  inline constexpr void trace(Args&&... args) {
+  inline constexpr void trace(Args&&... args) noexcept {
     log<LogLevel::kTrace, fmt>(std::forward<Args>(args)...);
   }
+
+  template <LogLevel level, FixedString fmt, typename... Args>
+  inline constexpr void log_ref(Args&&... args) noexcept {
+    internal_logger_->log<level, fmt, true, Args...>(
+        std::forward<Args>(args)...);
+  }
+
+  template <FixedString fmt, typename... Args>
+  inline constexpr void raw_ref(Args&&... args) noexcept {
+    static_assert(sizeof...(Args) > 0, "use `raw` instead of `raw_ref`");
+    log_ref<LogLevel::kRaw, fmt>(std::forward<Args>(args)...);
+  }
+  template <FixedString fmt, typename... Args>
+  inline constexpr void fatal_ref(Args&&... args) noexcept {
+    log_ref<LogLevel::kFatal, fmt>(std::forward<Args>(args)...);
+  }
+  template <FixedString fmt, typename... Args>
+  inline constexpr void error_ref(Args&&... args) noexcept {
+    log_ref<LogLevel::kError, fmt>(std::forward<Args>(args)...);
+  }
+  template <FixedString fmt, typename... Args>
+  inline constexpr void warn_ref(Args&&... args) noexcept {
+    log_ref<LogLevel::kWarn, fmt>(std::forward<Args>(args)...);
+  }
+  template <FixedString fmt, typename... Args>
+  inline constexpr void info_ref(Args&&... args) noexcept {
+    log_ref<LogLevel::kInfo, fmt>(std::forward<Args>(args)...);
+  }
+  template <FixedString fmt, typename... Args>
+  inline constexpr void debug_ref(Args&&... args) noexcept {
+    log_ref<LogLevel::kDebug, fmt>(std::forward<Args>(args)...);
+  }
+  template <FixedString fmt, typename... Args>
+  inline constexpr void trace_ref(Args&&... args) noexcept {
+    log_ref<LogLevel::kTrace, fmt>(std::forward<Args>(args)...);
+  }
+
+  inline void flush() noexcept { internal_logger_->flush(); }
 
   inline void level(LogLevel level) { internal_logger_->level(level); }
 

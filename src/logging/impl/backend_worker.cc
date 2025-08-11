@@ -81,6 +81,22 @@ void BackendWorker::stop() {
   status_ = BackendWorkerStatus::kIdling;
 }
 
+void BackendWorker::flush() {
+  if (status_ != BackendWorkerStatus::kRunning) [[unlikely]] {
+    return;
+  }
+  const uint64_t seq =
+      flush_requested_seq_.fetch_add(1, std::memory_order_acq_rel) + 1;
+
+  while (flush_completed_seq_.load(std::memory_order_acquire) < seq) {
+#if FEMTOLOG_ENABLE_AVX2
+    _mm_pause();
+#else
+    std::this_thread::yield();
+#endif
+  }
+}
+
 void BackendWorker::register_sink(std::unique_ptr<SinkBase> sink) {
   FEMTOLOG_DCHECK_NE(status_, BackendWorkerStatus::kRunning)
       << "attempted to register new sink while running.";
@@ -124,7 +140,7 @@ void BackendWorker::set_cpu_affinity() {
 #endif
 }
 
-bool BackendWorker::read_and_process_one() {
+inline bool BackendWorker::read_and_process_one() {
   uint16_t payload_len;
   if (queue_->peek_bytes(&payload_len, sizeof(payload_len)) !=
       SpscQueueStatus::kOk) {
@@ -142,18 +158,7 @@ bool BackendWorker::read_and_process_one() {
   return true;
 }
 
-void BackendWorker::run_loop() {
-  bool data_dequeued_this_iteration = false;
-
-  // Try to dequeue a log entry while running
-  while (!shutdown_required_.load(std::memory_order_acquire)) {
-    data_dequeued_this_iteration = read_and_process_one();
-    apply_polling_strategy(data_dequeued_this_iteration);
-  }
-  flush();
-}
-
-void BackendWorker::apply_polling_strategy(bool data_dequeued) {
+inline void BackendWorker::apply_polling_strategy(bool data_dequeued) {
   // Reset counter on successful dequeue
   if (data_dequeued) {
     idle_iterations_ = 0;
@@ -209,7 +214,7 @@ void BackendWorker::apply_polling_strategy(bool data_dequeued) {
   }
 }
 
-void BackendWorker::flush() {
+void BackendWorker::flush_impl() {
   while (true) {
     if (!read_and_process_one()) {
       break;
@@ -247,6 +252,26 @@ void BackendWorker::process_log_entry(LogEntry* entry) {
       sink->on_log(*entry, format_buffer_.data(), size);
     }
   }
+}
+
+void BackendWorker::run_loop() {
+  // Try to dequeue a log entry while running
+  while (true) {
+    if (shutdown_required_.load(std::memory_order_acquire)) [[unlikely]] {
+      break;
+    }
+    const uint64_t req = flush_requested_seq_.load(std::memory_order_acquire);
+    const uint64_t done = flush_completed_seq_.load(std::memory_order_relaxed);
+    if (req > done) [[unlikely]] {
+      flush_impl();
+      flush_completed_seq_.store(req, std::memory_order_release);
+    }
+    const bool data_dequeued_this_iteration = read_and_process_one();
+    apply_polling_strategy(data_dequeued_this_iteration);
+  }
+  flush_impl();
+  const uint64_t req = flush_requested_seq_.load(std::memory_order_acquire);
+  flush_completed_seq_.store(req, std::memory_order_release);
 }
 
 }  // namespace femtolog::logging

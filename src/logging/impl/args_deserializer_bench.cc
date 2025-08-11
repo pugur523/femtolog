@@ -18,7 +18,7 @@ void args_deserializer_deserialize_and_format(benchmark::State& state) {
   double z = 9.99;
 
   ArgsSerializer<256> serializer;
-  auto& args = serializer.serialize<"x={}, y={}, z={}">(x, y, z);
+  auto& args = serializer.serialize<"x={}, y={}, z={}", false>(x, y, z);
 
   const SerializedArgsHeader* header =
       reinterpret_cast<const SerializedArgsHeader*>(args.data());

@@ -17,7 +17,7 @@ void internal_logger_literal_log(benchmark::State& state) {
   logger.start_worker();
 
   for (auto _ : state) {
-    logger.log<LogLevel::kInfo, "Benchmark literal">();
+    logger.log<LogLevel::kInfo, "Benchmark literal", false>();
   }
 
   logger.stop_worker();
@@ -33,7 +33,7 @@ void internal_logger_formatted_log(benchmark::State& state) {
   const char* str = "times";
 
   for (auto _ : state) {
-    logger.log<LogLevel::kInfo, "Benchmark {} {}">(42, str);
+    logger.log<LogLevel::kInfo, "Benchmark {} {}", false>(42, str);
   }
 
   logger.stop_worker();

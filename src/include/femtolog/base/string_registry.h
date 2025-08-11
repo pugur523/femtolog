@@ -98,7 +98,7 @@ class StringRegistry {
   }
 
  private:
-  void set(StringId id, std::string_view view) {
+  inline void set(StringId id, std::string_view view) {
     FEMTOLOG_DCHECK_LT(id, kUint16Max);
     table_[id] = view;
   }

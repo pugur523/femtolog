@@ -58,7 +58,7 @@ inline uint64_t timestamp_ns() noexcept {
 using FormatFunction = std::size_t (*)(fmt::memory_buffer*,
                                        const fmt::format_args&);
 
-template <FixedString fmt, typename... Args>
+template <FixedString fmt>
 struct FormatDispatcher {
   static std::size_t format(fmt::memory_buffer* buf,
                             const fmt::format_args& args) {

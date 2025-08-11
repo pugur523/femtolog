@@ -44,6 +44,7 @@ class BackendWorker {
 
   void start();
   void stop();
+  void flush();
 
   void register_sink(std::unique_ptr<SinkBase> sink);
   void clear_sinks();
@@ -52,11 +53,11 @@ class BackendWorker {
 
  private:
   void set_cpu_affinity();
-  bool read_and_process_one();
+  inline bool read_and_process_one();
+  inline void apply_polling_strategy(bool data_dequeued);
   void run_loop();
-  void apply_polling_strategy(bool data_dequeued);
 
-  void flush();
+  void flush_impl();
   void process_log_entry(LogEntry* entry);
 
   alignas(64) std::vector<uint8_t> dequeue_buffer_;
@@ -66,6 +67,8 @@ class BackendWorker {
   std::thread worker_thread_;
   std::size_t worker_thread_cpu_affinity_ = 5;
   std::atomic<bool> shutdown_required_{false};
+  std::atomic<uint64_t> flush_requested_seq_{0};
+  std::atomic<uint64_t> flush_completed_seq_{0};
   fmt::memory_buffer format_buffer_;
 
   // Polling strategy state

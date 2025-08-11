@@ -22,7 +22,7 @@ TEST(ArgsDeserializerTest, DeserializeAndFormatWorks) {
   double d = 3.14;
 
   ArgsSerializer<256> serializer;
-  auto& args = serializer.serialize<"i={}, s={}, d={}">(i, s, d);
+  auto& args = serializer.serialize<"i={}, s={}, d={}", false>(i, s, d);
 
   const SerializedArgsHeader* header =
       reinterpret_cast<const SerializedArgsHeader*>(args.data());

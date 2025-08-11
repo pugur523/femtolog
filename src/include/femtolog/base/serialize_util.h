@@ -26,7 +26,7 @@ struct SerializedArgsHeader {
   FormatFunction format_func;
   DeserializeAndFormatFunction deserialize_and_format_func;
 
-  constexpr SerializedArgsHeader(
+  consteval SerializedArgsHeader(
       FormatFunction format_func_ptr,
       DeserializeAndFormatFunction deserialize_func_ptr)
       : format_func(format_func_ptr),
@@ -95,13 +95,15 @@ inline constexpr bool is_string_like_v = ArgTypeInfo<T>::is_string_like;
 template <typename T>
 inline constexpr bool is_serializeable_v = ArgTypeInfo<T>::is_serializeable;
 
-template <typename T>
+template <bool ref_mode, typename T>
 struct DeserializedArgType {
-  using type =
-      std::conditional_t<is_string_like_v<T>, std::string, std::decay_t<T>>;
+  using type = std::conditional_t<
+      is_string_like_v<T>,
+      std::conditional_t<ref_mode, std::string_view, std::string>,
+      std::decay_t<T>>;
 };
-template <typename T>
-using deserialized_arg_type_t = typename DeserializedArgType<T>::type;
+template <bool ref_mode, typename T>
+using deserialized_arg_type_t = typename DeserializedArgType<ref_mode, T>::type;
 
 }  // namespace femtolog
 

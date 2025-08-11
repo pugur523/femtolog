@@ -16,10 +16,10 @@
 
 namespace femtolog::logging {
 
-template <typename... Args>
+template <bool ref_mode, typename... Args>
 class DeserializeDispatcher {
  public:
-  inline static DeserializeAndFormatFunction function() {
+  static constexpr DeserializeAndFormatFunction function() {
     return &deserialize_and_format;
   }
 
@@ -111,27 +111,45 @@ class DeserializeDispatcher {
   }
 
   template <typename T>
-  inline static std::pair<deserialized_arg_type_t<T>, std::size_t> read_arg(
-      const char* base,
-      std::size_t offset) {
+  inline static std::pair<deserialized_arg_type_t<ref_mode, T>, std::size_t>
+  read_arg(const char* base, std::size_t offset) {
     using Decayed = std::decay_t<T>;
     const char* ptr = base + offset;
 
     if constexpr (is_string_like_v<Decayed>) {
-      std::size_t str_len;
-      std::memcpy(&str_len, ptr, sizeof(str_len));
-      ptr += sizeof(str_len);
+      if constexpr (ref_mode) {
+        uintptr_t raw_ptr;
+        std::memcpy(&raw_ptr, ptr, sizeof(raw_ptr));
+        ptr += sizeof(raw_ptr);
 
-      std::string str;
-      if (str_len > 0) {
-        str.resize(str_len);
-        std::memcpy(str.data(), ptr, str_len);
+        std::size_t str_len;
+        std::memcpy(&str_len, ptr, sizeof(str_len));
+        ptr += sizeof(str_len);
+
+        const char* cptr = std::bit_cast<const char*>(raw_ptr);
+        std::string_view sv(cptr, str_len);
+        return {sv, offset + sizeof(raw_ptr) + sizeof(str_len)};
+      } else {
+        std::size_t str_len;
+        std::memcpy(&str_len, ptr, sizeof(str_len));
+        ptr += sizeof(str_len);
+
+        std::string str;
+        if (str_len > 0) {
+          str.resize(str_len);
+          std::memcpy(str.data(), ptr, str_len);
+        }
+        return {str, offset + sizeof(str_len) + str_len};
       }
-      return {str, offset + sizeof(str_len) + str_len};
     } else if constexpr (std::is_trivially_copyable_v<Decayed>) {
       Decayed value;
       std::memcpy(&value, ptr, sizeof(value));
       return {value, offset + sizeof(value)};
+    } else if constexpr (ref_mode) {
+      uintptr_t raw_addr;
+      std::memcpy(&raw_addr, ptr, sizeof(raw_addr));
+      const Decayed* actual_ptr = reinterpret_cast<const Decayed*>(raw_addr);
+      return {*actual_ptr, offset + sizeof(uintptr_t)};
     } else {
       static_assert(sizeof(Decayed) == 0, "attempted to read unsupported type");
       return {};

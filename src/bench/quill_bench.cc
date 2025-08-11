@@ -132,7 +132,7 @@ BENCHMARK(quill_info_format_mixed);
 
 void quill_info_format_large_string(benchmark::State& state) {
   QuillLogger* logger = setup_logger();
-  std::string payload(64, 'X');
+  std::string payload(512, 'X');
   for (auto _ : state) {
     QUILL_LOG_INFO(logger, "Payload: {}", payload);
   }

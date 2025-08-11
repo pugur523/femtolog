@@ -143,7 +143,7 @@ TEST_F(InternalLoggerTest, LiteralStringLogging) {
 
   // Log a simple message
   constexpr FixedString msg = "Test message";
-  logger_->log<LogLevel::kInfo, msg>();
+  logger_->log<LogLevel::kInfo, msg, false>();
 
   // Wait for processing
   logger_->stop_worker();
@@ -172,7 +172,7 @@ TEST_F(InternalLoggerTest, ParameterizedLogging) {
 
   // Log with parameters
   constexpr FixedString fmt = "Value: {}";
-  logger_->log<LogLevel::kInfo, fmt>(42);
+  logger_->log<LogLevel::kInfo, fmt, false>(42);
 
   logger_->stop_worker();
 
@@ -194,7 +194,7 @@ TEST_F(InternalLoggerTest, LogLevelFiltering) {
 
   // This should be filtered out (Debug < Warn)
   constexpr FixedString debug_msg = "Debug message";
-  logger_->log<LogLevel::kDebug, debug_msg>();
+  logger_->log<LogLevel::kDebug, debug_msg, false>();
 
   // This should pass through (Error > Warn)
   EXPECT_CALL(*mock_sink_ptr_, on_log(_, _, _))
@@ -204,7 +204,7 @@ TEST_F(InternalLoggerTest, LogLevelFiltering) {
           });
 
   constexpr FixedString error_msg = "Error message";
-  logger_->log<LogLevel::kError, error_msg>();
+  logger_->log<LogLevel::kError, error_msg, false>();
 
   logger_->stop_worker();
 
@@ -240,7 +240,7 @@ TEST_F(InternalLoggerTest, MultipleSinks) {
   logger_->start_worker();
 
   constexpr FixedString msg = "Multi-sink test";
-  logger_->log<LogLevel::kInfo, msg>();
+  logger_->log<LogLevel::kInfo, msg, false>();
 
   logger_->stop_worker();
 
@@ -267,7 +267,7 @@ TEST_F(InternalLoggerTest, EnqueueDropCounters) {
           });
 
   constexpr FixedString msg = "Counter test";
-  logger_->log<LogLevel::kInfo, msg>();
+  logger_->log<LogLevel::kInfo, msg, false>();
 
   logger_->stop_worker();
 
@@ -300,12 +300,12 @@ TEST_F(InternalLoggerTest, DifferentLogLevels) {
   constexpr FixedString error_msg = "Error";
   constexpr FixedString fatal_msg = "Fatal";
 
-  logger_->log<LogLevel::kTrace, trace_msg>();
-  logger_->log<LogLevel::kDebug, debug_msg>();
-  logger_->log<LogLevel::kInfo, info_msg>();
-  logger_->log<LogLevel::kWarn, warn_msg>();
-  logger_->log<LogLevel::kError, error_msg>();
-  logger_->log<LogLevel::kFatal, fatal_msg>();
+  logger_->log<LogLevel::kTrace, trace_msg, false>();
+  logger_->log<LogLevel::kDebug, debug_msg, false>();
+  logger_->log<LogLevel::kInfo, info_msg, false>();
+  logger_->log<LogLevel::kWarn, warn_msg, false>();
+  logger_->log<LogLevel::kError, error_msg, false>();
+  logger_->log<LogLevel::kFatal, fatal_msg, false>();
 
   logger_->stop_worker();
 
@@ -337,7 +337,7 @@ TEST_F(InternalLoggerTest, ThreadIdConsistency) {
   uint32_t logger_thread_id = logger_->thread_id();
 
   constexpr FixedString msg = "Thread ID test";
-  logger_->log<LogLevel::kInfo, msg>();
+  logger_->log<LogLevel::kInfo, msg, false>();
 
   logger_->stop_worker();
 
@@ -366,15 +366,15 @@ TEST_F(InternalLoggerTest, RealisticLoggingScenario) {
   constexpr FixedString complete_msg = "Processing complete";
 
   // Log startup
-  logger_->log<LogLevel::kInfo, startup_msg>();
+  logger_->log<LogLevel::kInfo, startup_msg, false>();
 
   // Log some processing
   for (int i = 0; i < 3; ++i) {
-    logger_->log<LogLevel::kDebug, process_fmt>(i);
+    logger_->log<LogLevel::kDebug, process_fmt, false>(i);
   }
 
   // Log completion
-  logger_->log<LogLevel::kInfo, complete_msg>();
+  logger_->log<LogLevel::kInfo, complete_msg, false>();
 
   logger_->stop_worker();
 

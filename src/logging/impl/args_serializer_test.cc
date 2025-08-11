@@ -24,8 +24,9 @@ TEST(ArgsSerializerTest, SerializeBasicTypes) {
 
   ArgsSerializer<256> serializer;
   auto& args =
-      serializer.serialize<"int={}, str={}, float={}, double={}, ptr={}">(
-          i, s, f, d, cstr);
+      serializer
+          .serialize<"int={}, str={}, float={}, double={}, ptr={}", false>(
+              i, s, f, d, cstr);
 
   EXPECT_EQ(args.size(), sizeof(SerializedArgsHeader) + sizeof(i) +
                              sizeof(std::size_t) + s.size() + sizeof(float) +
@@ -53,7 +54,7 @@ TEST(ArgsSerializerTest, OutOfScope) {
     const int i = 42;
     const char* cstr = "test";
 
-    auto& args = serializer.serialize<"int={}, cstr={}">(i, cstr);
+    auto& args = serializer.serialize<"int={}, cstr={}", false>(i, cstr);
     args_ptr = &args;
   }
 

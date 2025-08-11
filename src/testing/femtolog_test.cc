@@ -79,10 +79,22 @@ TEST(FemtoLogTest, BasicLogging) {
   logger.fatal<"this is a sample fatal {}\n">(msg);
 
   logger.level(LogLevel::kWarn);
-  logger.trace<"this line should be invisible\n">();
+  logger.trace<"this line should be invisible1\n">();
   logger.debug<"this line should be invisible2\n">();
   logger.info<"this line should be invisible3\n">();
   logger.level(LogLevel::kInfo);
+
+  {
+    std::string referenced1 = "test 1";
+    std::string referenced2 = "test 2";
+    std::string referenced3 = "test 3";
+    std::string referenced4 = "test 4";
+    logger.info_ref<"reference captured fast logging: {}\n">(referenced1);
+    logger.info_ref<"reference captured fast logging: {}\n">(referenced2);
+    logger.info_ref<"reference captured fast logging: {}\n">(referenced3);
+    logger.info_ref<"reference captured fast logging: {}\n">(referenced4);
+    logger.flush();
+  }
 
   logger.stop_worker();
   logger.clear_sinks();
