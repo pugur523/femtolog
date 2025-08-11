@@ -92,6 +92,8 @@ class FEMTOLOG_EXPORT Logger {
 
   template <LogLevel level, FixedString fmt, typename... Args>
   inline constexpr void log_ref(Args&&... args) noexcept {
+    static_assert((std::is_lvalue_reference_v<Args> && ...),
+                  "Args must all be l-value references.");
     internal_logger_->log<level, fmt, true, Args...>(
         std::forward<Args>(args)...);
   }
