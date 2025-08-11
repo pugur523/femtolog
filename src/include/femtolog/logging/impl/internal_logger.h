@@ -126,6 +126,7 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   template <LogLevel level, std::size_t Capacity>
   inline void log_serialized(uint16_t format_id,
                              const SerializedArgs<Capacity>& serialized) {
+    // NOLINTNEXTLINE
     if (serialized.size() >= kMaxPayloadSize || serialized.size() == 0)
         [[unlikely]] {
       dropped_count_++;

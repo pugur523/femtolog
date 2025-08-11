@@ -226,12 +226,12 @@ void BackendWorker::process_log_entry(LogEntry* entry) {
   FEMTOLOG_DCHECK(!!entry);
   entry->timestamp_ns = timestamp_ns();
 
-  uint16_t format_id = entry->format_id;
+  const uint16_t format_id = entry->format_id;
 
   if (format_id == kLiteralLogStringId) {
     constexpr const std::size_t kBufSize = kMaxPayloadSize;
     char buf[kBufSize];
-    std::size_t n = entry->copy_raw_payload(buf, kBufSize);
+    const std::size_t n = entry->copy_raw_payload(buf, kBufSize);
     buf[n] = '\0';
     for (const auto& sink : sinks_) {
       FEMTOLOG_DCHECK(sink);
@@ -240,10 +240,16 @@ void BackendWorker::process_log_entry(LogEntry* entry) {
   } else {
     format_buffer_.clear();
 
-    auto header =
+    const auto header =
         reinterpret_cast<const SerializedArgsHeader*>(entry->payload());
 
-    std::size_t size = header->deserialize_and_format_func(
+    // NOLINTNEXTLINE
+    if (!header->deserialize_and_format_func || !header->format_func)
+        [[unlikely]] {
+      return;
+    }
+
+    const std::size_t size = header->deserialize_and_format_func(
         &format_buffer_, header->format_func,
         entry->payload() + sizeof(*header));
 
