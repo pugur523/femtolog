@@ -109,14 +109,14 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
 
  private:
   template <LogLevel level>
-  inline void log_literal(const std::string_view& message) {
+  inline constexpr void log_literal(const std::string_view& message) {
     const std::size_t payload_len = message.size();
     if (payload_len >= kMaxPayloadSize) [[unlikely]] {
       dropped_count_++;
       return;
     }
 
-    LogEntry* entry =
+    const LogEntry* entry =
         LogEntry::create(entry_buffer_, thread_id_, kLiteralLogStringId, level,
                          0, message.data(), message.length());
 
@@ -124,7 +124,7 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
   }
 
   template <LogLevel level, std::size_t Capacity>
-  inline void log_serialized(uint16_t format_id,
+  inline constexpr void log_serialized(uint16_t format_id,
                              const SerializedArgs<Capacity>& serialized) {
     // NOLINTNEXTLINE
     if (serialized.size() >= kMaxPayloadSize || serialized.size() == 0)
@@ -133,7 +133,7 @@ class FEMTOLOG_LOGGING_EXPORT InternalLogger {
       return;
     }
 
-    LogEntry* entry =
+    const LogEntry* entry =
         LogEntry::create(entry_buffer_, thread_id_, format_id, level, 0,
                          serialized.data(), serialized.size());
 
