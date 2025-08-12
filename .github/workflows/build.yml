@@ -60,7 +60,7 @@ jobs:
             target_platform: mingw
             cc: x86_64-w64-mingw32-clang
             cxx: x86_64-w64-mingw32-clang++
-            llvm_mingw_tag: "202500709"
+            llvm_mingw_tag: "20250709"
 
     runs-on: ${{ matrix.os }}
 
@@ -147,8 +147,7 @@ jobs:
                 #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
                 # done
               elif [ "${{ matrix.target_platform }}" = "mingw" ]; then
-                sudo apt-get -qq install --no-install-recommends nsis wine
-                source ./src/build/scripts/install_llvm_mingw.sh ${{ matrix.llvm_mingw_tag }}
+                source ./src/build/scripts/install_llvm_mingw.sh "${{ matrix.llvm_mingw_tag }}"
                 echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
               fi
               ;;
@@ -206,4 +205,3 @@ jobs:
         run: |
           [ -d "./artifacts" ] && (tree ./artifacts || ls -la ./artifacts) || echo "No artifacts found"
           python .github/workflows/scripts/summarize.py artifacts >> $GITHUB_STEP_SUMMARY
-
