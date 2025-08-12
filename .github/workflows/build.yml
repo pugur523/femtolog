@@ -80,15 +80,13 @@ jobs:
         run: uv sync
         shell: bash
 
-      - name: Cache LLVM
+      - name: Cache LLVM (Windows)
         id: cache-llvm
-        if: matrix.os != 'ubuntu-latest'
+        if: matrix.os == 'windows-latest'
         uses: actions/cache@v4
         with:
           path: |
-            ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM/' || '' }}
-            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/llvm/' || '' }}
-            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/lld/' || '' }}
+            'C:/Program Files/LLVM/'
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
 
       - name: Cache LLVM MinGW
@@ -100,16 +98,11 @@ jobs:
             /opt/llvm-mingw-*/
           key: llvm-mingw-${{ matrix.llvm_mingw_tag }}
 
-
       - name: Install LLVM (Windows)
         if: matrix.os == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
         uses: KyleMayes/install-llvm-action@v2.0.7
         with:
           version: ${{ matrix.llvm_version }}
-
-      - name: Install LLVM (macOS)
-        if: matrix.os == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
-        run: brew install llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
 
       - name: Install CMake (Windows)
         if: matrix.os == 'windows-latest'
@@ -156,6 +149,7 @@ jobs:
               ;;
             macos-latest)
               brew update
+              brew install --quiet llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
               brew install --quiet nasm cmake
               echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
