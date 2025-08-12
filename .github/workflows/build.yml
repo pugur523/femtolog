@@ -86,7 +86,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            'C:\Program Files\LLVM'
+            C:\Program Files\LLVM
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
 
       - name: Cache LLVM MinGW
@@ -97,6 +97,16 @@ jobs:
           path: |
             /opt/llvm-mingw-*/
           key: llvm-mingw-${{ matrix.llvm_mingw_tag }}
+          
+      - name: Cache CMake build tree
+        id: cache-cmake
+        uses: actions/cache@v4
+        with:
+          path: |
+            out/build/
+          key: cmake-build-${{ matrix.os }}-${{ matrix.target_platform }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('**/.clang-tidy') }}
+          restore-keys: |
+            cmake-build-${{ matrix.os }}-${{ matrix.target_platform }}-
 
       - name: Install LLVM (Windows)
         if: matrix.os == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
