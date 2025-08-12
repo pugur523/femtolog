@@ -97,7 +97,7 @@ jobs:
           path: |
             /opt/llvm-mingw-*/
           key: llvm-mingw-${{ matrix.llvm_mingw_tag }}
-          
+
       - name: Cache CMake build tree
         id: cache-cmake
         uses: actions/cache@v4
