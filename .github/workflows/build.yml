@@ -87,7 +87,8 @@ jobs:
         with:
           path: |
             ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM' || '' }}
-            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/opt/llvm' || '' }}
+            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/llvm' || '' }}
+            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/lld' || '' }}
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
 
       - name: Install LLVM (Windows)
@@ -98,7 +99,7 @@ jobs:
 
       - name: Install LLVM (macOS)
         if: matrix.os == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
-        run: brew install llvm@${{ matrix.llvm_version }}
+        run: brew install llvm@${{ matrix.llvm_version }} lld@{{ matrix.llvm_version }}
 
       - name: Install CMake (Windows)
         if: matrix.os == 'windows-latest'
@@ -124,18 +125,18 @@ jobs:
               sudo ./cmake-installer.sh --skip-license --prefix=/usr/local
               rm cmake-installer.sh
 
-              # Install LLVM
-              # use latest llvm tools
-              wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
-              # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
+              if [ "${{ matrix.target_platform }}" = "linux" ]; then
+                # Install LLVM
+                # use latest llvm tools
+                wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh all && rm ./llvm.sh
+                # wget -qOllvm.sh https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{ matrix.llvm_version }} all && rm ./llvm.sh
 
-              # Setup alternatives
-              # TODO: restore these 3 lines when we switch to older LLVM tools
-              # for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
-              #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
-              # done
-
-              if [ "${{ matrix.target_platform }}" = "mingw" ]; then
+                # Setup alternatives
+                # TODO: restore these 3 lines when we switch to older LLVM tools
+                # for tool in clang clang++ clang-tidy clang-format llvm-ar llvm-ranlib llvm-nm llvm-objcopy llvm-objdump llvm-strip FileCheck; do
+                #   sudo update-alternatives --install /usr/bin/$tool $tool /usr/bin/$tool-${{ matrix.llvm_version }} 100
+                # done
+              elif [ "${{ matrix.target_platform }}" = "mingw" ]; then
                 sudo apt-get -qq install --no-install-recommends nsis wine
                 source ./src/build/scripts/install_llvm_mingw.sh
                 echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
@@ -146,7 +147,7 @@ jobs:
               ;;
             macos-latest)
               brew update
-              brew install --quiet nasm cmake lld@${{ matrix.llvm_version }}
+              brew install --quiet nasm cmake
               echo "$(brew --prefix llvm@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               echo "$(brew --prefix lld@${{ matrix.llvm_version }})/bin" >> $GITHUB_PATH
               ;;
