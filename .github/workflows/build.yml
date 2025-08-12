@@ -99,7 +99,7 @@ jobs:
 
       - name: Install LLVM (macOS)
         if: matrix.os == 'macos-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
-        run: brew install llvm@${{ matrix.llvm_version }} lld@{{ matrix.llvm_version }}
+        run: brew install llvm@${{ matrix.llvm_version }} lld@${{ matrix.llvm_version }}
 
       - name: Install CMake (Windows)
         if: matrix.os == 'windows-latest'
