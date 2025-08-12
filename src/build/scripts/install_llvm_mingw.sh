@@ -8,7 +8,14 @@
 
 scripts_dir=$(cd "$(dirname "$0")" && pwd)
 
-tag="20250709"
+default_tag="20250709"
+
+tag=$1
+
+if [ -z "$tag" ]; then
+  tag=$(default_tag)
+fi
+
 main_name="llvm-mingw-${tag}-ucrt-ubuntu-22.04-x86_64"
 archive_name="${main_name}.tar.xz"
 url="https://github.com/mstorsjo/llvm-mingw/releases/download/${tag}/${archive_name}"

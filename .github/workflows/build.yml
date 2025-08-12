@@ -60,7 +60,7 @@ jobs:
             target_platform: mingw
             cc: x86_64-w64-mingw32-clang
             cxx: x86_64-w64-mingw32-clang++
-            llvm_version: "20"
+            llvm_mingw_tag: "202500709"
 
     runs-on: ${{ matrix.os }}
 
@@ -86,10 +86,20 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM' || '' }}
-            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/llvm' || '' }}
-            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/lld' || '' }}
+            ${{ matrix.os == 'windows-latest' && 'C:/Program Files/LLVM/' || '' }}
+            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/llvm/' || '' }}
+            ${{ matrix.os == 'macos-latest' && '/opt/homebrew/Celler/lld/' || '' }}
           key: llvm-${{ matrix.os }}-${{ matrix.llvm_version }}
+
+      - name: Cache LLVM
+        id: cache-llvm
+        if: matrix.target_platform == 'mingw'
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/llvm-mingw-*/
+          key: llvm-mingw-${{ matrix.llvm_mingw_tag }}
+
 
       - name: Install LLVM (Windows)
         if: matrix.os == 'windows-latest' && steps.cache-llvm.outputs.cache-hit != 'true'
@@ -138,7 +148,7 @@ jobs:
                 # done
               elif [ "${{ matrix.target_platform }}" = "mingw" ]; then
                 sudo apt-get -qq install --no-install-recommends nsis wine
-                source ./src/build/scripts/install_llvm_mingw.sh
+                source ./src/build/scripts/install_llvm_mingw.sh ${{ matrix.llvm_mingw_tag }}
                 echo "LLVM_MINGW_DIR=${LLVM_MINGW_DIR}" >> $GITHUB_ENV
               fi
               ;;
