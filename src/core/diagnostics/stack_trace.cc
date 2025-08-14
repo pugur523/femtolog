@@ -298,8 +298,8 @@ std::size_t collect_stack_trace(StackTraceEntry out[kPlatformMaxFrames],
 
     char* function_cursor = entry.function.data();
     char* file_cursor = entry.file.data();
-    write_raw(function_cursor, function_name, kFunctionStrLength);
-    write_raw(file_cursor, file_name, kFileStrLength);
+    write_raw(function_cursor, function_name, safe_strlen(function_name));
+    write_raw(file_cursor, file_name, safe_strlen(file_name));
 
     collected_count++;
   }
