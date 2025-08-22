@@ -129,8 +129,8 @@ class ArgsSerializer {
   ArgsSerializer(const ArgsSerializer&) = delete;
   ArgsSerializer& operator=(const ArgsSerializer&) = delete;
 
-  ArgsSerializer(ArgsSerializer&&) = default;
-  ArgsSerializer& operator=(ArgsSerializer&&) = default;
+  ArgsSerializer(ArgsSerializer&&) noexcept = default;
+  ArgsSerializer& operator=(ArgsSerializer&&) noexcept = default;
 
   inline const SerializedArgs<kCapacity>& args() const { return args_; }
   inline SerializedArgs<kCapacity>& args() { return args_; }
